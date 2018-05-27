@@ -1,0 +1,40 @@
+Primitive Types:
+  int32 - 32-bit signed integer
+  int64 - 64-bit signed integer
+  uint32 - 32-bit unsigned integer
+  uint64 - 64-bit unsigned integer
+  char - character
+  double - 64-bit floating-point number
+  bool  - 1-byte boolean
+  string - string of characters
+
+Other Data Structures
+  array:
+    <type>[size] name
+  class:
+    class Example {
+      //instance fields, methods
+    }
+
+Arithmetic Operators (in order of precedence)
+
+  x++ x-- func() arr[] . ++x --x +x -x ! ~ (cast)
+  **
+  * / %
+  + -
+  << >>
+  < <= > >=
+  == !=
+  &
+  ^
+  |
+  and
+  xor
+  or
+  ?:
+  = += -= *= **= /= &= ^= |= <<= >>=
+  ,
+  
+
+  
+
