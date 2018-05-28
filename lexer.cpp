@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdint>
 #include <cctype>
+#include <vector>
 #include "lexer.h"
 
 using namespace std;
@@ -10,15 +11,15 @@ const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "else", "break",
                                "switch", "case", "class", "fun", "int8",
                               "int16", "int32", "int64", "uint8", "uint16",
                               "uint32", "uint64", "char", "double", "bool",
-                              "string"};
+                              "string", "true", "false"};
 
 TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELSE, BREAK,
                                     SWITCH, CASE, CLASS, FUN, INT8,
                                     INT16, INT32, INT64, UINT8, UINT16,
                                     UINT32, UINT64, CHAR, DOUBLE, BOOL,
-                                    STRING };
+                                    STRING, TRUE, FALSE };
 
-const uint8_t NUM_RESERVED_WORDS =  22;
+const uint8_t NUM_RESERVED_WORDS =  24;
 
 
 //determines whether the token is a type keyword
@@ -29,15 +30,87 @@ bool isTypeToken(TokenType token_type) {
          token_type == STRING;
 }
 
-//Token full constructor
-Token::Token(TokenType typ, uint32_t lin, char* lex, TokenValue val) {
-  type = typ; line = lin; lexeme = lex; value = val;
+//prints string representation of TokenType enum
+void printTokenType(TokenType tokenType) {
+ 
+  switch(tokenType) {
+
+    case INC: cout << "INC" << endl; break;
+    case DEC: cout << "DEC" << endl; break;
+    case LEFT_PAREN: cout << "LEFT_PAREN" << endl; break;
+    case RIGHT_PAREN: cout << "RIGHT_PAREN" << endl; break;
+    case LEFT_BRACKET: cout << "LEFT_BRACKET" << endl; break;
+    case RIGHT_BRACKET: cout << "RIGHT_BRACKET" << endl; break;
+    case LEFT_BRACE: cout << "LEFT_BRACE" << endl; break;
+    case RIGHT_BRACE: cout << "RIGHT_BRACE" << endl; break;
+    case PERIOD: cout << "PERIOD" << endl; break;
+    case ADD: cout << "ADD" << endl; break;
+    case SUBTRACT: cout << "SUBTRACT" << endl; break;
+    case NOT: cout << "NOT" << endl; break;
+    case BIT_NOT: cout << "BIT_NOT" << endl; break;
+    case EXPONENT: cout << "EXPONENT" << endl; break;
+    case MULTIPLY: cout << "MULTIPLY" << endl; break;
+    case DIVIDE: cout << "DIVIDE" << endl; break;
+    case MOD: cout << "MOD" << endl; break;
+    case BIT_LEFT: cout << "BIT_LEFT" << endl; break;
+    case BIT_RIGHT: cout << "BIT_RIGHT" << endl; break;
+    case GREATER: cout << "GREATER" << endl; break;
+    case LESS: cout << "LESS" << endl; break;
+    case GREATER_EQ: cout << "GREATER_EQ" << endl; break;
+    case LESS_EQ: cout << "LESS_EQ" << endl; break;
+    case EQ_EQ: cout << "EQ_EQ" << endl; break;
+    case NOT_EQ: cout << "NOT_EQ" << endl; break;
+    case BIT_AND: cout << "BIT_AND" << endl; break;
+    case BIT_XOR: cout << "BIT_XOR" << endl; break;
+    case BIT_OR: cout << "BIT_OR" << endl; break;
+    case AND: cout << "AND" << endl; break;
+    case XOR: cout << "XOR" << endl; break;
+    case OR: cout << "OR" << endl; break;
+    case QUESTION: cout << "QUESTION" << endl; break;
+    case COLON: cout << "COLON" << endl; break;
+    case EQ: cout << "EQ" << endl; break;
+    case ADD_EQ: cout << "ADD_EQ" << endl; break;
+    case SUBTRACT_EQ: cout << "SUBTRACT_EQ" << endl; break;
+    case EXPONENT_EQ: cout << "EXPONENT_EQ" << endl; break;
+    case MULTIPLY_EQ: cout << "MULTIPLY_EQ" << endl; break;
+    case DIVIDE_EQ: cout << "DIVIDE_EQ" << endl; break;
+    case MOD_EQ: cout << "MOD_EQ" << endl; break;
+    case AND_EQ: cout << "AND_EQ" << endl; break;
+    case XOR_EQ: cout << "XOR_EQ" << endl; break;
+    case OR_EQ: cout << "OR_EQ" << endl; break;
+    case BIT_LEFT_EQ: cout << "BIT_LEFT_EQ" << endl; break;
+    case BIT_RIGHT_EQ: cout << "BIT_RIGHT_EQ" << endl; break;
+    case COMMA: cout << "COMMA" << endl; break;
+    case SEMICOLON: cout << "SEMICOLON" << endl; break;
+    case INT8: cout << "INT8" << endl; break;
+    case INT16: cout << "INT16" << endl; break;
+    case INT32: cout << "INT32" << endl; break;
+    case INT64: cout << "INT64" << endl; break;
+    case UINT8: cout << "UINT8" << endl; break;
+    case UINT16: cout << "UINT16" << endl; break;
+    case UINT32: cout << "UINT32" << endl; break;
+    case UINT64: cout << "UINT64" << endl; break;
+    case CHAR: cout << "CHAR" << endl; break;
+    case DOUBLE: cout << "DOUBLE" << endl; break;
+    case BOOL: cout << "BOOL" << endl; break;
+    case STRING: cout << "STRING" << endl; break;
+    case VARIABLE: cout << "VARIABLE" << endl; break;
+    case FOR: cout << "FOR" << endl; break;
+    case WHILE: cout << "WHILE" << endl; break;
+    case DO: cout << "DO" << endl; break;
+    case IF: cout << "IF" << endl; break;
+    case ELSE: cout << "ELSE" << endl; break;
+    case BREAK: cout << "BREAK" << endl; break;
+    case SWITCH: cout << "SWITCH" << endl; break;
+    case CASE: cout << "CASE" << endl; break;
+    case CLASS: cout << "CLASS" << endl; break;
+    case FUN: cout << "FUN" << endl; break;
+    case TRUE: cout << "TRUE" << endl; break;
+    case FALSE: cout << "FALSE" << endl; break;
+    default: cout << "INVALID ENTRY FOUND!" << endl; break;
+  } 
 }
 
-//Token constructor for tokens without "value" 
-Token::Token(TokenType typ, uint32_t lin, char* lex) {
-  type = typ; line = lin; lexeme = lex;
-}
 
 //Convert string to uint64_t
 uint64_t stringToInt(char* str, uint32_t start, uint32_t end) {
@@ -96,8 +169,8 @@ vector<Token> lex(char* code) {
   uint32_t index = 0;
   uint32_t line = 1;  
 
-  while(code[index]) {
-  
+  while(code[index] != 0) {
+
     //first parse fixed-size tokens
     switch(code[index]) {
   
@@ -345,7 +418,10 @@ vector<Token> lex(char* code) {
       }
 
       case '&': {
-        if(code[index+1] == '=') {
+        if(code[index+1] == '&') {
+          tokens.push_back(Token(AND, line, (char*) "&&"));
+          index += 2;
+        } else if(code[index+1] == '=') {
           tokens.push_back(Token(AND_EQ, line, (char*) "&="));
           index += 2;
         } else {
@@ -356,7 +432,10 @@ vector<Token> lex(char* code) {
       } 
 
       case '^': {
-        if(code[index+1] == '=') {
+        if(code[index+1] == '^') {
+          tokens.push_back(Token(XOR, line, (char*) "^^"));
+          index += 2;
+        } else if(code[index+1] == '=') {
           tokens.push_back(Token(XOR_EQ, line, (char*) "^="));
           index += 2;
         } else {
@@ -367,7 +446,10 @@ vector<Token> lex(char* code) {
       } 
 
       case '|': {
-        if(code[index+1] == '=') {
+        if(code[index+1] == '|') {
+          tokens.push_back(Token(OR, line, (char*) "||"));
+          index += 2;
+        } else if(code[index+1] == '=') {
           tokens.push_back(Token(OR_EQ, line, (char*) "|="));
           index += 2;
         } else {
@@ -380,9 +462,9 @@ vector<Token> lex(char* code) {
 
     //if it's in quotes, it's a String
     if(code[index] == '"') {
-    
+
       uint32_t currentIndex = index+1;
-      while(currentIndex != '"') {
+      while(code[currentIndex] != '"') {
         if(currentIndex == '\n')
           line++;
         currentIndex++;
@@ -398,11 +480,12 @@ vector<Token> lex(char* code) {
       index = currentIndex+1;
 
     } else if(isdigit(code[index]) || code[index] == '.') {
-  
+ 
       //parse integers
       uint32_t decimalCount = 0;
       uint32_t currentIndex = index;
-      while(isdigit(code[currentIndex] || code[currentIndex] == '.' || code[currentIndex] == '_')) {
+    
+      while(isdigit(code[currentIndex]) || code[currentIndex] == '.' || code[currentIndex] == '_') {
 
         if(code[currentIndex] == '.') {
           if(decimalCount > 0) {
@@ -416,7 +499,7 @@ vector<Token> lex(char* code) {
 
       //make sure this token actually ends here
       if(isEndOfToken(code[currentIndex])) {
-      
+
         //Copy numerical value to add to Token
         char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index+1));
         strncpy(lexeme, code+index, currentIndex-index); 
@@ -448,11 +531,13 @@ vector<Token> lex(char* code) {
       lexeme[currentIndex-index] = 0;
 
       //determine if keyword, if not then identifier
-      uint32_t len = currentIndex-index;
+      size_t len = currentIndex-index;
       bool isReserved = false;
 
       for(uint8_t i = 0; i < NUM_RESERVED_WORDS; i++) {
-        if(strncmp(lexeme, RESERVED_WORDS[i], len)) {
+
+        const char* keyword = RESERVED_WORDS[i];
+        if(strncmp(lexeme, keyword, max(len, strlen(keyword))) == 0) {
           isReserved = true;
           tokens.push_back(Token(RESERVED_WORD_TOKENS[i], line, lexeme));                    
         }

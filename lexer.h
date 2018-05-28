@@ -37,8 +37,24 @@ enum TokenType {
 
   //Reserved Words
   FOR, WHILE, DO, IF, ELSE, BREAK, SWITCH, CASE,
-  CLASS, FUN
+  CLASS, FUN,
+
+  TRUE, FALSE,
 };
+
+//returns whether Token is a type keyword
+bool isTypeToken(TokenType token_type);
+
+//prints string representation of TokenType enum
+void printTokenType(TokenType type);
+
+//returns whether char represents a single-char Token
+bool isSingleCharToken(char c);
+
+//returns whether we have reached the end of the Token
+bool isEndOfToken(char c);
+
+
 
 //union that holds numerical value or pointer to string or object
 union TokenValue {
@@ -55,19 +71,21 @@ class Token {
     char* lexeme;
     TokenValue value;
 
-    Token(TokenType type, uint32_t line, char* lexeme, TokenValue value);
-    Token(TokenType type, uint32_t line, char* lexeme);
+    //Token full constructor
+    Token(TokenType typ, uint32_t lin, char* lex, TokenValue val) {
+      type = typ; line = lin; lexeme = lex; value = val;
+    }
+
+    //Token constructor for tokens without "value" 
+    Token(TokenType typ, uint32_t lin, char* lex) {
+      type = typ; line = lin; lexeme = lex;
+    }
+
+    void printToken() {
+      printTokenType(type);
+    }
 };
 
-
-//returns whether Token is a type keyword
-bool isTypeToken(TokenType token_type);
-
-//returns whether char represents a single-char Token
-bool isSingleCharToken(char c);
-
-//returns whether we have reached the end of the Token
-bool isEndOfToken(char c);
 
 //lexer error reporting
 void lexError(const char* message);
