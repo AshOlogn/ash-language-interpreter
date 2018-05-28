@@ -290,7 +290,6 @@ vector<Token> lex(char* code) {
         break;
       }
 
-
       case '*': {
   
         if(code[index+1] == '*') {
@@ -315,8 +314,35 @@ vector<Token> lex(char* code) {
       }
 
       case '/': {
+ 
+        if(code[index+1] == '/') {
+
+          //comment out code until end of line
+          while(code[index] != '\n' && code[index] != 0) {
+            index++;
+          }
+
+          if(code[index] != 0)
+            index++;
+
+        } else if(code[index+1] == '*') {
   
-        if(code[index+1] == '=') {
+          uint32_t depth = 1;
+          index += 2;
+          
+          while(depth > 0) {
+            if(code[index] == '*' && code[index+1] == '/') {
+              depth--;
+              index += 2;
+            } else if(code[index] == '/' && code[index+1] == '*') {
+              depth++;
+              index += 2;
+            } else {
+              index++;
+            }
+          }   
+        
+        } else if(code[index+1] == '=') {
           
           tokens.push_back(Token(DIVIDE_EQ, line, (char*) "/="));
           index += 2;
@@ -465,8 +491,10 @@ vector<Token> lex(char* code) {
 
       uint32_t currentIndex = index+1;
       while(code[currentIndex] != '"') {
-        if(currentIndex == '\n')
+
+        if(code[currentIndex] == '\n')
           line++;
+
         currentIndex++;
       }
       
@@ -556,7 +584,6 @@ vector<Token> lex(char* code) {
         line++;
       index++;
     }
-
   }
 
 
