@@ -22,10 +22,10 @@ int main(int argc, char** argv) {
   in.close();
 
   //generate array of Tokens from source code 
-  vector<Token> tokens = lex(sourceCode);  
+  vector<Token*> tokens = lex(sourceCode);  
 
-  for(Token t : tokens) {
-    t.printToken();
+  for(Token* t : tokens) {
+    cout << toStringTokenType(t->type) << endl;
   }
   
 }
