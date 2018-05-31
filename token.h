@@ -39,7 +39,10 @@ enum TokenType {
   FOR, WHILE, DO, IF, ELSE, BREAK, SWITCH, CASE,
   CLASS, FUN,
 
-  TRUE, FALSE
+  TRUE, FALSE,
+
+  //end of program, invalid Token
+  END, INVALID
 };
 
 //prints string representation of TokenType enum
@@ -51,23 +54,26 @@ bool isSingleCharToken(char c);
 //returns whether we have reached the end of the Token
 bool isEndOfToken(char c);
 
+//returns a keyword token if input string matches one, INVALID otherwise
+TokenType varOrKeywordTokenType(char* input);
+
 //////////////Semantic information functions/////////////////////////
 
-//returns whether Token is a type keyword
-bool isTypeToken(TokenType tt);
+//returns whether TokenType is a type keyword
+bool isTypeTokenType(TokenType tt);
 
-//returns whether Token is an operator
-bool isOperatorToken(TokenType tt);
+//returns whether TokenType is an operator
+bool isOperatorTokenType(TokenType tt);
 
-//returns whether Token is a unary/binary operator
-bool isUnaryOperatorToken(TokenType tt);
-bool isBinaryOperatorToken(TokenType tt);
+//returns whether TokenType is a unary/binary operator
+bool isUnaryOperatorTokenType(TokenType tt);
+bool isBinaryOperatorTokenType(TokenType tt);
 
 //returns whether Token is a comparator
-bool isComparatorToken(TokenType tt);
+bool isComparatorTokenType(TokenType tt);
 
 //return whether a Token is assignment operator
-bool isAssignmentOperatorToken(TokenType tt);
+bool isAssignmentOperatorTokenType(TokenType tt);
 
 //////////////////////////////////////////////////////////////////////
 

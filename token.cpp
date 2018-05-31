@@ -1,6 +1,23 @@
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <cstdint>
-#include <iostream>
+#include <algorithm>
 #include "token.h"
+
+static const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "else", "break",
+                               "switch", "case", "class", "fun", "int8",
+                              "int16", "int32", "int64", "uint8", "uint16",
+                              "uint32", "uint64", "char", "double", "bool",
+                              "string", "true", "false"};
+
+static const TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELSE, BREAK,
+                                    SWITCH, CASE, CLASS, FUN, INT8,
+                                    INT16, INT32, INT64, UINT8, UINT16,
+                                    UINT32, UINT64, CHAR, DOUBLE, BOOL,
+                                    STRING, TRUE, FALSE };
+
+static const uint8_t NUM_RESERVED_WORDS = 24;
 
 //Token class constructors
 //full "constructor"
@@ -104,6 +121,23 @@ const char* toStringTokenType(TokenType tokenType) {
   }  
 }
 
+
+//returns a keyword token if input string matches one, VARIABLE otherwise
+TokenType varOrKeywordTokenType(char* lexeme) {
+
+  //determine if keyword, if not then identifier
+  std::size_t len = strlen(lexeme);
+
+  for(uint8_t i = 0; i < NUM_RESERVED_WORDS; i++) {
+    const char* keyword = RESERVED_WORDS[i];
+    if(strncmp(lexeme, keyword, std::max(len, strlen(keyword))) == 0) {
+      return RESERVED_WORD_TOKENS[i];
+    }
+  }
+
+  return VARIABLE;
+}
+
 //Returns whether character represents single-character Token
 bool isSingleCharToken(char c) {  
   
@@ -123,7 +157,8 @@ bool isEndOfToken(char c) {
 //////////////Semantic information functions/////////////////////////
 
 //determines whether the token is a type keyword
-bool isTypeToken(TokenType tt) { 
+
+bool isTypeTokenType(TokenType tt) { 
   return tt == INT8 || tt == INT16 || tt == INT32 || 
          tt == INT64 || tt == UINT8 || tt == UINT16 || 
          tt == UINT32 || tt == UINT64 || tt == CHAR ||
@@ -132,7 +167,8 @@ bool isTypeToken(TokenType tt) {
 }
 
 //returns whether Token is an operator
-bool isOperatorToken(TokenType tt) {
+bool isOperatorTokenType(TokenType tt) {
+
   return tt == INC || tt == DEC || tt == LEFT_PAREN ||
          tt == RIGHT_PAREN || tt == LEFT_BRACKET || 
          tt == RIGHT_BRACKET || tt == LEFT_BRACE || 
@@ -147,7 +183,7 @@ bool isOperatorToken(TokenType tt) {
         tt == EQ_EQ || tt == NOT_EQ ||
 
         tt == BIT_AND || tt == BIT_XOR || tt == BIT_OR ||  
-        tt == AND || tt == XOR || tt == OR,
+        tt == AND || tt == XOR || tt == OR ||
         
         tt == EQ || tt == ADD_EQ || tt == SUBTRACT_EQ || tt == EXPONENT_EQ || 
         tt == MULTIPLY_EQ || tt == DIVIDE_EQ || tt == MOD_EQ || tt == AND_EQ || 
@@ -155,13 +191,14 @@ bool isOperatorToken(TokenType tt) {
 }
 
 //returns whether Token is a unary/binary operator
-bool isUnaryOperatorToken(TokenType tt) {
+bool isUnaryOperatorTokenType(TokenType tt) {
+
   return tt == INC || tt == DEC || 
          tt == ADD || tt == SUBTRACT || 
          tt == NOT || tt == BIT_NOT;
 }
 
-bool isBinaryOperatorToken(TokenType tt) {
+bool isBinaryOperatorTokenType(TokenType tt) {
   return tt == ADD || tt == SUBTRACT ||
 
         tt == EXPONENT ||
@@ -173,18 +210,17 @@ bool isBinaryOperatorToken(TokenType tt) {
 }
 
 //returns whether Token is a comparator
-bool isComparatorToken(TokenType tt) {
+bool isComparatorTokenType(TokenType tt) {
   return tt == GREATER || tt == LESS || 
          tt == GREATER_EQ || tt == LESS_EQ ||
          tt == EQ_EQ || tt == NOT_EQ;
 }
 
 //return whether a Token is assignment operator
-bool isAssignmentOperatorToken(TokenType tt) {
+bool isAssignmentOperatorTokenType(TokenType tt) {
   return tt == EQ || tt == ADD_EQ || tt == SUBTRACT_EQ || tt == EXPONENT_EQ || 
          tt == MULTIPLY_EQ || tt == DIVIDE_EQ || tt == MOD_EQ || tt == AND_EQ || 
          tt == XOR_EQ || tt == OR_EQ || tt == BIT_LEFT_EQ || tt == BIT_RIGHT_EQ; 
 }
-
 
 

@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <cstdint>
 #include <vector>
-#include <iostream>
 #include "token.h"
 
 //lexer error reporting

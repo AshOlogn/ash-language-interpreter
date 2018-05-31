@@ -3,24 +3,12 @@
 #include <cstdint>
 #include <cctype>
 #include <vector>
+
 #include "token.h"
 #include "lexer.h"
 
 using namespace std;
 
-const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "else", "break",
-                               "switch", "case", "class", "fun", "int8",
-                              "int16", "int32", "int64", "uint8", "uint16",
-                              "uint32", "uint64", "char", "double", "bool",
-                              "string", "true", "false"};
-
-TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELSE, BREAK,
-                                    SWITCH, CASE, CLASS, FUN, INT8,
-                                    INT16, INT32, INT64, UINT8, UINT16,
-                                    UINT32, UINT64, CHAR, DOUBLE, BOOL,
-                                    STRING, TRUE, FALSE };
-
-const uint8_t NUM_RESERVED_WORDS =  24;
 
 //Convert string to uint64_t
 uint64_t stringToInt(char* str, uint32_t start, uint32_t end) {
@@ -29,6 +17,7 @@ uint64_t stringToInt(char* str, uint32_t start, uint32_t end) {
   for(uint32_t i = start; i <= end; i++) {
     ans = ans*10 + (str[i] - '0');
   }  
+
   return ans;
 }
 
@@ -51,7 +40,7 @@ double stringToDouble(char* str, uint32_t start, uint32_t end) {
       whole = whole*10 + (str[i]-'0');      
     }
   }
-  
+
   return whole + decimal;
 }
 
@@ -99,8 +88,11 @@ vector<Token*> lex(char* code) {
       }  
 
       case '.': {
-        tokens.push_back(makeToken(PERIOD, line, (char*) "."));
-        index++; break;
+        if(!isdigit(code[index+1])) {
+          tokens.push_back(makeToken(PERIOD, line, (char*) "."));
+          index++; 
+        }
+        break;
       }
 
       case '?': {
@@ -453,21 +445,7 @@ vector<Token*> lex(char* code) {
       lexeme[currentIndex-index] = 0;
 
       //determine if keyword, if not then identifier
-      size_t len = currentIndex-index;
-      bool isReserved = false;
-
-      for(uint8_t i = 0; i < NUM_RESERVED_WORDS; i++) {
-
-        const char* keyword = RESERVED_WORDS[i];
-        if(strncmp(lexeme, keyword, max(len, strlen(keyword))) == 0) {
-          isReserved = true;
-          tokens.push_back(makeToken(RESERVED_WORD_TOKENS[i], line, lexeme));                    
-        }
-      }
-      
-      if(!isReserved) {
-        tokens.push_back(makeToken(VARIABLE, line, lexeme));
-      }
+      tokens.push_back(makeToken(varOrKeywordTokenType(lexeme), line, lexeme));
 
       index = currentIndex;
     }
