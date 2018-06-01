@@ -29,11 +29,38 @@ class UnaryOperatorNode : public AbstractOperatorNode {
     ParseData evaluate();
 };
 
-
 //class that represents binary operations
-class BinaryOperatorNode : public AbstractOperatorNode {
+class AbstractBinaryOperatorNode : public AbstractOperatorNode {
   public:
     AbstractExpressionNode* rightArg;
+    virtual ParseData evaluate() = 0;
+};
+
+//class that represents arithmetic
+class ArithmeticOperatorNode : public AbstractBinaryOperatorNode {
+  public:
+    ArithmeticOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
+    ParseData evaluate();
+};
+
+//class that represents bitwise and logical operations
+class BitLogicalOperatorNode : public AbstractBinaryOperatorNode {
+  public:
+    BitLogicalOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
+    ParseData evaluate();
+};
+
+//class that represents assignment
+class AssignmentOperatorNode : public AbstractBinaryOperatorNode {
+  public:
+    AssignmentOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
+    ParseData evaluate();
+};
+
+//class that represents comparison
+class ComparisonOperatorNode : public AbstractBinaryOperatorNode {
+  public:
+    ComparisonOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
     ParseData evaluate();
 };
 
@@ -46,6 +73,7 @@ class BinaryOperatorNode : public AbstractOperatorNode {
 class LiteralNode : public AbstractExpressionNode {
   public:
     ParseData data;
+    LiteralNode(ParseData d);
     ParseData evaluate();
 };
 
@@ -58,6 +86,7 @@ class LiteralNode : public AbstractExpressionNode {
 class GroupedExpressionNode : public AbstractExpressionNode {
   public:
     AbstractExpressionNode* closedExpression;
+    GroupedExpressionNode(AbstractExpressionNode* closedExp);
     ParseData evaluate();
 };
 

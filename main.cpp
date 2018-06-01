@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cctype>
 #include "lexer.h"
+#include "token.h"
 
 using namespace std;
 

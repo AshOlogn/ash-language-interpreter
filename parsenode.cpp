@@ -12,19 +12,53 @@ UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNod
 }
 
 ParseData UnaryOperatorNode::evaluate() {
-  
+  return evaluateUnaryExpression(this);
 }
 
-
-BinaryOperatorNode::BinaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
+//class that represents arithmetic
+ArithmeticOperatorNode::ArithmeticOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
   operation = op;
   leftArg = l;
   rightArg = r;
 }
 
-ParseData BinaryOperatorNode::evaluate() {
-  
+ParseData ArithmeticOperatorNode::evaluate() { 
+  return evaluateArithmeticExpression(this);
 }
+
+//class that represents bitwise and logical operations
+BitLogicalOperatorNode::BitLogicalOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
+  operation = op;
+  leftArg = l;
+  rightArg = r;
+}
+
+ParseData BitLogicalOperatorNode::evaluate() { 
+  return evaluateBitLogicalExpression(this);
+}
+
+//class that represents assignment
+AssignmentOperatorNode::AssignmentOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
+  operation = op;
+  leftArg = l;
+  rightArg = r; 
+}
+
+ParseData AssignmentOperatorNode::evaluate() { 
+  return evaluateAssignmentExpression(this);
+}
+
+//class that represents comparison
+ComparisonOperatorNode::ComparisonOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) { 
+  operation = op;
+  leftArg = l;
+  rightArg = r;
+}
+
+ParseData ComparisonOperatorNode::evaluate() { 
+  return evaluateComparisonExpression(this);
+}
+
 
 ///////////////////////////////////
 ///////      Literal        ///////
@@ -34,8 +68,8 @@ LiteralNode::LiteralNode(ParseData d) {
   data = d;
 }
 
-ParseData LiteralNode::evaluate() {
-  
+ParseData LiteralNode::evaluate() { 
+  return evaluateLiteralExpression(this);
 }
 
 
@@ -47,8 +81,8 @@ GroupedExpressionNode::GroupedExpressionNode(AbstractExpressionNode* exp) {
   closedExpression = exp;
 }
 
-ParseData GroupedExpressionNode::evaluate() {
-  
+ParseData GroupedExpressionNode::evaluate() { 
+  return evaluateGroupedExpression(this);
 }
 
 

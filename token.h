@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+
 //represents the different types of tokens generated from raw text input
 enum TokenType {
   

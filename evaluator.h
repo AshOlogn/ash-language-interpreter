@@ -4,13 +4,19 @@
 #include "token.h"
 #include "parsenode.h"
 
-//class that specifies which version of evaluate() 
-//to use for each expression class
+//evaluate expression appropriately depending on type of AbstractExpressionNode
+ParseData evaluateUnaryExpression(AbstractExpressionNode* node);
 
-class ExpressionEvaluator {
-  public:
-    ParseData evaluateExpression(AbstractExpressionNode* node);
-};
+ParseData evaluateArithmeticExpression(AbstractExpressionNode* node);
 
+ParseData evaluateBitLogicalExpression(AbstractExpressionNode* node);
+
+ParseData evaluateComparisonExpression(AbstractExpressionNode* node);
+
+ParseData evaluateAssignmentExpression(AbstractExpressionNode* node);
+
+ParseData evaluateLiteralExpression(AbstractExpressionNode* node);
+
+ParseData evaluateGroupedExpression(AbstractExpressionNode* node);
 
 #endif

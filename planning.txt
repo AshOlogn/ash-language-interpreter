@@ -18,7 +18,8 @@ Other Data Structures
 
 Arithmetic Operators (in order of precedence)
 
-  x++ x-- func() arr[] . ++x --x +x -x ! ~ (cast)
+  x++ x-- func() arr[] . 
+  ++x --x +x -x ! ~ (cast)
   **
   * / %
   + -
@@ -28,9 +29,9 @@ Arithmetic Operators (in order of precedence)
   &
   ^
   |
-  and
-  xor
-  or
+  &&
+  ^^
+  ||
   ?:
   = += -= *= **= /= &= ^= |= <<= >>=
   ,
