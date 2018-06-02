@@ -1,17 +1,32 @@
 #include <vector>
+#include <cstdint>
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
 
-//return Abstract Syntax Tree 
-AbstractExpressionNode* parse(vector<Token*>* tokens);
+/////////////////////////////////
+//////     Return Tree     //////
+/////////////////////////////////
+
+AbstractExpressionNode* parse(vector<Token>* tokens);
+
+/////////////////////////////////
+//////    Access Tokens     /////
+/////////////////////////////////
+
+//consume a Token in the list (increment index)
+void consume();
+
+//examine the current Token, don't advance position
+Token* peek();
+
+//examine a Token at given index
+Token* peek(uint32_t inputIndex);
+
 
 /////////////////////////////////
 //////    Subroutines     ///////
 /////////////////////////////////
-
-//consume a token in the list (increment index)
-void consume();
 
 // variable, number, string, etc.
 AbstractExpressionNode* evalLiteralGroup();

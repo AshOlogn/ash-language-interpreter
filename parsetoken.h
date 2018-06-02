@@ -3,6 +3,11 @@
 
 #include "token.h"
 
+
+////////////////////////////////////
+///////      Structures      ///////
+////////////////////////////////////
+
 //represents data type
 enum ParseDataType {
   INT8_T, INT16_T, INT32_T, INT64_T,
@@ -46,6 +51,9 @@ struct ParseData {
   Data value;
 };
 
+////////////////////////////////////
+///////        Convert       ///////
+////////////////////////////////////
 
 //returns corresponding ParseDataType enum from type TokenType enum
 ParseDataType typeTokenConversion(TokenType tt);

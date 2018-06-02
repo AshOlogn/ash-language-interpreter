@@ -3,6 +3,10 @@
 
 #include "parsetoken.h"
 
+///////////////////////////////////
+///////     Superclass      ///////
+///////////////////////////////////
+
 //abstract class that represents node in AST
 class AbstractExpressionNode {
   public:

@@ -46,9 +46,10 @@ double stringToDouble(char* str, uint32_t start, uint32_t end) {
 
 
 //Lexes source code into array of Tokens
-vector<Token*> lex(char* code) {
+vector<Token> lex(char* code) {
 
-  vector<Token*> tokens;
+  vector<Token> tokens;
+
   uint32_t index = 0;
   uint32_t line = 1;  
 

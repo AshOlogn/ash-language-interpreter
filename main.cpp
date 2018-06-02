@@ -23,10 +23,20 @@ int main(int argc, char** argv) {
   in.close();
 
   //generate array of Tokens from source code 
-  vector<Token*> tokens = lex(sourceCode);  
+  vector<Token> tokens = lex(sourceCode);  
+  vector<Token>::iterator it;
 
-  for(Token* t : tokens) {
-    cout << toStringTokenType(t->type) << endl;
+  vector<Token>* t = &tokens;
+  int i = 0;
+  while(i < t->size()) {
+    Token* tRef = (Token*) &(t->at(i++));
+    cout << toStringTokenType(tRef->type) << endl;
   }
+
+  /*for(it = tokens.begin(); it != tokens.end(); it++) {
+    cout << toStringTokenType(it->type) << endl;
+  }*/
+
+  
   
 }

@@ -21,21 +21,21 @@ static const uint8_t NUM_RESERVED_WORDS = 24;
 
 //Token class constructors
 //full "constructor"
-Token* makeToken(TokenType typ, uint32_t lin, char* lex, Data val) {
-  Token* tokenPtr = (Token*) malloc(sizeof(Token));
-  tokenPtr->type = typ;
-  tokenPtr->line = lin;
-  tokenPtr->lexeme = lex;
-  tokenPtr->value = val;
+Token makeToken(TokenType typ, uint32_t lin, char* lex, Data val) {
+  Token tokenPtr;
+  tokenPtr.type = typ;
+  tokenPtr.line = lin;
+  tokenPtr.lexeme = lex;
+  tokenPtr.value = val;
   return tokenPtr;
 }
 
 //"constructor" for tokens without literal value
-Token* makeToken(TokenType typ, uint32_t lin, char* lex) {
-  Token* tokenPtr = (Token*) malloc(sizeof(Token));
-  tokenPtr->type = typ;
-  tokenPtr->line = lin;
-  tokenPtr->lexeme = lex;
+Token makeToken(TokenType typ, uint32_t lin, char* lex) {
+  Token tokenPtr;
+  tokenPtr.type = typ;
+  tokenPtr.line = lin;
+  tokenPtr.lexeme = lex;
   return tokenPtr;
 }
 
@@ -209,14 +209,34 @@ bool isBinaryOperatorTokenType(TokenType tt) {
         tt == AND || tt == XOR || tt == OR;
 }
 
-//returns whether Token is a comparator
-bool isComparatorTokenType(TokenType tt) {
-  return tt == GREATER || tt == LESS || 
-         tt == GREATER_EQ || tt == LESS_EQ ||
-         tt == EQ_EQ || tt == NOT_EQ;
+
+//returns whether TokenType is exponent
+bool isExponentTokenType(TokenType tt) {
+  return tt == EXPONENT;
 }
 
-//return whether a Token is assignment operator
+//returns whether TokenType is multiply, divide, or mod
+bool isMultiplyDivideModTokenType(TokenType tt) {
+  return tt == MULTIPLY || tt == DIVIDE || tt == MOD;
+}
+
+//returns whether TokenType is bit shift
+bool isBitShiftTokenType(TokenType tt) {
+  return tt == BIT_LEFT || tt == BIT_RIGHT; 
+}
+
+//returns whether TokenType is an inequality comparator
+bool isInequalityTokenType(TokenType tt) {
+  return tt == GREATER || tt == LESS || 
+         tt == GREATER_EQ || tt == LESS_EQ;
+}
+
+//returns whether TokenType is equality comparator
+bool isEqualityTokenType(TokenType tt) {
+  return tt == EQ_EQ || tt == NOT_EQ;
+}
+
+//return whether a TokenType is assignment operator
 bool isAssignmentOperatorTokenType(TokenType tt) {
   return tt == EQ || tt == ADD_EQ || tt == SUBTRACT_EQ || tt == EXPONENT_EQ || 
          tt == MULTIPLY_EQ || tt == DIVIDE_EQ || tt == MOD_EQ || tt == AND_EQ || 

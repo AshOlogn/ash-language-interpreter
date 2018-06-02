@@ -70,8 +70,20 @@ bool isOperatorTokenType(TokenType tt);
 bool isUnaryOperatorTokenType(TokenType tt);
 bool isBinaryOperatorTokenType(TokenType tt);
 
-//returns whether Token is a comparator
-bool isComparatorTokenType(TokenType tt);
+//returns whether TokenType is exponent
+bool isExponentTokenType(TokenType tt);
+
+//returns whether TokenType is multiply, divide, or mod
+bool isMultiplyDivideModTokenType(TokenType tt);
+
+//returns whether TokenType is bit shift
+bool isBitShiftTokenType(TokenType tt);
+
+//returns whether TokenType is an inequality comparator
+bool isInequalityTokenType(TokenType tt);
+
+//returns whether TokenType is an equality comparator
+bool isEqualityTokenType(TokenType tt);
 
 //return whether a Token is assignment operator
 bool isAssignmentOperatorTokenType(TokenType tt);
@@ -94,10 +106,10 @@ struct Token {
 };
 
 //full "constructor"
-Token* makeToken(TokenType type, uint32_t line, char* lexeme, Data value);
+Token makeToken(TokenType type, uint32_t line, char* lexeme, Data value);
 
 //"constructor" for tokens without literal value
-Token* makeToken(TokenType type, uint32_t line, char* lexeme);
+Token makeToken(TokenType type, uint32_t line, char* lexeme);
 
 #endif
 
