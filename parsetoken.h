@@ -10,15 +10,18 @@
 
 //represents data type
 enum ParseDataType {
+
   INT8_T, INT16_T, INT32_T, INT64_T,
   UINT8_T, UINT16_T, UINT32_T, UINT64_T,
   CHAR_T, BOOL_T, DOUBLE_T, STRING_T,
   CUSTOM_T,
   INVALID_T
+
 };
 
 //represents operator type
 enum ParseOperatorType {
+
   INC_OP, DEC_OP, PARENTHESIZE_OP, CAST_OP, MEMBER_ACCESS_OP, 
   POSITIVE_OP, NEGATIVE_OP, NOT_OP, BIT_NOT_OP,
 
@@ -50,6 +53,10 @@ struct ParseData {
   ParseDataType type;
   Data value;
 };
+
+//String representation of these enums
+const char* toStringParseDataType(ParseDataType p);
+const char* toStringParseOperatorType(ParseOperatorType p);
 
 ////////////////////////////////////
 ///////        Convert       ///////

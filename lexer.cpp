@@ -458,6 +458,8 @@ vector<Token> lex(char* code) {
       index++;
     }
   }
+    
+  tokens.push_back(makeToken(END, line, (char*) "END"));
 
   return tokens;
 }

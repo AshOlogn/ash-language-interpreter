@@ -8,14 +8,14 @@
 //////     Return Tree     //////
 /////////////////////////////////
 
-AbstractExpressionNode* parse(vector<Token>* tokens);
+AbstractExpressionNode* parse(std::vector<Token>* tokens);
 
 /////////////////////////////////
 //////    Access Tokens     /////
 /////////////////////////////////
 
 //consume a Token in the list (increment index)
-void consume();
+Token* consume();
 
 //examine the current Token, don't advance position
 Token* peek();

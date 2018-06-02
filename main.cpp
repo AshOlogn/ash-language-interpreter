@@ -2,8 +2,11 @@
 #include <fstream>
 #include <cstdint>
 #include <cctype>
-#include "lexer.h"
+
 #include "token.h"
+#include "lexer.h"
+#include "parser.h"
+#include "parsenode.h"
 
 using namespace std;
 
@@ -26,17 +29,11 @@ int main(int argc, char** argv) {
   vector<Token> tokens = lex(sourceCode);  
   vector<Token>::iterator it;
 
-  vector<Token>* t = &tokens;
-  int i = 0;
-  while(i < t->size()) {
-    Token* tRef = (Token*) &(t->at(i++));
-    cout << toStringTokenType(tRef->type) << endl;
+  for(it = tokens.begin(); it != tokens.end(); it++) {
+    cout << toStringTokenType(it->type) << endl;
   }
 
-  /*for(it = tokens.begin(); it != tokens.end(); it++) {
-    cout << toStringTokenType(it->type) << endl;
-  }*/
-
-  
-  
+  AbstractExpressionNode* head = parse(&tokens);
+  cout << head->toString() << endl;
+      
 }

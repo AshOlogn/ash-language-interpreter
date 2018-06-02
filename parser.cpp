@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstdint>
 #include <vector>
 #include "token.h"
@@ -8,10 +9,14 @@
 using namespace std;
 
 static uint32_t index;
-static vector<Token*>* tokens;
+static vector<Token>* tokens;
+
+/////////////////////////////////
+//////    Access Tokens     /////
+/////////////////////////////////
 
 //return current Token and advance
-void consume() {
+Token* consume() {
   return (Token*) &(tokens->at(index++));
 }
 
@@ -26,37 +31,46 @@ Token* peek(uint32_t inputIndex) {
 }
 
 
+/////////////////////////////////
+//////    Subroutines     ///////
+/////////////////////////////////
+
 // variable, number, string, etc.
 AbstractExpressionNode* evalLiteralGroup() {
 
-  
-}
+  AbstractExpressionNode* next;
+ 
+  if(peek()->type == LEFT_PAREN) {
 
+    consume(); //consume left parenthesis
+    next = evalAddSubtract();
 
-// x++ x-- x() x->stuff x.stuff
-AbstractExpressionNode* evalPostfixFunctionMembers() {
-  return evalLiteralGroup();
-}
+    if(peek()->type != RIGHT_PAREN) {
+      //error
+      cout << "ERROR!!!!" << endl;
+    } else {
+      consume(); //consume right parenthesis
+    }
 
-// ++x --x + - ! ~
-AbstractExpressionNode* evalPrefixNotCast() {
+    return new GroupedExpressionNode(next);
 
-  AbstractExpressionNode* head = evalPrefixNotCast();
+  } else {
 
-  while(isPrefixNotCastTokenType(peek()->type)) {
-     
+    ParseData p = {UINT64_T, (consume())->value};
+    return new LiteralNode(p);
   }
-
-  return head;
 }
 
 // **
 AbstractExpressionNode* evalExponent() {
 
-  AbstractExpressionNode* head = evalPrefixNotCast();
+  AbstractExpressionNode* head = evalLiteralGroup();
+  AbstractExpressionNode* next;
 
   while(isExponentTokenType(peek()->type)) {
-     
+    consume(); 
+    next = evalLiteralGroup();
+    head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
   }
   
   return head;
@@ -67,11 +81,13 @@ AbstractExpressionNode* evalExponent() {
 AbstractExpressionNode* evalMultiplyDivideMod() {
 
   AbstractExpressionNode* head = evalExponent();
+  AbstractExpressionNode* next;
 
   while(isMultiplyDivideModTokenType(peek()->type)) {
-     
+    ParseOperatorType op = binaryTokenConversion(consume()->type);
+    next = evalExponent();
+    head = new ArithmeticOperatorNode(op, head, next);  
   }
-  
   return head;
 }
 
@@ -80,112 +96,72 @@ AbstractExpressionNode* evalMultiplyDivideMod() {
 AbstractExpressionNode* evalAddSubtract() {
 
   AbstractExpressionNode* head = evalMultiplyDivideMod();
+  AbstractExpressionNode* next;
 
-  while(isBitShiftTokenType(peek()->type)) {
-     
+  while(isAddSubtractTokenType(peek()->type)) {
+    ParseOperatorType op = binaryTokenConversion(consume()->type);
+    next = evalMultiplyDivideMod();
+    head = new ArithmeticOperatorNode(op, head, next);   
   }
   
   return head;
 }
-
 
 // << >>
 AbstractExpressionNode* evalBitShift() {
 
   AbstractExpressionNode* head = evalAddSubtract();
+  AbstractExpressionNode* next;
 
   while(isBitShiftTokenType(peek()->type)) {
-     
+    ParseOperatorType op = binaryTokenConversion(consume()->type);
+    next = evalAddSubtract();
+    head = new BitLogicalOperatorNode(op, head, next);  
   }
   
   return head;
 }
+
 
 // < <= > >=
 AbstractExpressionNode* evalComparison() {
 
   AbstractExpressionNode* head = evalBitShift();
+  AbstractExpressionNode* next;
 
   while(isInequalityTokenType(peek()->type)) {
-     
+    ParseOperatorType op = binaryTokenConversion(consume()->type);
+    next = evalBitShift();
+    head = new ComparisonOperatorNode(op, head, next);
   }
   
   return head;
 }
 
-
 // == and !=
 AbstractExpressionNode* evalEquality() {
 
   AbstractExpressionNode* head = evalComparison();
+  AbstractExpressionNode* next;
 
   while(isEqualityTokenType(peek()->type)) {
-     
+    ParseOperatorType op = binaryTokenConversion(consume()->type);
+    next = evalComparison();
+    head = new ComparisonOperatorNode(op, head, next);
   }
  
   return head;
 }
 
 
-// &
-AbstractExpressionNode* evalBitAnd() {
+//  = += -= *= **= /= &= ^= |= <<= >>=
+AbstractExpressionNode* evalAssignment() {
   return evalEquality();
   
 }
 
-
-// ^
-AbstractExpressionNode* evalBitXor() {
-  return evalBitAnd();
-  
-}
-
-
-// |
-AbstractExpressionNode* evalBitOr() {
-
-  return evalBitXor();
-}
-
-
-// &&
-AbstractExpressionNode* evalLogicAnd() {
-  return evalBitOr();
-  
-}
-
-
-// ^^
-AbstractExpressionNode* evalLogicXor() {
-  return evalLogicAnd();
-  
-}
-
-
-// ||
-AbstractExpressionNode* evalLogicOr() {
-  return evalLogicXor();
-  
-}
-
-
-// ? :
-AbstractExpressionNode* evalTernary() {
-
-  return evalLogicOr();
-}
-
-
-//  = += -= *= **= /= &= ^= |= <<= >>=
-AbstractExpressionNode* evalAssignment() {
-  return evalTernary();
-  
-}
-
-
-
 //generate Abstract Syntax Tree from list of tokens
-AbstractExpressionNode* parse(vector<Token>* tokenRef) {
+AbstractExpressionNode* parse(std::vector<Token>* tokenRef) {
 
   //set static variables to correct initial values
   index = 0;

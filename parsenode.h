@@ -1,6 +1,7 @@
 #ifndef PARSENODE_H
 #define PARSENODE_H
 
+#include <string>
 #include "parsetoken.h"
 
 ///////////////////////////////////
@@ -11,6 +12,7 @@
 class AbstractExpressionNode {
   public:
     virtual ParseData evaluate() = 0;
+    virtual std::string toString() = 0;
 };
 
 
@@ -24,6 +26,7 @@ class AbstractOperatorNode : public AbstractExpressionNode {
     ParseOperatorType operation;
     AbstractExpressionNode* leftArg;
     virtual ParseData evaluate() = 0;
+    virtual std::string toString() = 0;
 };
 
 //class that represents unary operations
@@ -31,6 +34,7 @@ class UnaryOperatorNode : public AbstractOperatorNode {
   public:
     UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l);
     ParseData evaluate();
+    std::string toString();
 };
 
 //class that represents binary operations
@@ -38,6 +42,7 @@ class AbstractBinaryOperatorNode : public AbstractOperatorNode {
   public:
     AbstractExpressionNode* rightArg;
     virtual ParseData evaluate() = 0;
+    std::string toString();
 };
 
 //class that represents arithmetic
@@ -79,6 +84,7 @@ class LiteralNode : public AbstractExpressionNode {
     ParseData data;
     LiteralNode(ParseData d);
     ParseData evaluate();
+    std::string toString();
 };
 
 
@@ -92,6 +98,7 @@ class GroupedExpressionNode : public AbstractExpressionNode {
     AbstractExpressionNode* closedExpression;
     GroupedExpressionNode(AbstractExpressionNode* closedExp);
     ParseData evaluate();
+    std::string toString();
 };
 
 

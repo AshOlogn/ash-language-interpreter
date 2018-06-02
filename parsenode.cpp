@@ -1,3 +1,6 @@
+#include <string>
+#include <iostream>
+#include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "evaluator.h"
@@ -6,6 +9,7 @@
 ///////     Operations      ///////
 ///////////////////////////////////
 
+//unary operations
 UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l) {
   operation = op;
   leftArg = l;  
@@ -13,6 +17,27 @@ UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNod
 
 ParseData UnaryOperatorNode::evaluate() {
   return evaluateUnaryExpression(this);
+}
+
+std::string UnaryOperatorNode::toString() {
+  std::string str = "(";
+  str.append(toStringParseOperatorType(operation));
+  str.append(" ");
+  str.append(leftArg->toString());
+  str.append(")");
+  return str;
+}
+
+//binary operation toString
+std::string AbstractBinaryOperatorNode::toString() {
+  std::string str = "( ";
+  str.append(toStringParseOperatorType(operation));
+  str.append(" ");
+  str.append(leftArg->toString());
+  str.append(" "); 
+  str.append(rightArg->toString());
+  str.append(")");
+  return str;
 }
 
 //class that represents arithmetic
@@ -72,6 +97,9 @@ ParseData LiteralNode::evaluate() {
   return evaluateLiteralExpression(this);
 }
 
+std::string LiteralNode::toString() {
+  return std::to_string(data.value.integer);
+}
 
 ///////////////////////////////////
 ///////      Grouped        ///////
@@ -86,4 +114,10 @@ ParseData GroupedExpressionNode::evaluate() {
 }
 
 
+std::string GroupedExpressionNode::toString() {
+  std::string str = "(";
+  str.append(closedExpression->toString());
+  str.append(")");
+  return str;
+}
 

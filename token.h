@@ -76,6 +76,9 @@ bool isExponentTokenType(TokenType tt);
 //returns whether TokenType is multiply, divide, or mod
 bool isMultiplyDivideModTokenType(TokenType tt);
 
+//returns whether TokenType is add or subtract
+bool isAddSubtractTokenType(TokenType tt);
+
 //returns whether TokenType is bit shift
 bool isBitShiftTokenType(TokenType tt);
 

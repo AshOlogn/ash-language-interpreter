@@ -1,4 +1,5 @@
 #include "token.h"
+#include <iostream>
 #include "parsetoken.h"
 
 //returns corresponding ParseDataType enum from type TokenType enum
@@ -80,4 +81,75 @@ ParseOperatorType binaryTokenConversion(TokenType tt) {
   }  
 }
 
+//returns string representation of ParseDataType enum
+const char* toStringParseDataType(ParseDataType p) {
+ 
+  switch(p) {
+  
+    case INT8_T: return "INT8_T";
+    case INT16_T: return "INT16_T";
+    case INT32_T: return "INT64_T";
+    case UINT8_T: return "UINT8_T"; 
+    case UINT16_T: return "UINT32_T"; 
+    case UINT64_T: return "UINT64_T";
+    case CHAR_T: return "CHAR_T";
+    case BOOL_T: return "BOOL_T"; 
+    case DOUBLE_T: return "DOUBLE_T"; 
+    case STRING_T: return "STRING_T";
+    case CUSTOM_T: return "CUSTOM_T";
+    default: return "INVALID_T";
+  } 
+}
+
+//returns string representation of ParseOperatorType enum
+const char* toStringParseOperatorType(ParseOperatorType p) {
+
+  switch(p) {
+
+    case INC_OP: return "++";
+    case DEC_OP: return "--";
+    case ADD_OP: return "+";
+    case SUBTRACT_OP: return "-";
+    case NOT_OP: return "!";
+    case BIT_NOT_OP: return "~";
+
+    case EXPONENT_OP: return "**"; 
+    case MULTIPLY_OP: return "*";
+    case DIVIDE_OP: return "/"; 
+    case MOD_OP: return "%";
+ 
+    case BIT_LEFT_OP: return "<<";
+    case BIT_RIGHT_OP: return ">>";
+    
+    case GREATER_OP: return ">"; 
+    case LESS_OP: return "<"; 
+    case GREATER_EQ_OP: return ">="; 
+    case LESS_EQ_OP: return "<=";
+    case EQ_EQ_OP: return "=="; 
+    case NOT_EQ_OP: return "!=";
+
+    case BIT_AND_OP: return "&";
+    case BIT_XOR_OP: return "^";
+    case BIT_OR_OP: return "|";  
+
+    case AND_OP: return "&&";
+    case XOR_OP: return "^^";
+    case OR_OP: return "||";
+
+    case EQ_OP: return "="; 
+    case ADD_EQ_OP: return "+=";
+    case SUBTRACT_EQ_OP: return "-=";
+    case EXPONENT_EQ_OP: return "**=";
+    case MULTIPLY_EQ_OP: return "*=";
+    case DIVIDE_EQ_OP: return "/=";
+    case MOD_EQ_OP: return "%="; 
+    case AND_EQ_OP: return "&=";
+    case XOR_EQ_OP: return "^=";
+    case OR_EQ_OP: return "|=";
+    case BIT_LEFT_EQ_OP: return "<<=";
+    case BIT_RIGHT_EQ_OP: return ">>=";
+    
+    default: return "INVALID";
+  }
+}
 

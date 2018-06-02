@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iostream>
 #include <cstring>
 #include <cctype>
 #include <cstdint>
@@ -117,6 +118,7 @@ const char* toStringTokenType(TokenType tokenType) {
     case FUN: return "FUN";
     case TRUE: return "TRUE";
     case FALSE: return "FALSE";
+    case END: return "END";
     default: return "INVALID_TOKEN";
   }  
 }
@@ -218,6 +220,11 @@ bool isExponentTokenType(TokenType tt) {
 //returns whether TokenType is multiply, divide, or mod
 bool isMultiplyDivideModTokenType(TokenType tt) {
   return tt == MULTIPLY || tt == DIVIDE || tt == MOD;
+}
+
+//returns whether TokenType is add or subtract
+bool isAddSubtractTokenType(TokenType tt) {
+  return tt == ADD || tt == SUBTRACT;
 }
 
 //returns whether TokenType is bit shift
