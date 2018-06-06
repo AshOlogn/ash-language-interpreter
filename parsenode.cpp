@@ -113,7 +113,6 @@ ParseData GroupedExpressionNode::evaluate() {
   return evaluateGroupedExpression(this);
 }
 
-
 std::string GroupedExpressionNode::toString() {
   std::string str = "(";
   str.append(closedExpression->toString());

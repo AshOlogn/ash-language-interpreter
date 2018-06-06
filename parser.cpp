@@ -67,7 +67,7 @@ AbstractExpressionNode* evalExponent() {
   AbstractExpressionNode* head = evalLiteralGroup();
   AbstractExpressionNode* next;
 
-  while(isExponentTokenType(peek()->type)) {
+  while(peek()->type == EXPONENT) {
     consume(); 
     next = evalLiteralGroup();
     head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
@@ -153,10 +153,103 @@ AbstractExpressionNode* evalEquality() {
   return head;
 }
 
+// &
+AbstractExpressionNode* evalBitAnd() {
+
+  AbstractExpressionNode* head = evalEquality();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == BIT_AND) {
+    consume();
+    next = evalEquality();
+    head = new BitLogicalOperatorNode(BIT_AND_OP, head, next);
+  }
+ 
+  return head;
+}
+
+
+// ^
+AbstractExpressionNode* evalBitXor() {
+
+  AbstractExpressionNode* head = evalBitAnd();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == BIT_XOR) {
+    consume();
+    next = evalBitAnd();
+    head = new BitLogicalOperatorNode(BIT_XOR_OP, head, next);
+  }
+ 
+  return head;
+}
+
+// |
+AbstractExpressionNode* evalBitOr() {
+
+  AbstractExpressionNode* head = evalBitXor();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == BIT_OR) {
+    consume();
+    next = evalBitXor();
+    head = new BitLogicalOperatorNode(BIT_OR_OP, head, next);
+  }
+ 
+  return head;
+}
+
+
+// &&
+AbstractExpressionNode* evalLogicAnd() {
+
+  AbstractExpressionNode* head = evalBitOr();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == AND) {
+    consume();
+    next = evalBitOr();
+    head = new BitLogicalOperatorNode(AND_OP, head, next);
+  }
+ 
+  return head;
+}
+
+
+// ^^
+AbstractExpressionNode* evalLogicXor() {
+
+  AbstractExpressionNode* head = evalLogicAnd();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == XOR) {
+    consume();
+    next = evalLogicAnd();
+    head = new BitLogicalOperatorNode(XOR_OP, head, next);
+  }
+ 
+  return head;
+}
+
+// ||
+AbstractExpressionNode* evalLogicOr() {
+
+  AbstractExpressionNode* head = evalLogicXor();
+  AbstractExpressionNode* next;
+
+  while(peek()->type == OR) {
+    consume();
+    next = evalLogicXor();
+    head = new BitLogicalOperatorNode(OR_OP, head, next);
+  }
+ 
+  return head;
+}
+
 
 //  = += -= *= **= /= &= ^= |= <<= >>=
 AbstractExpressionNode* evalAssignment() {
-  return evalEquality();
+  return evalLogicOr();
   
 }
 
