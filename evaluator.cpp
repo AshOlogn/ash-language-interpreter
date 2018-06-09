@@ -1,7 +1,14 @@
-
 #include <iostream>
+#include <cstdint>
 #include "token.h"
+#include "typehandler.h"
 #include "parsenode.h"
+
+//recursively evaluate AST, start at root
+ParseData evaluate(AbstractExpressionNode* node) {
+  node->evaluate();
+}
+
 
 //evaluate expression appropriately depending on type of AbstractExpressionNode
 ParseData evaluateUnaryExpression(AbstractExpressionNode* node) {

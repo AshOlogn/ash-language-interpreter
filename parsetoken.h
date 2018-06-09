@@ -22,8 +22,8 @@ enum ParseDataType {
 //represents operator type
 enum ParseOperatorType {
 
-  INC_OP, DEC_OP, PARENTHESIZE_OP, CAST_OP, MEMBER_ACCESS_OP, 
-  POSITIVE_OP, NEGATIVE_OP, NOT_OP, BIT_NOT_OP,
+  INC_OP, DEC_OP, PARENTHESIZE_OP, 
+  CAST_OP, MEMBER_ACCESS_OP, POSITIVE_OP, NEGATIVE_OP, NOT_OP, BIT_NOT_OP,
 
   EXPONENT_OP, 
   MULTIPLY_OP, DIVIDE_OP, MOD_OP,
@@ -54,9 +54,29 @@ struct ParseData {
   Data value;
 };
 
-//String representation of these enums
+////////////////////////////////////
+///////       To String      ///////
+////////////////////////////////////
+
 const char* toStringParseDataType(ParseDataType p);
 const char* toStringParseOperatorType(ParseOperatorType p);
+char* toStringParseData(ParseData d);
+
+
+////////////////////////////////////
+///////      Useful Info     ///////
+////////////////////////////////////
+
+bool isNumberParseDataType(ParseDataType p);
+bool isIntParseDataType(ParseDataType p);
+bool isSignedIntParseDataType(ParseDataType p);
+bool isUnsignedIntParseDataType(ParseDataType p);
+
+ParseDataType getLargerNumberParseDataType(ParseDataType p1, ParseDataType p2);
+
+bool isBitwiseParseOperatorType(ParseOperatorType p);
+bool isLogicalParseOperatorType(ParseOperatorType p);
+
 
 ////////////////////////////////////
 ///////        Convert       ///////

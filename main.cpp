@@ -7,6 +7,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "parsenode.h"
+#include "parsetoken.h"
 
 using namespace std;
 
@@ -35,5 +36,6 @@ int main(int argc, char** argv) {
 
   AbstractExpressionNode* head = parse(&tokens);
   cout << head->toString() << endl;
+  cout << toStringParseDataType(head->evalType) << endl;
       
 }

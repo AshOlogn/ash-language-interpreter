@@ -79,4 +79,5 @@ AbstractExpressionNode* evalTernary();
 //  = += -= *= **= /= &= ^= |= <<= >>=
 AbstractExpressionNode* evalAssignment();
 
+AbstractExpressionNode* evalExpression();
 

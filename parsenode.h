@@ -11,6 +11,7 @@
 //abstract class that represents node in AST
 class AbstractExpressionNode {
   public:
+    ParseDataType evalType;
     virtual ParseData evaluate() = 0;
     virtual std::string toString() = 0;
 };

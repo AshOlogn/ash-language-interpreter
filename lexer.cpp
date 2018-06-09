@@ -265,11 +265,16 @@ vector<Token> lex(char* code) {
           index += 2;
 
         } else {
-          tokens.push_back(makeToken(BIT_NOT, line, (char*) "!"));
+          tokens.push_back(makeToken(NOT, line, (char*) "!"));
           index++;
         }
 
         break;
+      }
+  
+      case '~': {
+        tokens.push_back(makeToken(BIT_NOT, line, (char*) "~"));
+        index++; break;
       }
 
       case '<': {
@@ -391,7 +396,13 @@ vector<Token> lex(char* code) {
         lexeme[i-index-1] = code[i];
       lexeme[currentIndex-index-1] = 0;
 
-      tokens.push_back(makeToken(STRING, line, lexeme));
+
+      Data tokenVal;
+      char* c = new char[currentIndex-index];
+      std::strcpy(c, lexeme);
+      tokenVal.allocated = (void*) c;
+
+      tokens.push_back(makeToken(STRING, line, lexeme, tokenVal));
       index = currentIndex+1;
 
     } else if(isdigit(code[index]) || code[index] == '.') {

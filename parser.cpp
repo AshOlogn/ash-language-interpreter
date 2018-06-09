@@ -4,6 +4,7 @@
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "typehandler.h"
 #include "parser.h"
 
 using namespace std;
@@ -43,11 +44,11 @@ AbstractExpressionNode* evalLiteralGroup() {
   if(peek()->type == LEFT_PAREN) {
 
     consume(); //consume left parenthesis
-    next = evalAddSubtract();
+    next = evalExpression();
 
     if(peek()->type != RIGHT_PAREN) {
       //error
-      cout << "ERROR!!!!" << endl;
+      cout << "ERROR LITERAL!!!!" << endl;
     } else {
       consume(); //consume right parenthesis
     }
@@ -56,21 +57,51 @@ AbstractExpressionNode* evalLiteralGroup() {
 
   } else {
 
-    ParseData p = {UINT64_T, (consume())->value};
+    Token* literal = consume();
+    ParseData p = {typeTokenConversion(literal->type), literal->value};
     return new LiteralNode(p);
   }
 }
 
+//sign and bit/logical NOT
+AbstractExpressionNode* evalSignNot() {
+ 
+  if(isSignNotTokenType(peek()->type)) {
+
+    ParseOperatorType op = unaryTokenConversion(consume()->type);
+    AbstractExpressionNode* next = evalSignNot();
+
+    if(typecheckUnaryExpression(op, next->evalType)) {
+      return new UnaryOperatorNode(op, evalSignNot());
+    } else {
+      cout << "ERROR SIGN NOT!" << endl;
+      return NULL;
+    }
+
+  } else {
+    return evalLiteralGroup();  
+  }
+
+}
+
+
 // **
 AbstractExpressionNode* evalExponent() {
 
-  AbstractExpressionNode* head = evalLiteralGroup();
+  AbstractExpressionNode* head = evalSignNot();
   AbstractExpressionNode* next;
 
   while(peek()->type == EXPONENT) {
     consume(); 
-    next = evalLiteralGroup();
-    head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
+    next = evalSignNot();
+
+    if(typecheckArithmeticExpression(EXPONENT_OP, head->evalType, next->evalType)) {
+      head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
+    } else {
+      cout << "ERROR EXPONENT!" << endl;
+      return NULL;  
+    }   
+
   }
   
   return head;
@@ -86,8 +117,16 @@ AbstractExpressionNode* evalMultiplyDivideMod() {
   while(isMultiplyDivideModTokenType(peek()->type)) {
     ParseOperatorType op = binaryTokenConversion(consume()->type);
     next = evalExponent();
-    head = new ArithmeticOperatorNode(op, head, next);  
+
+    if(typecheckArithmeticExpression(op, head->evalType, next->evalType)) {
+      head = new ArithmeticOperatorNode(op, head, next);
+    } else {
+      cout << "ERROR MULTIPLY DIVIDE MOD!" << endl;
+      return NULL;  
+    }
+
   }
+
   return head;
 }
 
@@ -101,7 +140,14 @@ AbstractExpressionNode* evalAddSubtract() {
   while(isAddSubtractTokenType(peek()->type)) {
     ParseOperatorType op = binaryTokenConversion(consume()->type);
     next = evalMultiplyDivideMod();
-    head = new ArithmeticOperatorNode(op, head, next);   
+
+    if(typecheckArithmeticExpression(op, head->evalType, next->evalType)) {
+      head = new ArithmeticOperatorNode(op, head, next);
+    } else {
+      cout << "ERROR ADD SUB!" << endl;
+      return NULL;  
+    }
+
   }
   
   return head;
@@ -116,7 +162,13 @@ AbstractExpressionNode* evalBitShift() {
   while(isBitShiftTokenType(peek()->type)) {
     ParseOperatorType op = binaryTokenConversion(consume()->type);
     next = evalAddSubtract();
-    head = new BitLogicalOperatorNode(op, head, next);  
+
+    if(typecheckBitLogicalExpression(op, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(op, head, next);
+    } else {
+      cout << "ERROR SHIFT!" << endl;
+      return NULL;  
+    }
   }
   
   return head;
@@ -132,7 +184,13 @@ AbstractExpressionNode* evalComparison() {
   while(isInequalityTokenType(peek()->type)) {
     ParseOperatorType op = binaryTokenConversion(consume()->type);
     next = evalBitShift();
-    head = new ComparisonOperatorNode(op, head, next);
+
+    if(typecheckComparisonExpression(op, head->evalType, next->evalType)) {
+      head = new ComparisonOperatorNode(op, head, next);
+    } else {
+      cout << "ERROR INEQ!" << endl;
+      return NULL;  
+    }
   }
   
   return head;
@@ -147,7 +205,13 @@ AbstractExpressionNode* evalEquality() {
   while(isEqualityTokenType(peek()->type)) {
     ParseOperatorType op = binaryTokenConversion(consume()->type);
     next = evalComparison();
-    head = new ComparisonOperatorNode(op, head, next);
+
+    if(typecheckComparisonExpression(op, head->evalType, next->evalType)) {
+      head = new ComparisonOperatorNode(op, head, next);
+    } else {
+      cout << "ERROR EQ!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -162,7 +226,13 @@ AbstractExpressionNode* evalBitAnd() {
   while(peek()->type == BIT_AND) {
     consume();
     next = evalEquality();
-    head = new BitLogicalOperatorNode(BIT_AND_OP, head, next);
+
+    if(typecheckBitLogicalExpression(BIT_AND_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(BIT_AND_OP, head, next);
+    } else {
+      cout << "ERROR BIT AND!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -178,7 +248,13 @@ AbstractExpressionNode* evalBitXor() {
   while(peek()->type == BIT_XOR) {
     consume();
     next = evalBitAnd();
-    head = new BitLogicalOperatorNode(BIT_XOR_OP, head, next);
+
+    if(typecheckBitLogicalExpression(BIT_XOR_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(BIT_XOR_OP, head, next);
+    } else {
+      cout << "ERROR BIT XOR!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -193,7 +269,13 @@ AbstractExpressionNode* evalBitOr() {
   while(peek()->type == BIT_OR) {
     consume();
     next = evalBitXor();
-    head = new BitLogicalOperatorNode(BIT_OR_OP, head, next);
+
+    if(typecheckBitLogicalExpression(BIT_OR_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(BIT_OR_OP, head, next);
+    } else {
+      cout << "ERROR BIT OR!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -209,7 +291,13 @@ AbstractExpressionNode* evalLogicAnd() {
   while(peek()->type == AND) {
     consume();
     next = evalBitOr();
-    head = new BitLogicalOperatorNode(AND_OP, head, next);
+
+    if(typecheckBitLogicalExpression(AND_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(AND_OP, head, next);
+    } else {
+      cout << "ERROR AND!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -225,7 +313,13 @@ AbstractExpressionNode* evalLogicXor() {
   while(peek()->type == XOR) {
     consume();
     next = evalLogicAnd();
-    head = new BitLogicalOperatorNode(XOR_OP, head, next);
+
+    if(typecheckBitLogicalExpression(XOR_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(XOR_OP, head, next);
+    } else {
+      cout << "ERROR XOR!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -240,7 +334,13 @@ AbstractExpressionNode* evalLogicOr() {
   while(peek()->type == OR) {
     consume();
     next = evalLogicXor();
-    head = new BitLogicalOperatorNode(OR_OP, head, next);
+
+    if(typecheckBitLogicalExpression(OR_OP, head->evalType, next->evalType)) {
+      head = new BitLogicalOperatorNode(OR_OP, head, next);
+    } else {
+      cout << "ERROR OR!" << endl;
+      return NULL;  
+    }
   }
  
   return head;
@@ -253,6 +353,10 @@ AbstractExpressionNode* evalAssignment() {
   
 }
 
+AbstractExpressionNode* evalExpression() {
+  return evalLogicOr();
+}
+
 //generate Abstract Syntax Tree from list of tokens
 AbstractExpressionNode* parse(std::vector<Token>* tokenRef) {
 
@@ -260,7 +364,7 @@ AbstractExpressionNode* parse(std::vector<Token>* tokenRef) {
   index = 0;
   tokens = tokenRef;
 
-  return evalAssignment();
+  return evalExpression();
 }
 
 

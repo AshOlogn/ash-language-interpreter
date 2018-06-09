@@ -211,6 +211,10 @@ bool isBinaryOperatorTokenType(TokenType tt) {
         tt == AND || tt == XOR || tt == OR;
 }
 
+//returns whether TokenType is +- or 
+bool isSignNotTokenType(TokenType tt) {
+  return tt == ADD || tt == SUBTRACT || tt == NOT || tt == BIT_NOT;
+}
 
 //returns whether TokenType is exponent
 bool isExponentTokenType(TokenType tt) {

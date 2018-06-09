@@ -3,6 +3,7 @@
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "typehandler.h"
 #include "evaluator.h"
 
 ///////////////////////////////////
@@ -12,7 +13,8 @@
 //unary operations
 UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l) {
   operation = op;
-  leftArg = l;  
+  leftArg = l; 
+  evalType = getTypeUnaryExpression(op, l->evalType); 
 }
 
 ParseData UnaryOperatorNode::evaluate() {
@@ -45,6 +47,7 @@ ArithmeticOperatorNode::ArithmeticOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  evalType = getTypeArithmeticExpression(op, l->evalType, r->evalType);
 }
 
 ParseData ArithmeticOperatorNode::evaluate() { 
@@ -56,6 +59,7 @@ BitLogicalOperatorNode::BitLogicalOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  evalType = getTypeBitLogicalExpression(op, l->evalType, r->evalType);
 }
 
 ParseData BitLogicalOperatorNode::evaluate() { 
@@ -66,7 +70,7 @@ ParseData BitLogicalOperatorNode::evaluate() {
 AssignmentOperatorNode::AssignmentOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
   operation = op;
   leftArg = l;
-  rightArg = r; 
+  rightArg = r;
 }
 
 ParseData AssignmentOperatorNode::evaluate() { 
@@ -78,6 +82,7 @@ ComparisonOperatorNode::ComparisonOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  evalType = getTypeComparisonExpression(op, l->evalType, r->evalType);
 }
 
 ParseData ComparisonOperatorNode::evaluate() { 
@@ -91,6 +96,7 @@ ParseData ComparisonOperatorNode::evaluate() {
 
 LiteralNode::LiteralNode(ParseData d) {
   data = d;
+  evalType = d.type;
 }
 
 ParseData LiteralNode::evaluate() { 
@@ -98,7 +104,7 @@ ParseData LiteralNode::evaluate() {
 }
 
 std::string LiteralNode::toString() {
-  return std::to_string(data.value.integer);
+  return std::string(toStringParseData(data));
 }
 
 ///////////////////////////////////
@@ -107,6 +113,7 @@ std::string LiteralNode::toString() {
 
 GroupedExpressionNode::GroupedExpressionNode(AbstractExpressionNode* exp) {
   closedExpression = exp;
+  evalType = exp->evalType;
 }
 
 ParseData GroupedExpressionNode::evaluate() { 

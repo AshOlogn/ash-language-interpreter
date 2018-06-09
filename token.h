@@ -70,6 +70,9 @@ bool isOperatorTokenType(TokenType tt);
 bool isUnaryOperatorTokenType(TokenType tt);
 bool isBinaryOperatorTokenType(TokenType tt);
 
+//returns whether TokenType is sign or bit/logical NOT
+bool isSignNotTokenType(TokenType tt);
+
 //returns whether TokenType is exponent
 bool isExponentTokenType(TokenType tt);
 
