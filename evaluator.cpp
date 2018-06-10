@@ -44,89 +44,424 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
       break;
     }
 
-    case DIVIDE_OP: {
- 
-      ParseDataType finalType = getLargerNumberParseDataType(left.type, right.type);
- 
-      if(finalType == DOUBLE_T) {
+
+    ////////////////////////////////
+    ///////     Division     ///////
+    ////////////////////////////////
+
+    case DIVIDE_OP: { 
+
+      //branch on numerator's type
+      switch(left.type) {
+
+        case CHAR_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
   
-        double arg1 = isIntParseDataType(left.type) ? (double) left.value.integer :
-                      left.value.floatingPoint;
+              unsigned char num = (unsigned char) left.value.integer; 
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = CHAR_T;
+              d.value.integer = (unsigned char) (num/den);        
+              break;
+            }
 
-        double arg2 = isIntParseDataType(right.type) ? (double) right.value.integer :
-                      right.value.floatingPoint;
-
-        d.type = DOUBLE_T;  
-        d.value.floatingPoint = arg1/arg2;
-
-      } else {
-        
-        switch(finalType) {
+            case INT32_T: {
   
-          case INT8_T: {
-            int8_t val = (int8_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+              unsigned char num = (unsigned char) left.value.integer; 
+              int32_t den = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (num/den);        
+              break;
+            }
 
-          case INT16_T: {
-            int16_t val = (int16_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;  
-            break;   
-          }
+            case INT64_T: {
+  
+              unsigned char num = (unsigned char) left.value.integer; 
+              int64_t den = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
 
-          case INT32_T: {
-            int32_t val = (int32_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;     
-          }
+            case UINT32_T: {
+  
+              unsigned char num = (unsigned char) left.value.integer; 
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (num/den);        
+              break;
+            }
 
-          case INT64_T: {
-            int64_t val = (int64_t) (left.value.integer/right.value.integer);
-            d.value.integer = val; 
-            break;
-          }
+            case UINT64_T: {
+  
+              unsigned char num = (unsigned char) left.value.integer; 
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (num/den);        
+              break;
+            }
 
-          case UINT8_T: {
-            uint8_t val = (uint8_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+            case DOUBLE_T: {
+  
+              unsigned char num = (unsigned char) left.value.integer; 
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
 
-          case UINT16_T: {
-            uint16_t val = (uint16_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+          } //end inner switch
 
-          case UINT32_T: {
-            uint32_t val = (uint32_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+          break;
 
-          case UINT64_T: {
-            uint64_t val = (uint64_t) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+        } //end outer case
 
-          case CHAR_T: {
-            char val = (char) (left.value.integer/right.value.integer);
-            d.value.integer = val;
-            break;
-          }
-        }
 
-        d.type = finalType;
+        case INT32_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (num/den);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              int32_t den = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (num/den);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              int64_t den = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (num/den);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int32_t num = (int32_t) left.value.integer; 
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT64_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              int32_t den = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              int64_t den = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int64_t num = (int64_t) left.value.integer; 
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT32_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (num/den);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              int32_t den = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (num/den);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              int64_t den = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (num/den);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (num/den);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint32_t num = (uint32_t) left.value.integer; 
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT64_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (num/den);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              int32_t den = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              int64_t den = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (num/den);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (num/den);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (num/den);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint64_t num = (uint64_t) left.value.integer; 
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        case DOUBLE_T: {
+
+          //branch on denominator's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              unsigned char den = (unsigned char) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              int32_t den = (int32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              int64_t den = (int64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              uint32_t den = (uint32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              uint64_t den = (uint64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              double num = (double) left.value.floatingPoint;
+              double den = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (num/den);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        break;
       }
 
-      break;
+      break; //end operation case
+
     }
+
+    ////////////////////////////////
+    ////     Multiplication     ////
+    ////////////////////////////////
 
     case MULTIPLY_OP: {
   
-      //string case
+      //string operation case
       if(left.type == STRING_T || right.type == STRING_T) {
   
         char* str = (char*) ((left.type == STRING_T) ? left.value.allocated :
@@ -255,87 +590,1237 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
           d.value.allocated = (void*) c;
         }
 
-      } else if(left.type == DOUBLE_T || right.type == DOUBLE_T) {
- 
-        double arg1 = isIntParseDataType(left.type) ? (double) left.value.integer :
-                      left.value.floatingPoint;
-
-        double arg2 = isIntParseDataType(right.type) ? (double) right.value.integer :
-                      right.value.floatingPoint;
-
-        d.type = DOUBLE_T;  
-        d.value.floatingPoint = arg1*arg2;
-
       } else {
 
-        ParseDataType finalType = getLargerNumberParseDataType(left.type, right.type);
-        switch(finalType) {
-  
-          case INT8_T: {
-            int8_t val = (int8_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;
-          }
-
-          case INT16_T: {
-            int16_t val = (int16_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;  
-            break;   
-          }
-
-          case INT32_T: {
-            int32_t val = (int32_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;     
-          }
-
-          case INT64_T: {
-            int64_t val = (int64_t) (left.value.integer*right.value.integer);
-            d.value.integer = val; 
-            break;
-          }
-
-          case UINT8_T: {
-            uint8_t val = (uint8_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;
-          }
-
-          case UINT16_T: {
-            uint16_t val = (uint16_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;
-          }
-
-          case UINT32_T: {
-            uint32_t val = (uint32_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;
-          }
-
-          case UINT64_T: {
-            uint64_t val = (uint64_t) (left.value.integer*right.value.integer);
-            d.value.integer = val;
-            break;
-          }
+        //branch on first factor's type
+        switch(left.type) {
 
           case CHAR_T: {
-            char val = (char) (left.value.integer*right.value.integer);
-            d.value.integer = val;
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = CHAR_T;
+                d.value.integer = (unsigned char) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = INT32_T;
+                d.value.integer = (int32_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = UINT32_T;
+                d.value.integer = (uint32_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = UINT64_T;
+                d.value.integer = (uint64_t) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                unsigned char arg1 = (unsigned char) left.value.integer; 
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
             break;
-          }
+
+          } //end outer case
+
+
+          case INT32_T: {
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = INT32_T;
+                d.value.integer = (int32_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = INT32_T;
+                d.value.integer = (int32_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = INT32_T;
+                d.value.integer = (int32_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                int32_t arg1 = (int32_t) left.value.integer; 
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
+            break;
+
+          } //end outer case
+
+
+          case INT64_T: {
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                int64_t arg1 = (int64_t) left.value.integer; 
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
+            break;
+
+          } //end outer case
+
+
+          case UINT32_T: {
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = UINT32_T;
+                d.value.integer = (uint32_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = INT32_T;
+                d.value.integer = (int32_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = UINT32_T;
+                d.value.integer = (uint32_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = UINT64_T;
+                d.value.integer = (uint64_t) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                uint32_t arg1 = (uint32_t) left.value.integer; 
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
+            break;
+
+          } //end outer case
+
+
+          case UINT64_T: {
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = UINT64_T;
+                d.value.integer = (uint64_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = INT64_T;
+                d.value.integer = (int64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = UINT64_T;
+                d.value.integer = (uint64_t) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = UINT64_T;
+                d.value.integer = (uint64_t) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                uint64_t arg1 = (uint64_t) left.value.integer; 
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
+            break;
+
+          } //end outer case
+
+          case DOUBLE_T: {
+
+            //branch on second factor's type
+            switch(right.type) {
+
+              case CHAR_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                unsigned char arg2 = (unsigned char) right.value.integer;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+              case INT32_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                int32_t arg2 = (int32_t) right.value.integer;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+              case INT64_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                int64_t arg2 = (int64_t) right.value.integer;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+              case UINT32_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                uint32_t arg2 = (uint32_t) right.value.integer;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+              case UINT64_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                uint64_t arg2 = (uint64_t) right.value.integer;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+              case DOUBLE_T: {
+    
+                double arg1 = (double) left.value.floatingPoint;
+                double arg2 = (double) right.value.floatingPoint;
+                d.type = DOUBLE_T;
+                d.value.floatingPoint = (double) (arg1*arg2);        
+                break;
+              }
+
+            } //end inner switch
+
+            break;
+
+          } //end outer case
+
+          break;
         }
 
-        d.type = finalType;
       }
-
-      break;
+	  
+      break;  //end operation case
     }
 
-    case MOD_OP: break;
-    case ADD_OP: break;
-    case SUBTRACT_OP: break;
+    ////////////////////////////////
+    ///////      Modulus     ///////
+    ////////////////////////////////
+    
+    case MOD_OP: { 
 
+      //branch on first argument's type
+      switch(left.type) {
+
+        case CHAR_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = CHAR_T;
+              d.value.integer = (unsigned char) (arg1 % arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1 % arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        case DOUBLE_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);       
+              break;
+            }
+
+            case UINT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);      
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) fmod(arg1, arg2);      
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        break;
+      }
+
+      break; //end operation case
+
+    }
+    
+    
+    
+    case ADD_OP: break;
+    
+    ////////////////////////////////
+    ///////      Subtract     ///////
+    ////////////////////////////////
+    
+    case SUBTRACT_OP: { 
+
+      //branch on first argument's type
+      switch(left.type) {
+
+        case CHAR_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = CHAR_T;
+              d.value.integer = (unsigned char) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        case DOUBLE_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1-arg2);        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        break;
+      }
+
+      break; //end operation case
+    }
+
+    break;
   }
 
   return d;
