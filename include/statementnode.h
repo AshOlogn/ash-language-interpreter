@@ -1,6 +1,7 @@
 #ifndef STATEMENTNODE_H
 #define STATEMENTNODE_H
 
+#include <vector>
 #include "parsetoken.h"
 #include "parsenode.h"
 
@@ -50,14 +51,13 @@ class PrintLineStatementNode : public AbstractStatementNode {
 //represents if-elif-else structure
 class ConditionalStatementNode : public AbstractStatementNode {
   
- 
-
- 
-  
-}
-
-
-
+  public:
+    std::vector<AbstractExpressionNode*>* conditions;
+    std::vector<AbstractStatementNode*>* statements;
+    
+    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat);
+    void execute();
+};
 
 
 

@@ -6,19 +6,19 @@
 #include <algorithm>
 #include "token.h"
 
-static const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "else", "break",
+static const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "elif", "else", "break",
                                "switch", "case", "class", "fun", "print", "println", "int8",
                               "int16", "int32", "int64", "uint8", "uint16",
                               "uint32", "uint64", "char", "double", "bool",
                               "string", "true", "false"};
 
-static const TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELSE, BREAK,
+static const TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELIF, ELSE, BREAK,
                                     SWITCH, CASE, CLASS, FUN, PRINT, PRINTLN, INT8,
                                     INT16, INT32, INT64, UINT8, UINT16,
                                     UINT32, UINT64, CHAR, DOUBLE, BOOL,
                                     STRING, TRUE, FALSE };
 
-static const uint8_t NUM_RESERVED_WORDS = 24;
+static const uint8_t NUM_RESERVED_WORDS = 27;
 
 //Token class constructors
 //full "constructor"
