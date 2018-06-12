@@ -6,5 +6,4 @@
 
 ParseData evaluateBitLogicalExpression(BitLogicalOperatorNode* node);
 
-
 #endif

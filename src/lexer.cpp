@@ -439,7 +439,7 @@ vector<Token> lex(char* code) {
           tokens.push_back(makeToken(DOUBLE, line, lexeme, tokenVal)); 
         } else {
           tokenVal.integer = stringToInt(code, index, currentIndex-1);
-          tokens.push_back(makeToken(UINT64, line, lexeme, tokenVal)); 
+          tokens.push_back(makeToken(INT32, line, lexeme, tokenVal)); 
         }
       }
 

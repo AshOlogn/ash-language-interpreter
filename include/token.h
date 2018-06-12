@@ -38,7 +38,7 @@ enum TokenType {
 
   //Reserved Words
   FOR, WHILE, DO, IF, ELSE, BREAK, SWITCH, CASE,
-  CLASS, FUN,
+  CLASS, FUN, PRINT, PRINTLN,
 
   TRUE, FALSE,
 

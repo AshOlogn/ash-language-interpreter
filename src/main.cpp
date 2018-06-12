@@ -9,6 +9,7 @@
 #include "parsenode.h"
 #include "parsetoken.h"
 #include "evaluator.h"
+#include "statementnode.h"
 
 using namespace std;
 
@@ -34,9 +35,13 @@ int main(int argc, char** argv) {
   for(it = tokens.begin(); it != tokens.end(); it++) {
     cout << toStringTokenType(it->type) << endl;
   }
-
-  AbstractExpressionNode* head = parse(&tokens);
-  cout << head->toString() << endl;
-  cout << toStringParseData(evaluate(head)) << endl;
+  
+  
+  vector<AbstractStatementNode*>* statements = parse(&tokens);
+  vector<AbstractStatementNode*>::iterator it2;
+  
+  for(it2 = statements->begin(); it2 != statements->end(); it2++) {
+    (*it2)->execute();
+  }
       
 }

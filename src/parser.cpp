@@ -5,6 +5,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "typehandler.h"
+#include "statementnode.h"
 #include "parser.h"
 
 using namespace std;
@@ -357,14 +358,45 @@ AbstractExpressionNode* evalExpression() {
   return evalLogicOr();
 }
 
+
+void addStatement(std::vector<AbstractStatementNode*>* statements) {
+
+  if(peek()->type == PRINT) {
+    
+    consume();
+    statements->push_back(new PrintStatementNode(evalExpression()));
+    
+  } else if(peek()->type == PRINTLN) {
+    
+    consume();
+    statements->push_back(new PrintLineStatementNode(evalExpression()));
+
+  } else {
+    
+    statements->push_back(new ExpressionStatementNode(evalExpression()));
+    
+  }
+  
+}
+
 //generate Abstract Syntax Tree from list of tokens
-AbstractExpressionNode* parse(std::vector<Token>* tokenRef) {
+std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokenRef) {
 
   //set static variables to correct initial values
   index = 0;
   tokens = tokenRef;
-
-  return evalExpression();
+  
+  //create empty statement vector
+  std::vector<AbstractStatementNode*>* statements = new std::vector<AbstractStatementNode*>();
+  
+  //append statement nodes until END is reached
+  while(peek()->type != END) {
+	 
+    addStatement(statements);
+	  
+  }
+  
+  return statements;
 }
 
 

@@ -7,13 +7,13 @@
 #include "token.h"
 
 static const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "else", "break",
-                               "switch", "case", "class", "fun", "int8",
+                               "switch", "case", "class", "fun", "print", "println", "int8",
                               "int16", "int32", "int64", "uint8", "uint16",
                               "uint32", "uint64", "char", "double", "bool",
                               "string", "true", "false"};
 
 static const TokenType RESERVED_WORD_TOKENS[] = { FOR, WHILE, DO, IF, ELSE, BREAK,
-                                    SWITCH, CASE, CLASS, FUN, INT8,
+                                    SWITCH, CASE, CLASS, FUN, PRINT, PRINTLN, INT8,
                                     INT16, INT32, INT64, UINT8, UINT16,
                                     UINT32, UINT64, CHAR, DOUBLE, BOOL,
                                     STRING, TRUE, FALSE };
@@ -116,6 +116,8 @@ const char* toStringTokenType(TokenType tokenType) {
     case CASE: return "CASE";
     case CLASS: return "CLASS";
     case FUN: return "FUN";
+    case PRINT: return "PRINT";
+    case PRINTLN: return "PRINTLN";
     case TRUE: return "TRUE";
     case FALSE: return "FALSE";
     case END: return "END";

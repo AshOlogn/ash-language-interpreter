@@ -13,6 +13,7 @@ source = main.cpp \
 	literaleval.cpp \
 	unaryeval.cpp \
 	evaluator.cpp \
+	statementnode.cpp \
 	typehandler.cpp \
 	parser.cpp
 	
@@ -28,6 +29,7 @@ include = token.h \
 	literaleval.h \
 	unaryeval.h \
 	evaluator.h \
+	statementnode.h \
 	typehandler.h \
 	parser.h
 

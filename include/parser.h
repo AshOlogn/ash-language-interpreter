@@ -3,12 +3,19 @@
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "statementnode.h"
 
 /////////////////////////////////
 //////     Return Tree     //////
 /////////////////////////////////
 
-AbstractExpressionNode* parse(std::vector<Token>* tokens);
+std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokens);
+
+/////////////////////////////////
+//////  Return Statements  //////
+/////////////////////////////////
+
+void addStatement(std::vector<AbstractStatementNode*>* statements);
 
 /////////////////////////////////
 //////    Access Tokens     /////
