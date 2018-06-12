@@ -4,6 +4,6 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
-ParseData evaluateUnaryExpression(AbstractExpressionNode* node);
+ParseData evaluateUnaryExpression(UnaryOperatorNode* node);
 
 #endif

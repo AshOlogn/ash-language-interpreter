@@ -36,9 +36,8 @@ bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))
       
 .PHONY: clean
 clean:
-	echo cleaning...
+	@echo cleaning...
 	rm bin/main
-	  
 	  
 	  
 	  
