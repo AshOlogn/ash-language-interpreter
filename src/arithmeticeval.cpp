@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdint>
 #include <cmath>
 #include <cstring>
@@ -6,19 +5,6 @@
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
-
-//recursively evaluate AST, start at root
-ParseData evaluate(AbstractExpressionNode* node) {
-  return node->evaluate();
-}
-
-
-//evaluate expression appropriately depending on type of AbstractExpressionNode
-ParseData evaluateUnaryExpression(AbstractExpressionNode* node) {
-  
-  ParseData d;
-  return d;
-}
 
 ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
   
@@ -1408,11 +1394,664 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
     }
     
     
-    
-    case ADD_OP: break;
-    
     ////////////////////////////////
-    ///////      Subtract     ///////
+    /////         Add          /////
+    ////////////////////////////////
+    
+    case ADD_OP: { 
+
+      //branch on first argument's type
+      switch(left.type) {
+
+        case CHAR_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = CHAR_T;
+              d.value.integer = (unsigned char) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              unsigned char arg1 = (unsigned char) left.value.integer; 
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len = strlen(arg2);
+              
+              char* res = new char[len+2];
+              res[0] = arg1; res[1] = '\0';
+              strncat(res, arg2, len);
+              res[len+1] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              int32_t arg1 = (int32_t) left.value.integer; 
+              const char* arg1Str = std::to_string(arg1).c_str();
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1Str);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1Str, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case INT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              int64_t arg1 = (int64_t) left.value.integer; 
+              const char* arg1Str = std::to_string(arg1).c_str();
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1Str);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1Str, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT32_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT32_T;
+              d.value.integer = (int32_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT32_T;
+              d.value.integer = (uint32_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              uint32_t arg1 = (uint32_t) left.value.integer; 
+              const char* arg1Str = std::to_string(arg1).c_str();
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1Str);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1Str, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+
+        case UINT64_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = INT64_T;
+              d.value.integer = (int64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = UINT64_T;
+              d.value.integer = (uint64_t) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              uint64_t arg1 = (uint64_t) left.value.integer; 
+              const char* arg1Str = std::to_string(arg1).c_str();
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1Str);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1Str, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        case DOUBLE_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+
+            case INT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int32_t arg2 = (int32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+
+            case INT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              int64_t arg2 = (int64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+
+            case UINT32_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+
+            case UINT64_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              double arg1 = (double) left.value.floatingPoint;
+              double arg2 = (double) right.value.floatingPoint;
+              d.type = DOUBLE_T;
+              d.value.floatingPoint = (double) (arg1+arg2);        
+              break;
+            }
+            
+            case STRING_T: {
+  
+              double arg1 = (double) left.value.integer; 
+              const char* arg1Str = std::to_string(arg1).c_str();
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1Str);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1Str, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+        
+        
+        case STRING_T: {
+
+          //branch on second argument's type
+          switch(right.type) {
+
+            case CHAR_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              unsigned char arg2 = (unsigned char) right.value.integer;
+              uint32_t len = strlen(arg1);
+              
+              char* res = new char[len + 2];
+              res[0] = arg2; res[1] = '\0';
+              strncat(res, arg1, len);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+            case INT32_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              int32_t arg2 = (int32_t) right.value.integer;
+              const char* arg2Str = std::to_string(arg2).c_str();
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2Str);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2Str, len2);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;
+              break;
+            }
+
+            case INT64_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              int64_t arg2 = (int64_t) right.value.integer;
+              const char* arg2Str = std::to_string(arg2).c_str();
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2Str);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2Str, len2);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;
+              break;
+            }
+
+            case UINT32_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              uint32_t arg2 = (uint32_t) right.value.integer;
+              const char* arg2Str = std::to_string(arg2).c_str();
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2Str);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2Str, len2);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;
+              break;
+            }
+
+            case UINT64_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              uint64_t arg2 = (uint64_t) right.value.integer;
+              const char* arg2Str = std::to_string(arg2).c_str();
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2Str);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2Str, len2);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;
+              break;
+            }
+
+            case DOUBLE_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              double arg2 = (double) right.value.integer;
+              const char* arg2Str = std::to_string(arg2).c_str();
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2Str);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2Str, len2);
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;
+              break;
+            }
+            
+            case STRING_T: {
+  
+              char* arg1 = (char*) left.value.allocated;
+              char* arg2 = (char*) right.value.allocated;
+              uint32_t len1 = strlen(arg1);
+              uint32_t len2 = strlen(arg2);
+              
+              char* res = new char[len1+len2+1];
+              res[0] = '\0';
+              strncat(res, arg1, len1);
+              strncat(res, arg2, len2);
+              res[len1+len2] = '\0';
+              
+              d.type = STRING_T;
+              d.value.allocated = (void*) res;        
+              break;
+            }
+
+          } //end inner switch
+
+          break;
+
+        } //end outer case
+
+        break;
+      }
+
+      break; //end operation case
+    }
+    
+
+    ////////////////////////////////
+    ///////      Subtract     //////
     ////////////////////////////////
     
     case SUBTRACT_OP: { 
@@ -1825,32 +2464,3 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
 
   return d;
 }
-
-ParseData evaluateBitLogicalExpression(AbstractExpressionNode* node) {
-  
-  ParseData d;
-  return d;
-}
-
-ParseData evaluateComparisonExpression(AbstractExpressionNode* node) {
-  
-  ParseData d;
-  return d;
-}
-
-ParseData evaluateAssignmentExpression(AbstractExpressionNode* node) {
-  
-  ParseData d;
-  return d;
-}
-
-//just return the value represented by node's ParseData
-ParseData evaluateLiteralExpression(AbstractExpressionNode* node) {
-  return ((LiteralNode*) node)->data;
-}
-
-//just evaluate subtree representing parenthesized expression
-ParseData evaluateGroupedExpression(AbstractExpressionNode* node) {
-  return ((GroupedExpressionNode*) node)->closedExpression->evaluate();
-}
-

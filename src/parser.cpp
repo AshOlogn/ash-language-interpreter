@@ -48,7 +48,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     if(peek()->type != RIGHT_PAREN) {
       //error
-      cout << "ERROR LITERAL!!!!" << endl;
+      cout << "ERROR LITERAL!!!!, index: " << index << endl;
     } else {
       consume(); //consume right parenthesis
     }
@@ -72,16 +72,16 @@ AbstractExpressionNode* evalSignNot() {
     AbstractExpressionNode* next = evalSignNot();
 
     if(typecheckUnaryExpression(op, next->evalType)) {
-      return new UnaryOperatorNode(op, evalSignNot());
+      return new UnaryOperatorNode(op, next);
     } else {
       cout << "ERROR SIGN NOT!" << endl;
       return NULL;
     }
 
   } else {
+
     return evalLiteralGroup();  
   }
-
 }
 
 
