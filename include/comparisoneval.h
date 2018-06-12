@@ -4,7 +4,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
-ParseData evaluateComparisonExpression(AbstractExpressionNode* node);
+ParseData evaluateComparisonExpression(ComparisonOperatorNode* node);
 
 
 #endif

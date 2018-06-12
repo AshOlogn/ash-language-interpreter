@@ -327,6 +327,19 @@ char* toStringParseData(ParseData d) {
       std::strcpy(c, str.c_str());
       return c;
     }
+    
+    case BOOL_T: {
+     
+      if(d.value.integer) {
+        char* ans = new char[5];
+        std::strcpy(ans, "true");
+        return ans;
+      } else {
+        char* ans = new char[6];
+        std::strcpy(ans, "false");
+        return ans;
+      }
+    }
 
     case STRING_T: {
       char* val = (char*) d.value.allocated;

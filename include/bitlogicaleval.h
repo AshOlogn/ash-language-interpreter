@@ -4,7 +4,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
-ParseData evaluateBitLogicalExpression(AbstractExpressionNode* node);
+ParseData evaluateBitLogicalExpression(BitLogicalOperatorNode* node);
 
 
 #endif
