@@ -361,85 +361,100 @@ AbstractExpressionNode* evalExpression() {
 
 AbstractStatementNode* addStatement() {
 
-  if(peek()->type == PRINT) {
+  TokenType t = peek()->type;
+  
+  switch(t) {
     
-    consume();
-    new PrintStatementNode(evalExpression());
-    
-  } else if(peek()->type == PRINTLN) {
-    
-    consume();
-    return new PrintLineStatementNode(evalExpression());
-
-  } else if(peek()->type == IF) {
-
-    std::vector<AbstractExpressionNode*>* cond = new std::vector<AbstractExpressionNode*>();
-    std::vector<AbstractStatementNode*>* stat = new std::vector<AbstractStatementNode*>();
-    
-    //consume the IF token and add first condition-statement pair
-    consume();
-    AbstractExpressionNode* e = evalExpression();
-    
-    if(e->evalType != BOOL_T) {
-      cout << "Conditional must take a boolean expression" << endl;
-      return NULL;
-    } else {
-      cond->push_back(e);
-      stat->push_back(addStatement());
+    case PRINTLN: {
+      consume();
+      return new PrintLineStatementNode(evalExpression());
     }
     
-    //now append to the chain as needed
-    while(peek()->type == ELIF || peek()->type == ELSE) {
+    case PRINT: {  
+      consume();
+      return new PrintStatementNode(evalExpression());
+    }
+    
+    case LEFT_BRACE: {
       
-      if(peek()->type == ELIF) {
+      consume();
+      vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();
+      while(peek()->type != RIGHT_BRACE) {
+        statements->push_back(addStatement());  
+      }
+      consume(); //consume right brace
+      
+      return new GroupedStatementNode(statements);
+    }
+    
+    case IF: {
+    
+      vector<AbstractExpressionNode*>* cond = new vector<AbstractExpressionNode*>();
+      vector<AbstractStatementNode*>* stat = new vector<AbstractStatementNode*>();
+      
+      //consume the IF token and add first condition-statement pair
+      consume();
+      AbstractExpressionNode* e = evalExpression();
+      
+      if(e->evalType != BOOL_T) {
+        cout << "Conditional must take a boolean expression" << endl;
+        return NULL;
+      } else {
+        cond->push_back(e);
+        stat->push_back(addStatement());
+      }
+      
+      //now append to the chain as needed
+      while(peek()->type == ELIF || peek()->type == ELSE) {
         
-        //consume ELIF token and add condition-statement pair
-        consume();
-        AbstractExpressionNode* exp = evalExpression();
-        
-        if(exp->evalType != BOOL_T) {
-          cout << "Conditional must take a boolean expression" << endl;
-          return NULL;
+        if(peek()->type == ELIF) {
+          
+          //consume ELIF token and add condition-statement pair
+          consume();
+          AbstractExpressionNode* exp = evalExpression();
+          
+          if(exp->evalType != BOOL_T) {
+            cout << "Conditional must take a boolean expression" << endl;
+            return NULL;
+          } else {
+            cond->push_back(exp);
+            stat->push_back(addStatement());
+          }
+           
         } else {
+          
+          //consume ELSE token and add dummy true-statement pair
+          consume();
+          
+          ParseData d;
+          d.type = BOOL_T; d.value.integer = true;
+          LiteralNode* exp = new LiteralNode(d);
+          
           cond->push_back(exp);
           stat->push_back(addStatement());
-        }
-         
-      } else {
-        
-        //consume ELSE token and add dummy true-statement pair
-        consume();
-        
-        ParseData d;
-        d.type = BOOL_T; d.value.integer = true;
-        LiteralNode* exp = new LiteralNode(d);
-        
-        cond->push_back(exp);
-        stat->push_back(addStatement());
-        
-        return new ConditionalStatementNode(cond, stat);
-      }  
+          
+          return new ConditionalStatementNode(cond, stat);
+        }  
+      }
+      
+      return new ConditionalStatementNode(cond, stat);
     }
     
-    return new ConditionalStatementNode(cond, stat);
-    
-  } else {
-    
-    return new ExpressionStatementNode(evalExpression());
+    default: return new ExpressionStatementNode(evalExpression());
     
   }
   
 }
 
 //generate Abstract Syntax Tree from list of tokens
-std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokenRef) {
+vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef) {
 
   //set static variables to correct initial values
   index = 0;
   tokens = tokenRef;
   
   //create empty statement vector
-  std::vector<AbstractStatementNode*>* statements = new std::vector<AbstractStatementNode*>();
+  vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();
   
   //append statement nodes until END is reached
   while(peek()->type != END) {

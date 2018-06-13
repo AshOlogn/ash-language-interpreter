@@ -457,8 +457,21 @@ vector<Token> lex(char* code) {
       lexeme[currentIndex-index] = 0;
 
       //determine if keyword, if not then identifier
-      tokens.push_back(makeToken(varOrKeywordTokenType(lexeme), line, lexeme));
-
+      TokenType tt = varOrKeywordTokenType(lexeme);
+      if(tt == TRUE) {
+        
+        Data d; d.integer = 1;
+        tokens.push_back(makeToken(BOOL, line, lexeme, d));
+      
+      } else if(tt == FALSE) {
+        
+        Data d; d.integer = 0;
+        tokens.push_back(makeToken(BOOL, line, lexeme, d));
+        
+      } else {
+        tokens.push_back(makeToken(varOrKeywordTokenType(lexeme), line, lexeme));  
+      }
+      
       index = currentIndex;
     }
 

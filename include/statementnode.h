@@ -48,6 +48,18 @@ class PrintLineStatementNode : public AbstractStatementNode {
     void execute();
 };
 
+
+//represents a group of statements in braces
+class GroupedStatementNode : public AbstractStatementNode {
+
+  public:
+    std::vector<AbstractStatementNode*>* statements;
+    
+    GroupedStatementNode(std::vector<AbstractStatementNode*>* s);
+    void execute();
+  
+};
+
 //represents if-elif-else structure
 class ConditionalStatementNode : public AbstractStatementNode {
   

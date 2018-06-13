@@ -31,6 +31,20 @@ void PrintLineStatementNode::execute() {
   std::cout << toStringParseData(expression->evaluate()) << std::endl;
 }
 
+//represents a group of statements in braces
+GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s) {
+  statements = s;
+}
+
+void GroupedStatementNode::execute() {
+  
+  std::vector<AbstractStatementNode*>::iterator it;
+  for(it = statements->begin(); it != statements->end(); it++) {
+    (*it)->execute();
+  }
+}
+
+
 //represents if-elif-else structure
 ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat) {
   conditions = cond;
