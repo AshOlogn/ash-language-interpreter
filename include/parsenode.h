@@ -76,6 +76,25 @@ class ComparisonOperatorNode : public AbstractBinaryOperatorNode {
 
 
 ///////////////////////////////////
+///////    Member Access    ///////
+///////////////////////////////////
+class ArrayAccessNode : public AbstractExpressionNode {
+  
+  public:
+    AbstractExpressionNode* array;
+    AbstractExpressionNode* start;
+    AbstractExpressionNode* end;
+    bool isSlice;
+    
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s);
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e);
+  
+    ParseData evaluate();
+    std::string toString();
+};
+
+
+///////////////////////////////////
 ///////      Literal        ///////
 ///////////////////////////////////
 

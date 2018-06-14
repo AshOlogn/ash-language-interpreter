@@ -11,6 +11,7 @@
 #include "groupeval.h"
 #include "literaleval.h"
 #include "unaryeval.h"
+#include "memberaccesseval.h"
 
 //recursively evaluate AST, start at root
 ParseData evaluate(AbstractExpressionNode* node);

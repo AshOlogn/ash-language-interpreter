@@ -12,6 +12,7 @@ source = main.cpp \
 	groupeval.cpp \
 	literaleval.cpp \
 	unaryeval.cpp \
+	memberaccesseval.cpp \
 	evaluator.cpp \
 	statementnode.cpp \
 	typehandler.cpp \
@@ -28,6 +29,7 @@ include = token.h \
 	groupeval.h \
 	literaleval.h \
 	unaryeval.h \
+	memberaccesseval.h \
 	evaluator.h \
 	statementnode.h \
 	typehandler.h \

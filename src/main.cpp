@@ -32,7 +32,11 @@ int main(int argc, char** argv) {
   vector<Token> tokens = lex(sourceCode);  
   vector<Token>::iterator it;
 
-
+  /*for(it = tokens.begin(); it != tokens.end(); it++) {
+    cout << toStringTokenType(it->type) << endl;
+  }*/
+  
+  
   //get list of statements from list of tokens (parse)
   vector<AbstractStatementNode*>* statements = parse(&tokens);
   vector<AbstractStatementNode*>::iterator it2;

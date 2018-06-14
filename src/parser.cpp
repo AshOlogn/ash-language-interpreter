@@ -64,6 +64,107 @@ AbstractExpressionNode* evalLiteralGroup() {
   }
 }
 
+//member access
+AbstractExpressionNode* evalMemberAccess() {
+  
+  AbstractExpressionNode* head = evalLiteralGroup();
+
+  while(peek()->type == LEFT_BRACKET) {
+  
+    consume(); //consume [
+
+    //if next value is colon, this is a slice with implicit start = 0
+    if(peek()->type == COLON) {
+  
+      consume(); //consume :
+      
+      //start = 0
+      ParseData startIndex;
+      startIndex.type = INT32_T;
+      startIndex.value.integer = 0;
+
+      //if next value is ], implicit end = -1
+      if(peek()->type == RIGHT_BRACKET) {
+  
+        consume(); //consume ]
+        ParseData endIndex;
+        endIndex.type = INT32_T;
+        endIndex.value.integer = (int32_t) -1;
+        
+        head = new ArrayAccessNode(head, new LiteralNode(startIndex), new LiteralNode(endIndex));
+
+      } else {
+  
+        //defined end index
+        AbstractExpressionNode* end = evalExpression();
+
+        if(peek()->type != RIGHT_BRACKET) {
+          cout << "ERROR MEMBER ACCESS!!!" << endl;
+          return NULL;
+
+        } else {
+    
+          consume(); //consume ]
+          head = new ArrayAccessNode(head, new LiteralNode(startIndex), end);
+        }        
+
+      }
+
+    } else {
+  
+      //defined start index
+      AbstractExpressionNode* start = evalExpression();
+
+      //accessing a slice with explicit start
+      if(peek()->type == COLON) {
+    
+        consume(); //consume :
+
+        //end = -1 implied
+        if(peek()->type == RIGHT_BRACKET) {
+  
+          consume(); //consume ]
+          ParseData endIndex;
+          endIndex.type = INT32_T;
+          endIndex.value.integer = (int32_t) -1;
+      
+          head = new ArrayAccessNode(head, start, new LiteralNode(endIndex));
+
+        } else {
+  
+          //defined end index
+          AbstractExpressionNode* end = evalExpression();
+            
+          if(peek()->type != RIGHT_BRACKET) {
+            cout << "ERROR MEMBER ACCESS!!!" << endl;
+            return NULL;
+
+          } else {
+            consume(); //consume ]
+            head = new ArrayAccessNode(head, start, end);
+          }
+        }
+
+      } else {
+        
+        //accessing single value
+        if(peek()->type != RIGHT_BRACKET) {
+          cout << "ERROR MEMBER ACCESS!!!" << endl;
+          return NULL;
+
+        } else {
+          consume(); //consume ]
+          head = new ArrayAccessNode(head, start);
+        }
+      }
+
+    }   
+
+  }
+
+  return head;
+}
+
 //sign and bit/logical NOT
 AbstractExpressionNode* evalSignNot() {
  
@@ -81,7 +182,7 @@ AbstractExpressionNode* evalSignNot() {
 
   } else {
 
-    return evalLiteralGroup();  
+    return evalMemberAccess();  
   }
 }
 

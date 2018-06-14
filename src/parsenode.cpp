@@ -91,6 +91,42 @@ ParseData ComparisonOperatorNode::evaluate() {
 
 
 ///////////////////////////////////
+///////    Member Access    ///////
+///////////////////////////////////
+
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s) {
+  array = arr; start = s; isSlice = false;
+}
+
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e) {
+  array = arr; start = s; end = e; isSlice = true;
+}
+
+ParseData ArrayAccessNode::evaluate() {
+  return evaluateArrayAccess(this);
+}
+
+std::string ArrayAccessNode::toString() {
+  
+  std::string str = "([";
+  if(isSlice) {
+    
+    str.append(start->toString());
+    str.append(":");
+    str.append(end->toString());
+    str.append("] ");
+    
+  } else {
+    str.append("]");
+  }
+ 
+  str.append(array->toString());
+  str.append(")");
+ 
+  return str;
+}
+
+///////////////////////////////////
 ///////      Literal        ///////
 ///////////////////////////////////
 

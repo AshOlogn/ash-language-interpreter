@@ -214,6 +214,50 @@ ParseData additionHelper<char*, unsigned char>(char* n1, unsigned char n2, Parse
 }
 
 template<>
+ParseData additionHelper<bool, char*>(bool n1, char* n2, ParseDataType type) {
+
+  char* arg1 = (char*) n1;
+  const char* arg1Str = (arg1) ? "true" : "false";
+  char* arg2 = (char*) n2;
+  uint32_t len1 = strlen(arg1Str);
+  uint32_t len2 = strlen(arg2);
+  
+  char* res = new char[len1+len2+1];
+  res[0] = '\0';
+  strncat(res, arg1Str, len1);
+  strncat(res, arg2, len2);
+  res[len1+len2] = '\0';
+  
+  ParseData d;
+  d.type = type;
+  d.value.allocated = (void*) res;
+  
+  return d;
+}
+
+template<>
+ParseData additionHelper<char*, bool>(char* n1, bool n2, ParseDataType type) {
+
+  char* arg1 = (char*) n1;
+  bool arg2 = (bool) n2;
+  const char* arg2Str = (arg2) ? "true" : "false";
+  uint32_t len1 = strlen(arg1);
+  uint32_t len2 = strlen(arg2Str);
+  
+  char* res = new char[len1+len2+1];
+  res[0] = '\0';
+  strncat(res, arg1, len1);
+  strncat(res, arg2Str, len2);
+  res[len1+len2] = '\0';
+  
+  ParseData d;
+  d.type = type;
+  d.value.allocated = (void*) res;
+  
+  return d;
+}
+
+template<>
 ParseData additionHelper<char*, int32_t>(char* n1, int32_t n2, ParseDataType type) {
 
   char* arg1 = (char*) n1;
@@ -967,6 +1011,8 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
       ParseDataType finalType = getTypeArithmeticExpression(ADD_OP, left.type, right.type);
       
       switch(left.type) {
+        
+        case BOOL_T: return additionHelper((bool) left.value.integer, (char*) right.value.allocated, finalType); 
 
         case CHAR_T: {
           
@@ -1049,13 +1095,14 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
         case STRING_T: {
           
           switch(right.type) {
+            case BOOL_T: return additionHelper((char*) left.value.allocated, (bool) right.value.integer, finalType);
             case CHAR_T: return additionHelper((char*) left.value.allocated, (unsigned char) right.value.integer, finalType); 
             case INT32_T: return additionHelper((char*) left.value.allocated, (int32_t) right.value.integer, finalType); 
             case INT64_T: return additionHelper((char*) left.value.allocated, (int64_t) right.value.integer, finalType); 
             case UINT32_T: return additionHelper((char*) left.value.allocated, (uint32_t) right.value.integer, finalType); 
             case UINT64_T: return additionHelper((char*) left.value.allocated, (uint64_t) right.value.integer, finalType); 
             case DOUBLE_T: return additionHelper((char*) left.value.allocated, (double) right.value.floatingPoint, finalType); 
-            case STRING_T: return additionHelper((char*) left.value.allocated, (char*) right.value.allocated, finalType); 
+            case STRING_T: return additionHelper((char*) left.value.allocated, (char*) right.value.allocated, finalType);            
           }
         }
       }
