@@ -69,9 +69,7 @@ void ConditionalStatementNode::execute() {
       (*it2)->execute();
       return;
     }
-   
   }
-  
   
 }
 

@@ -12,8 +12,6 @@ class SymbolTable {
     std::vector<std::unordered_map<std::string, ParseData>*>* table;
  
   public:
-    bool newScope;
-    
     SymbolTable();
     void enterNewScope();
     void leaveScope();

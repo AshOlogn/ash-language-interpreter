@@ -10,13 +10,13 @@
 using namespace std;
 
 SymbolTable::SymbolTable() {
-  newScope = true;
   table = new vector<unordered_map<string, ParseData>*>();
+  table->push_back(new unordered_map<string, ParseData>());
 }
 
 void SymbolTable::enterNewScope() {
   //the next time something is added, a new symbol table is created
-  newScope = true;
+  table->push_back(new unordered_map<string, ParseData>());
 }
 
 void SymbolTable::leaveScope() {
@@ -25,18 +25,12 @@ void SymbolTable::leaveScope() {
 }
 
 void SymbolTable::put(char* var, ParseData value) {
-
-  //if entering a new scope, create a new hash map to represent it
-  unordered_map<string, ParseData>* map = (newScope) ? new unordered_map<string, ParseData>() : table->back();
+  
+  //get symbol table at innermost scope
+  unordered_map<string, ParseData>* map = table->back();
   
   //add element to the map
-  (*map)[var] = value; 
-
-  //if new scope, append to end of table and reset
-  if(newScope) {
-    newScope = false;
-    table->push_back(map);
-  }
+  (*map)[var] = value;
 }
 
 ParseData SymbolTable::get(char* var) {
