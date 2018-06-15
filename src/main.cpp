@@ -10,6 +10,7 @@
 #include "parsetoken.h"
 #include "evaluator.h"
 #include "statementnode.h"
+#include "symboltable.h"
 
 using namespace std;
 
@@ -32,9 +33,9 @@ int main(int argc, char** argv) {
   vector<Token> tokens = lex(sourceCode);  
   vector<Token>::iterator it;
 
-  /*for(it = tokens.begin(); it != tokens.end(); it++) {
+  for(it = tokens.begin(); it != tokens.end(); it++) {
     cout << toStringTokenType(it->type) << endl;
-  }*/
+  }
   
   
   //get list of statements from list of tokens (parse)
@@ -45,5 +46,5 @@ int main(int argc, char** argv) {
   for(it2 = statements->begin(); it2 != statements->end(); it2++) {
     (*it2)->execute();
   }
-      
+  
 }

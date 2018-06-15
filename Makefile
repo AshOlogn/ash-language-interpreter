@@ -16,6 +16,7 @@ source = main.cpp \
 	evaluator.cpp \
 	statementnode.cpp \
 	typehandler.cpp \
+	symboltable.cpp \
 	parser.cpp
 	
 include = token.h \
@@ -33,6 +34,7 @@ include = token.h \
 	evaluator.h \
 	statementnode.h \
 	typehandler.h \
+	symboltable.h \
 	parser.h
 
 bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))
