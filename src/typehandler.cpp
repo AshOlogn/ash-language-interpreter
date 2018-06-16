@@ -7,6 +7,37 @@
 ////////////////////////////////////
 
 //typecheck expression appropriately depending on type of AbstractExpressionNode
+bool typecheckImplicitCastExpression(ParseDataType origType, ParseDataType finalType) {
+
+  switch(finalType) {
+    
+    case INT32_T: return origType == CHAR_T || origType == INT32_T || origType == UINT32_T;
+                         
+    case INT64_T: return isIntParseDataType(origType);
+                         
+    case UINT32_T: return origType == CHAR_T || origType == INT32_T || origType == UINT32_T;
+                         
+    case UINT64_T: return isIntParseDataType(origType);
+    case CHAR_T: return origType == CHAR_T;
+    case BOOL_T: return origType == BOOL_T;
+    case DOUBLE_T: return isNumberParseDataType(origType);
+    case STRING_T: return true;
+    default: return false;
+  }
+}
+
+bool typecheckExplicitCastExpression(ParseDataType origType, ParseDataType finalType) {
+  
+  if(isNumberParseDataType(finalType)) {
+    return isNumberParseDataType(origType) || origType == BOOL_T;
+  } else if(finalType == BOOL_T) {
+    return isIntParseDataType(origType) || origType == BOOL_T;  
+  } else if(finalType == STRING_T) {
+    return true;
+  } else {
+    return false; 
+  }
+}
 
 bool typecheckUnaryExpression(ParseOperatorType op, ParseDataType arg) {
   

@@ -12,9 +12,9 @@
 #include "literaleval.h"
 #include "unaryeval.h"
 #include "memberaccesseval.h"
+#include "casteval.h"
 
 //recursively evaluate AST, start at root
 ParseData evaluate(AbstractExpressionNode* node);
-
 
 #endif

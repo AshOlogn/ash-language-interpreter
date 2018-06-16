@@ -76,6 +76,21 @@ class ComparisonOperatorNode : public AbstractBinaryOperatorNode {
 
 
 ///////////////////////////////////
+///////        Cast         ///////
+///////////////////////////////////
+
+//class that holds literal data found in the source code
+class CastNode : public AbstractExpressionNode {
+  public:
+    AbstractExpressionNode* expression;
+    ParseDataType finalType;
+    
+    CastNode(AbstractExpressionNode* e, ParseDataType type);
+    ParseData evaluate();
+    std::string toString();
+};
+
+///////////////////////////////////
 ///////    Member Access    ///////
 ///////////////////////////////////
 class ArrayAccessNode : public AbstractExpressionNode {

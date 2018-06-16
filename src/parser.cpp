@@ -10,8 +10,9 @@
 
 using namespace std;
 
-static uint32_t index;
+static uint32_t tokenIndex;
 static vector<Token>* tokens;
+static SymbolTable* symbolTable;
 
 /////////////////////////////////
 //////    Access Tokens     /////
@@ -19,17 +20,17 @@ static vector<Token>* tokens;
 
 //return current Token and advance
 Token* consume() {
-  return (Token*) &(tokens->at(index++));
+  return (Token*) &(tokens->at(tokenIndex++));
 }
 
 //examine the current Token, don't advance position
 Token* peek() {
-  return (Token*) &(tokens->at(index));
+  return (Token*) &(tokens->at(tokenIndex));
 }
 
 //examine a Token at given index
-Token* peek(uint32_t inputIndex) {
-  return (Token*) &(tokens->at(inputIndex));
+Token* peekAhead(uint32_t offset) {
+  return (Token*) &(tokens->at(tokenIndex+offset));
 }
 
 
@@ -49,7 +50,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     if(peek()->type != RIGHT_PAREN) {
       //error
-      cout << "ERROR LITERAL!!!!, index: " << index << endl;
+      cout << "ERROR LITERAL!!!!, index: " << tokenIndex << endl;
     } else {
       consume(); //consume right parenthesis
     }
@@ -165,13 +166,19 @@ AbstractExpressionNode* evalMemberAccess() {
   return head;
 }
 
+
+bool isCastStructure() {
+  return peek()->type == LEFT_PAREN && isTypeTokenType(peekAhead(1)->type) && peekAhead(2)->type == RIGHT_PAREN;
+}
+
 //sign and bit/logical NOT
-AbstractExpressionNode* evalSignNot() {
+AbstractExpressionNode* evalCastSignNot() {
  
+  //check if sign, not, or cast
   if(isSignNotTokenType(peek()->type)) {
 
     ParseOperatorType op = unaryTokenConversion(consume()->type);
-    AbstractExpressionNode* next = evalSignNot();
+    AbstractExpressionNode* next = evalCastSignNot();
 
     if(typecheckUnaryExpression(op, next->evalType)) {
       return new UnaryOperatorNode(op, next);
@@ -180,6 +187,20 @@ AbstractExpressionNode* evalSignNot() {
       return NULL;
     }
 
+  } else if(isCastStructure()) {   
+    
+    consume(); //consume (
+    ParseDataType finalType = typeTokenConversion(consume()->type);
+    consume(); //consume )
+    
+    AbstractExpressionNode* next = evalCastSignNot();
+    if(typecheckExplicitCastExpression(next->evalType, finalType)) {
+      return new CastNode(next, finalType);
+    } else {
+      cout << "ERROR IMPROPER CAST!" << endl;
+      return NULL;
+    }
+    
   } else {
 
     return evalMemberAccess();  
@@ -190,12 +211,12 @@ AbstractExpressionNode* evalSignNot() {
 // **
 AbstractExpressionNode* evalExponent() {
 
-  AbstractExpressionNode* head = evalSignNot();
+  AbstractExpressionNode* head = evalCastSignNot();
   AbstractExpressionNode* next;
 
   while(peek()->type == EXPONENT) {
     consume(); 
-    next = evalSignNot();
+    next = evalCastSignNot();
 
     if(typecheckArithmeticExpression(EXPONENT_OP, head->evalType, next->evalType)) {
       head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
@@ -468,12 +489,12 @@ AbstractStatementNode* addStatement() {
     
     case PRINTLN: {
       consume();
-      return new PrintLineStatementNode(evalExpression());
+      return new PrintLineStatementNode(evalExpression(), symbolTable);
     }
     
     case PRINT: {  
       consume();
-      return new PrintStatementNode(evalExpression());
+      return new PrintStatementNode(evalExpression(), symbolTable);
     }
     
     case LEFT_BRACE: {
@@ -485,7 +506,7 @@ AbstractStatementNode* addStatement() {
       }
       consume(); //consume right brace
       
-      return new GroupedStatementNode(statements);
+      return new GroupedStatementNode(statements, symbolTable);
     }
     
     case IF: {
@@ -534,14 +555,14 @@ AbstractStatementNode* addStatement() {
           cond->push_back(exp);
           stat->push_back(addStatement());
           
-          return new ConditionalStatementNode(cond, stat);
+          return new ConditionalStatementNode(cond, stat, symbolTable);
         }  
       }
       
-      return new ConditionalStatementNode(cond, stat);
+      return new ConditionalStatementNode(cond, stat, symbolTable);
     }
     
-    default: return new ExpressionStatementNode(evalExpression());
+    default: return new ExpressionStatementNode(evalExpression(), symbolTable);
     
   }
   
@@ -551,8 +572,9 @@ AbstractStatementNode* addStatement() {
 vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef) {
 
   //set static variables to correct initial values
-  index = 0;
+  tokenIndex = 0;
   tokens = tokenRef;
+  symbolTable = new SymbolTable();
   
   //create empty statement vector
   vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();

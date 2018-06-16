@@ -1,6 +1,3 @@
-#include <unordered_map>
-#include "symboltable.h"
-
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -10,13 +7,13 @@
 using namespace std;
 
 SymbolTable::SymbolTable() {
-  table = new vector<unordered_map<string, ParseData>*>();
-  table->push_back(new unordered_map<string, ParseData>());
+  table = new vector<unordered_map<char*, ParseData>*>();
+  table->push_back(new unordered_map<char*, ParseData>());
 }
 
 void SymbolTable::enterNewScope() {
   //the next time something is added, a new symbol table is created
-  table->push_back(new unordered_map<string, ParseData>());
+  table->push_back(new unordered_map<char*, ParseData>());
 }
 
 void SymbolTable::leaveScope() {
@@ -27,7 +24,7 @@ void SymbolTable::leaveScope() {
 void SymbolTable::put(char* var, ParseData value) {
   
   //get symbol table at innermost scope
-  unordered_map<string, ParseData>* map = table->back();
+  unordered_map<char*, ParseData>* map = table->back();
   
   //add element to the map
   (*map)[var] = value;
@@ -36,14 +33,14 @@ void SymbolTable::put(char* var, ParseData value) {
 ParseData SymbolTable::get(char* var) {
   
   //start at innermost scope and work your way up
-  vector<unordered_map<string, ParseData>*>::reverse_iterator rit;
+  vector<unordered_map<char*, ParseData>*>::reverse_iterator rit;
   for(rit = table->rbegin(); rit != table->rend(); rit++) {
   
     //map at this particular scope
-    unordered_map<string, ParseData>* map = (*rit);
+    unordered_map<char*, ParseData>* map = (*rit);
     
     //see if this map contains the variable
-    unordered_map<string, ParseData>::const_iterator value = map->find(var);
+    unordered_map<char*, ParseData>::const_iterator value = map->find(var);
     if(value != map->end())
       return value->second;
   }

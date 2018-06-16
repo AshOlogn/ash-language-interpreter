@@ -91,6 +91,29 @@ ParseData ComparisonOperatorNode::evaluate() {
 
 
 ///////////////////////////////////
+///////        Cast         ///////
+///////////////////////////////////
+
+CastNode::CastNode(AbstractExpressionNode* e, ParseDataType type) {
+  expression = e;
+  evalType = finalType = type;
+}
+
+std::string CastNode::toString() {
+  std::string str = "(";
+  str.append(toStringParseDataType(finalType));
+  str.append(" ");
+  str.append(expression->toString());
+  str.append(")");
+  return str;
+}
+
+ParseData CastNode::evaluate() {
+  evaluateCastExpression(this);
+}
+
+
+///////////////////////////////////
 ///////    Member Access    ///////
 ///////////////////////////////////
 

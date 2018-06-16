@@ -4,6 +4,10 @@
 #include "parsetoken.h"
 
 //typecheck expression appropriately depending on type of AbstractExpressionNode
+bool typecheckImplicitCastExpression(ParseDataType origType, ParseDataType finalType);
+
+bool typecheckExplicitCastExpression(ParseDataType origType, ParseDataType finalType);
+
 bool typecheckUnaryExpression(ParseOperatorType op, ParseDataType arg);
 
 bool typecheckArithmeticExpression(ParseOperatorType op, ParseDataType l, ParseDataType r);

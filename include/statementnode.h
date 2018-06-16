@@ -4,6 +4,7 @@
 #include <vector>
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "symboltable.h"
 
 ///////////////////////////////////
 ///////     Superclass      ///////
@@ -13,6 +14,7 @@
 class AbstractStatementNode {
   
   public:
+    SymbolTable* symbolTable;
     virtual void execute() = 0;
   
 };
@@ -26,7 +28,7 @@ class ExpressionStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    ExpressionStatementNode(AbstractExpressionNode* exp);
+    ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
     void execute();
 };
 
@@ -35,7 +37,7 @@ class PrintStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintStatementNode(AbstractExpressionNode* exp);
+    PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
     void execute();
 };
 
@@ -44,7 +46,7 @@ class PrintLineStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintLineStatementNode(AbstractExpressionNode* exp);
+    PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
     void execute();
 };
 
@@ -55,7 +57,7 @@ class GroupedStatementNode : public AbstractStatementNode {
   public:
     std::vector<AbstractStatementNode*>* statements;
     
-    GroupedStatementNode(std::vector<AbstractStatementNode*>* s);
+    GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable);
     void execute();
   
 };
@@ -67,10 +69,20 @@ class ConditionalStatementNode : public AbstractStatementNode {
     std::vector<AbstractExpressionNode*>* conditions;
     std::vector<AbstractStatementNode*>* statements;
     
-    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat);
+    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable);
     void execute();
 };
 
+//represents variable declaration and assignment
+class AssignmentStatementNode : public AbstractStatementNode {
+
+  public:
+    char* variable;
+    ParseData value;
+    
+    AssignmentStatementNode(char* var, ParseData val, SymbolTable* symbolTable);
+    void execute();
+};
 
 
 

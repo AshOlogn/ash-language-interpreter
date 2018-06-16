@@ -1,15 +1,16 @@
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H
 
-#include <string>
+#include <cstring>
 #include <vector>
 #include <unordered_map>
 #include "parsetoken.h"
 
+
 class SymbolTable {
   
   private:
-    std::vector<std::unordered_map<std::string, ParseData>*>* table;
+    std::vector<std::unordered_map<char*, ParseData>*>* table;
  
   public:
     SymbolTable();

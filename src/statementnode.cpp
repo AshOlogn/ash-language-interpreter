@@ -3,73 +3,69 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "statementnode.h"
+#include "symboltable.h"
+#include "executor.h"
 
 //represents a single-expression statement
-ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp) {
+ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
   expression = exp;
+  symbolTable = table;
 }
 
 void ExpressionStatementNode::execute() {
-  expression->evaluate();
+  executeExpressionStatement(this);
 }
 
 //represents print statement (no new line character)
-PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp) {
+PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
   expression = exp;
+  symbolTable = table;
 }
 
 void PrintStatementNode::execute() {
-  std::cout << toStringParseData(expression->evaluate());
+  executePrintStatement(this);
 }
 
 //represents print statement (yes new line character)
-PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp) {
+PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
   expression = exp;
+  symbolTable = table;
 }
 
 void PrintLineStatementNode::execute() {
-  std::cout << toStringParseData(expression->evaluate()) << std::endl;
+  executePrintLineStatement(this);
 }
 
 //represents a group of statements in braces
-GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s) {
+GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* table) {
   statements = s;
+  symbolTable = table;
 }
 
 void GroupedStatementNode::execute() {
-  
-  std::vector<AbstractStatementNode*>::iterator it;
-  for(it = statements->begin(); it != statements->end(); it++) {
-    (*it)->execute();
-  }
+  executeGroupedStatement(this);
 }
 
 
 //represents if-elif-else structure
-ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat) {
+ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* table) {
   conditions = cond;
   statements = stat;
+  symbolTable = table;
 }
 
 void ConditionalStatementNode::execute() {
-  
-  std::cout << "called" << std::endl;
+  executeConditionalStatement(this);
+}
 
-  std::vector<AbstractExpressionNode*>::iterator it1;
-  std::vector<AbstractStatementNode*>::iterator it2;
-  
-  it1 = conditions->begin();
-  it2 = statements->begin();
-  
-  for(; it1 != conditions->end(); it1++, it2++) {
-    
-    ParseData d = (*it1)->evaluate();
-    if(d.type == BOOL_T && d.value.integer != 0) {
-      
-      (*it2)->execute();
-      return;
-    }
-  }
+//represents variable declaration and assignment
+AssignmentStatementNode::AssignmentStatementNode(char* var, ParseData val, SymbolTable* table) {
+  variable = var;
+  value = val;
+  symbolTable = table;
+}
+
+void AssignmentStatementNode::execute() {
   
 }
 

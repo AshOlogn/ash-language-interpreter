@@ -28,7 +28,7 @@ Token* consume();
 Token* peek();
 
 //examine a Token at given index
-Token* peek(uint32_t inputIndex);
+Token* peekAhead(uint32_t offset);
 
 
 /////////////////////////////////
