@@ -109,7 +109,7 @@ std::string CastNode::toString() {
 }
 
 ParseData CastNode::evaluate() {
-  evaluateCastExpression(this);
+  return evaluateCastExpression(this);
 }
 
 
@@ -147,6 +147,30 @@ std::string ArrayAccessNode::toString() {
   str.append(")");
  
   return str;
+}
+
+///////////////////////////////////
+///////      Variable       ///////
+///////////////////////////////////
+
+class VariableNode : public AbstractExpressionNode {
+  public:
+    SymbolTable* symbolTable;
+    char* variable;
+    VariableNode(char* var, SymbolTable* table);
+};
+
+VariableNode::VariableNode(char* var, SymbolTable* table) {
+  symbolTable = table;
+  variable = var;
+}
+
+ParseData VariableNode::evaluate() {
+  return symbolTable->get(variable);
+}
+
+std::string VariableNode::toString() {
+  return std::string(variable);
 }
 
 ///////////////////////////////////

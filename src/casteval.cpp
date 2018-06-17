@@ -2,11 +2,14 @@
 #include <cmath>
 #include <cstring>
 #include <string>
+#include <iostream>
 #include "token.h"
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "casteval.h"
+
+using namespace std;
 
 //helper function
 ParseData castHelper(ParseData orig, ParseDataType finalType) {
@@ -189,9 +192,9 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
 }
 
 
-ParseData evaluateCastExpression(CastNode* node, ParseDataType finalType) {
-
+ParseData evaluateCastExpression(CastNode* node) {
   ParseData arg = node->expression->evaluate();
-  return castHelper(arg, finalType);
+  ParseData castData =  castHelper(arg, node->finalType);
+	return castData;
 }
 

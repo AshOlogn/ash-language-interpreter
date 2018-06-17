@@ -174,17 +174,15 @@ ParseOperatorType binaryTokenConversion(TokenType tt) {
 const char* toStringParseDataType(ParseDataType p) {
  
   switch(p) {
-  
-    case INT8_T: return "INT8_T";
-    case INT16_T: return "INT16_T";
-    case INT32_T: return "INT64_T";
-    case UINT8_T: return "UINT8_T"; 
-    case UINT16_T: return "UINT32_T"; 
+    case INT32_T: return "INT32_T";
+		case INT64_T: return "INT64_T";
+		case UINT32_T: return "UINT32_T";
     case UINT64_T: return "UINT64_T";
     case CHAR_T: return "CHAR_T";
     case BOOL_T: return "BOOL_T"; 
     case DOUBLE_T: return "DOUBLE_T"; 
     case STRING_T: return "STRING_T";
+		case VOID_T: return "VOID_T";
     case CUSTOM_T: return "CUSTOM_T";
     default: return "INVALID_T";
   } 
@@ -347,6 +345,12 @@ char* toStringParseData(ParseData d) {
       std::strcpy(c, val);
       return c;
     }
+		
+		case VOID_T: {
+			char* v = new char[5];
+			v[0] = 'v'; v[1] = 'o'; v[2] = 'i'; v[3] = 'd'; v[4] = '\0';
+			return v;
+		}
 
     default: {
       char* c = new char[8];

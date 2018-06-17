@@ -43,6 +43,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 
   AbstractExpressionNode* next;
  
+  //if grouped expression
   if(peek()->type == LEFT_PAREN) {
 
     consume(); //consume left parenthesis
@@ -57,6 +58,10 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     return new GroupedExpressionNode(next);
 
+  } else if(peek()->type == VARIABLE) {
+
+    
+    
   } else {
 
     Token* literal = consume();
@@ -270,7 +275,6 @@ AbstractExpressionNode* evalAddSubtract() {
       cout << "ERROR ADD SUB!" << endl;
       return NULL;  
     }
-
   }
   
   return head;
@@ -485,6 +489,8 @@ AbstractStatementNode* addStatement() {
 
   TokenType t = peek()->type;
   
+	
+	
   switch(t) {
     
     case PRINTLN: {

@@ -3,6 +3,7 @@
 
 #include <string>
 #include "parsetoken.h"
+#include "symboltable.h"
 
 ///////////////////////////////////
 ///////     Superclass      ///////
@@ -108,6 +109,18 @@ class ArrayAccessNode : public AbstractExpressionNode {
     std::string toString();
 };
 
+///////////////////////////////////
+///////      Variable       ///////
+///////////////////////////////////
+
+class VariableNode : public AbstractExpressionNode {
+  public:
+    SymbolTable* symbolTable;
+    char* variable;
+    VariableNode(char* var, SymbolTable* table);
+    ParseData evaluate();
+    std::string toString();
+};
 
 ///////////////////////////////////
 ///////      Literal        ///////

@@ -37,16 +37,19 @@ int main(int argc, char** argv) {
     cout << toStringTokenType(it->type) << endl;
   }
   
-  
   //get list of statements from list of tokens (parse)
   vector<AbstractStatementNode*>* statements = parse(&tokens);
   vector<AbstractStatementNode*>::iterator it2;
   
+	//print string representation of each expression
+	/*for(it2 = statements->begin(); it2 != statements->end(); it2++) {
+    cout << ((ExpressionStatementNode*) (*it2))->expression->toString() << endl;
+  }*/
+	
   //execute statements
   for(it2 = statements->begin(); it2 != statements->end(); it2++) {
     (*it2)->execute();
   }
-
 
 }
 

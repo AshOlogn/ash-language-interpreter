@@ -36,6 +36,7 @@ void PrintLineStatementNode::execute() {
   executePrintLineStatement(this);
 }
 
+
 //represents a group of statements in braces
 GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* table) {
   statements = s;
@@ -58,20 +59,37 @@ void ConditionalStatementNode::execute() {
   executeConditionalStatement(this);
 }
 
-//represents variable declaration and assignment
-AssignmentStatementNode::AssignmentStatementNode(char* var, ParseData val, SymbolTable* table) {
+
+//represents declaration (and maybe assignment) of a new variable
+NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
+	variable = var;
+	type = typ;
+	value = val;
+	symbolTable = table;
+}
+
+NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, SymbolTable* table) {
+	variable = var;
+	type = typ;
+  value = NULL;
+	symbolTable = table;
+}
+
+void NewAssignmentStatementNode::execute() {
+	executeNewAssignmentStatement(this);
+}
+
+
+//represents existing variable assignment
+AssignmentStatementNode::AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* table) {
   variable = var;
   value = val;
   symbolTable = table;
 }
 
 void AssignmentStatementNode::execute() {
-  
+	executeAssignmentStatement(this);
 }
-
-
-
-
 
 
 

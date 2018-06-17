@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstring>
 #include <string>
+#include <iostream>
 #include "token.h"
 #include "typehandler.h"
 #include "parsetoken.h"
@@ -524,7 +525,7 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
   //left and right arguments (calculated recursively)
   ParseData left = node->leftArg->evaluate();
   ParseData right = node->rightArg->evaluate();
-
+	
   ParseData d;
 
   switch(node->operation) {

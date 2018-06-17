@@ -17,5 +17,8 @@ void executeGroupedStatement(GroupedStatementNode* node);
 
 void executeConditionalStatement(ConditionalStatementNode* node);
 
+void executeAssignmentStatement(AssignmentStatementNode* node);
+
+void executeNewAssignmentStatement(NewAssignmentStatementNode* node);
 
 #endif

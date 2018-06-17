@@ -16,7 +16,10 @@ class SymbolTable {
     SymbolTable();
     void enterNewScope();
     void leaveScope();
-    void put(char* var, ParseData value);
+    void declare(char* var, ParseData value);
+    void update(char* var, ParseData value);
+    bool isDeclaredInScope(char* var);
+    bool isDeclared(char* var);
     ParseData get(char* var);
 };
 

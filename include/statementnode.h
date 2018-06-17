@@ -73,14 +73,28 @@ class ConditionalStatementNode : public AbstractStatementNode {
     void execute();
 };
 
-//represents variable declaration and assignment
+//represents declaration (and maybe assignment) of a new variable
+class NewAssignmentStatementNode : public AbstractStatementNode {
+	
+	public:
+		char* variable;
+		ParseDataType type;
+		AbstractExpressionNode* value;
+		
+		NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable);
+		NewAssignmentStatementNode(char* var, ParseDataType typ, SymbolTable* symbolTable);
+		void execute();
+};
+
+
+//represents existing variable assignment
 class AssignmentStatementNode : public AbstractStatementNode {
 
   public:
     char* variable;
-    ParseData value;
+    AbstractExpressionNode* value;
     
-    AssignmentStatementNode(char* var, ParseData val, SymbolTable* symbolTable);
+    AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* symbolTable);
     void execute();
 };
 
