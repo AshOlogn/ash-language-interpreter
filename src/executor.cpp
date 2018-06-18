@@ -76,7 +76,7 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   } else {
     
     ParseData d;
-    d.type = node->value->evalType;
+    d.type = symbolTable->get(variable).type;
     symbolTable->declare(variable, castHelper(d, type));
   }
 }
