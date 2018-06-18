@@ -153,16 +153,10 @@ std::string ArrayAccessNode::toString() {
 ///////      Variable       ///////
 ///////////////////////////////////
 
-class VariableNode : public AbstractExpressionNode {
-  public:
-    SymbolTable* symbolTable;
-    char* variable;
-    VariableNode(char* var, SymbolTable* table);
-};
-
 VariableNode::VariableNode(char* var, SymbolTable* table) {
   symbolTable = table;
   variable = var;
+  evalType = (symbolTable->get(var)).type;
 }
 
 ParseData VariableNode::evaluate() {

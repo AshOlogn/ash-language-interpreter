@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <iostream>
 #include <unordered_map>
 #include "parsetoken.h"
 #include "symboltable.h"
@@ -7,13 +8,13 @@
 using namespace std;
 
 SymbolTable::SymbolTable() {
-  table = new vector<unordered_map<char*, ParseData>*>();
-  table->push_back(new unordered_map<char*, ParseData>());
+  table = new vector<unordered_map<char*, ParseData, HashFunction, EqFunction>*>();
+  table->push_back(new unordered_map<char*, ParseData, HashFunction, EqFunction>());
 }
 
 void SymbolTable::enterNewScope() {
   //the next time something is added, a new symbol table is created
-  table->push_back(new unordered_map<char*, ParseData>());
+  table->push_back(new unordered_map<char*, ParseData, HashFunction, EqFunction>());
 }
 
 void SymbolTable::leaveScope() {
@@ -23,8 +24,9 @@ void SymbolTable::leaveScope() {
 
 //create new key in innermost scope
 void SymbolTable::declare(char* var, ParseData value) {
+  
   //get symbol table at innermost scope
-  unordered_map<char*, ParseData>* map = table->back();
+  unordered_map<char*, ParseData, HashFunction, EqFunction>* map = table->back();
   
   //add element to the map
   (*map)[var] = value;
@@ -32,13 +34,13 @@ void SymbolTable::declare(char* var, ParseData value) {
 
 //update value in innermost scope in which it is found
 void SymbolTable::update(char* var, ParseData value) {
-  
+
   //start at innermost scope and work your way up
-  vector<unordered_map<char*, ParseData>*>::reverse_iterator rit;
+  vector<unordered_map<char*, ParseData, HashFunction, EqFunction>*>::reverse_iterator rit;
   
   for(rit = table->rbegin(); rit != table->rend(); rit++) {
     //map at this particular scope
-    unordered_map<char*, ParseData>* map = (*rit);
+    unordered_map<char*, ParseData, HashFunction, EqFunction>* map = (*rit);
     
     //if this map contains it, update its value
     if(map->find(var) != map->end()) {
@@ -52,7 +54,7 @@ void SymbolTable::update(char* var, ParseData value) {
 //returns if variable is already declared in current innermost scope
 bool SymbolTable::isDeclaredInScope(char* var) {
 
-  unordered_map<char*, ParseData>* map = (*(table->back()));
+  unordered_map<char*, ParseData, HashFunction, EqFunction>* map = *(table->rbegin());
   return map->find(var) != map->end();
 }
 
@@ -60,11 +62,11 @@ bool SymbolTable::isDeclaredInScope(char* var) {
 bool SymbolTable::isDeclared(char* var) {
   
   //start at innermost scope and work your way up
-  vector<unordered_map<char*, ParseData>*>::reverse_iterator rit;
+  vector<unordered_map<char*, ParseData, HashFunction, EqFunction>*>::reverse_iterator rit;
   
   for(rit = table->rbegin(); rit != table->rend(); rit++) {
     //map at this particular scope
-    unordered_map<char*, ParseData>* map = (*rit);
+    unordered_map<char*, ParseData, HashFunction, EqFunction>* map = (*rit);
     
     //if this map contains it, return true
     if(map->find(var) != map->end())
@@ -77,14 +79,14 @@ bool SymbolTable::isDeclared(char* var) {
 ParseData SymbolTable::get(char* var) {
   
   //start at innermost scope and work your way up
-  vector<unordered_map<char*, ParseData>*>::reverse_iterator rit;
+  vector<unordered_map<char*, ParseData, HashFunction, EqFunction>*>::reverse_iterator rit;
   for(rit = table->rbegin(); rit != table->rend(); rit++) {
   
     //map at this particular scope
-    unordered_map<char*, ParseData>* map = (*rit);
+    unordered_map<char*, ParseData, HashFunction, EqFunction>* map = (*rit);
     
     //see if this map contains the variable
-    unordered_map<char*, ParseData>::const_iterator value = map->find(var);
+    unordered_map<char*, ParseData, HashFunction, EqFunction>::const_iterator value = map->find(var);
     if(value != map->end())
       return value->second;
   }

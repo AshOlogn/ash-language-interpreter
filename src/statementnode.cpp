@@ -62,10 +62,16 @@ void ConditionalStatementNode::execute() {
 
 //represents declaration (and maybe assignment) of a new variable
 NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
+  
 	variable = var;
 	type = typ;
 	value = val;
 	symbolTable = table;
+  
+  //add variable to table with correctly-typed dummy value    
+  ParseData d;
+  d.type = type;
+  symbolTable->declare(variable, d);
 }
 
 NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, SymbolTable* table) {
@@ -73,18 +79,24 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType 
 	type = typ;
   value = NULL;
 	symbolTable = table;
+  
+  //add variable to table with correctly-typed dummy value    
+  ParseData d;
+  d.type = type;
+  symbolTable->declare(variable, d);
 }
 
 void NewAssignmentStatementNode::execute() {
 	executeNewAssignmentStatement(this);
 }
 
-
 //represents existing variable assignment
 AssignmentStatementNode::AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* table) {
+  
   variable = var;
   value = val;
   symbolTable = table;
+
 }
 
 void AssignmentStatementNode::execute() {

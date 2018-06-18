@@ -7,6 +7,7 @@
 #include "typehandler.h"
 #include "symboltable.h"
 #include "executor.h"
+#include "casteval.h"
 
 void executeExpressionStatement(ExpressionStatementNode* node) {
   node->expression->evaluate();
@@ -66,28 +67,18 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   char* variable = node->variable;
   ParseDataType type = node->type;
   
-  //first make sure that the variable is not already declared in this scope
-  if(symbolTable->isDeclaredInScope(variable)) {
-    std::cout << "ERROR: variable already declared!" << std::endl;
-    return;
-  }
-  
   //add variable to table
-  if(node->value == NULL) {
-    
-    //if being declared but not assigned, add dummy data with correct type
-    ParseData d;
-    d.type = type;
-    symbolTable->declare(variable, d);
-    
-  } else {
-    //otherwise evaluate expression and add correct data
+  if(node->value != NULL) {
     ParseData d = node->value->evaluate();
-    
+      
     //consider implicit casting
     symbolTable->declare(variable, castHelper(d, type));
+  } else {
+    
+    ParseData d;
+    d.type = node->value->evalType;
+    symbolTable->declare(variable, castHelper(d, type));
   }
-  
 }
 
 void executeAssignmentStatement(AssignmentStatementNode* node) {
@@ -97,18 +88,11 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
   char* variable = node->variable;
   AbstractExpressionNode* value = node->value;
   
-	//first make sure that the variable is already declared in some scope
-  if(!symbolTable->isDeclared(variable)) {
-    std::cout << "ERROR: variable not yet declared!" << std::endl;
-    return;
-  }
-  
   ParseDataType type = (symbolTable->get(variable)).type;
   ParseData d = value->evaluate();
   
-  //update variable value
+  //update variable value (innermost scope)
   symbolTable->update(variable, castHelper(d, type));
-
 }
 
 

@@ -59,8 +59,15 @@ AbstractExpressionNode* evalLiteralGroup() {
     return new GroupedExpressionNode(next);
 
   } else if(peek()->type == VARIABLE) {
-
+  
+    Token* variable = consume();
+    const char* name = variable->lexeme;
+    uint32_t len = strlen(name);
+    char* variableName = new char[len+1];
+    strcpy(variableName, name);
+    variableName[len] = '\0';
     
+    return new VariableNode(variableName, symbolTable);
     
   } else {
 
@@ -487,11 +494,87 @@ AbstractExpressionNode* evalExpression() {
 
 AbstractStatementNode* addStatement() {
 
-  TokenType t = peek()->type;
+  Token* t = peek();
   
+  //first check for declaration and assignment
+  if(isTypeTokenType(t->type)) {
+   
+    //variable declaration
+    ParseDataType type = typeTokenConversion(t->type);
+    consume(); //consume type Token    
+    
+    //get variable name
+    const char* constVariable = consume()->lexeme;
+    uint32_t len = strlen(constVariable);
+    char* variable = new char[len+1];
+    strcpy(variable, constVariable);
+    variable[len] = '\0';
+    
+    //make sure variable is not already declared
+    if(symbolTable->isDeclaredInScope(variable)) {
+      std::cout << "ERROR: variable " << variable << " already declared!" << std::endl;
+      return NULL;
+    }
+    
+    //if being assigned
+    if(peek()->type == EQ) {
+      
+      consume(); //consume = Token
+      AbstractExpressionNode* expression = evalExpression();
+      
+      //check implicit casting validity
+      if(!typecheckImplicitCastExpression(expression->evalType, type)) {
+        std::cout << "ERROR: invalid implicit type cast" << std::endl;
+        return NULL;
+      } else {
+        AbstractStatementNode* troll =  new NewAssignmentStatementNode(variable, type, expression, symbolTable);
+        return troll;
+      }
+      
+    } else {  
+      //no initial value
+      return new NewAssignmentStatementNode(variable, type, symbolTable);
+    }
+    
+  } else if(t->type == VARIABLE) {
+    
+    //existing variable assignment
+    
+    //get variable name
+    const char* constVariable = consume()->lexeme;
+    uint32_t len = strlen(constVariable);
+    char* variable = new char[len+1];
+    strcpy(variable, constVariable);
+    variable[len] = '\0';
+    
+    //make sure variable is already declared in some scope
+    if(!symbolTable->isDeclared(variable)) {
+      std::cout << "ERROR: variable is not yet declared!" << std::endl;
+      return NULL;
+    }
+    
+    //get variable type from the symbol table
+    ParseDataType type = (symbolTable->get(variable)).type;
+    
+    if(peek()->type != EQ) {
+      std::cout << "'=' must follow variable name when assigning value" << std::endl;
+      return NULL;
+    } else {
+      consume(); //consume = 
+    }
+    
+    AbstractExpressionNode* expression = evalExpression();
+    
+    //make sure implicit cast is valid
+    if(!typecheckImplicitCastExpression(expression->evalType, type)) {
+      std::cout << "ERROR: invalid implicit type cast" << std::endl;
+      return NULL;
+    } else {
+      return new AssignmentStatementNode(variable, expression, symbolTable);
+    }
+  }
 	
-	
-  switch(t) {
+  switch(t->type) {
     
     case PRINTLN: {
       consume();
@@ -504,13 +587,20 @@ AbstractStatementNode* addStatement() {
     }
     
     case LEFT_BRACE: {
-      
       consume();
       vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();
+      
+      //enter a new scope in symbol table (for static scope-checking)
+      symbolTable->enterNewScope();
+      
       while(peek()->type != RIGHT_BRACE) {
         statements->push_back(addStatement());  
       }
+      
       consume(); //consume right brace
+      
+      //leave scope
+      symbolTable->leaveScope();
       
       return new GroupedStatementNode(statements, symbolTable);
     }
