@@ -605,6 +605,21 @@ AbstractStatementNode* addStatement() {
       return new GroupedStatementNode(statements, symbolTable);
     }
     
+    case WHILE: {
+    
+      consume(); //consume while Token
+      AbstractExpressionNode* condition = evalExpression();
+      
+      if(condition->evalType != BOOL_T) {
+        std::cout << "ERROR: expression must evaluate to a bool" << std::endl;
+        return NULL;
+      }
+      
+      AbstractStatementNode* body = addStatement();
+      
+      return new WhileStatementNode(condition, body, symbolTable);
+    }
+    
     case IF: {
     
       vector<AbstractExpressionNode*>* cond = new vector<AbstractExpressionNode*>();

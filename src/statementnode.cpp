@@ -59,6 +59,25 @@ void ConditionalStatementNode::execute() {
   executeConditionalStatement(this);
 }
 
+//represents while loop
+WhileStatementNode::WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* table) {
+  condition = cond;
+  body = bod;
+  symbolTable = table;
+}
+
+void WhileStatementNode::execute() {
+  
+  //execute the body while the condition evaluates to true
+  ParseData d = condition->evaluate();
+  while(d.type == BOOL_T && d.value.integer) {
+    
+    body->execute();
+    
+    //get updated expression truth value
+    d = condition->evaluate();
+  }
+}
 
 //represents declaration (and maybe assignment) of a new variable
 NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {

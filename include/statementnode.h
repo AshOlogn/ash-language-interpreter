@@ -73,6 +73,20 @@ class ConditionalStatementNode : public AbstractStatementNode {
     void execute();
 };
 
+
+//represents while loop
+class WhileStatementNode: public AbstractStatementNode {
+
+  public:
+    AbstractExpressionNode* condition;
+    AbstractStatementNode* body;
+    SymbolTable* symbolTable;
+    
+    WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable);
+    void execute();
+};
+
+
 //represents declaration (and maybe assignment) of a new variable
 class NewAssignmentStatementNode : public AbstractStatementNode {
 	
