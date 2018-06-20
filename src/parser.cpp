@@ -620,6 +620,53 @@ AbstractStatementNode* addStatement() {
       return new WhileStatementNode(condition, body, symbolTable);
     }
     
+    case FOR: {
+      
+      consume(); //consume for Token
+      
+      if(peek()->type != LEFT_PAREN) {
+        std::cout << "ERROR: ( must follow 'for'" << std::endl;
+        return NULL;
+      } else {
+        consume();
+      }
+      
+      AbstractStatementNode* initialization = addStatement();
+      
+      if(peek()->type != SEMICOLON) {
+        std::cout << "ERROR: ; expected in 'for' construct" << std::endl;
+        return NULL;
+      } else {
+        consume();
+      }
+      
+      AbstractExpressionNode* condition = evalExpression();
+      
+      if(condition->evalType != BOOL_T) {
+        std::cout << "ERROR: expression must evaluate to a bool" << std::endl;
+        return NULL;
+      }
+      
+      if(peek()->type != SEMICOLON) {
+        std::cout << "ERROR: ; expected in 'for' construct" << std::endl;
+        return NULL;
+      } else {
+        consume();
+      }
+      
+      AbstractStatementNode* update = addStatement();
+      
+      if(peek()->type != RIGHT_PAREN) {
+        std::cout << "ERROR: ) must follow here in 'for' construct" << std::endl;
+        return NULL;
+      } else {
+        consume();
+      }
+      
+      AbstractStatementNode* body = addStatement();
+      return new ForStatementNode(initialization, update, body, condition, symbolTable);
+    }
+    
     case IF: {
     
       vector<AbstractExpressionNode*>* cond = new vector<AbstractExpressionNode*>();

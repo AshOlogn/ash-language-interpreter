@@ -86,6 +86,19 @@ class WhileStatementNode: public AbstractStatementNode {
     void execute();
 };
 
+//represents for loop
+class ForStatementNode: public AbstractStatementNode {
+
+  public:
+    AbstractStatementNode* initialization;
+    AbstractStatementNode* update;
+    AbstractStatementNode* body;
+    AbstractExpressionNode* condition;
+    SymbolTable* symbolTable;
+    
+    ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable);
+    void execute();
+};
 
 //represents declaration (and maybe assignment) of a new variable
 class NewAssignmentStatementNode : public AbstractStatementNode {

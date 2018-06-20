@@ -79,6 +79,35 @@ void WhileStatementNode::execute() {
   }
 }
 
+//represents for loop
+ForStatementNode::ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* table) {
+  initialization = init;
+  update = upd;
+  body = bod;
+  condition = cond;
+  symbolTable = table;
+}
+
+void ForStatementNode::execute() {
+
+  symbolTable->enterNewScope();
+
+  //first run initialization statement
+  initialization->execute();
+  
+  //now execute the body while the terminating condition is true
+  ParseData d = condition->evaluate();
+  while(d.type == BOOL_T && d.value.integer) {
+    body->execute();
+    
+    //update statement
+    update->execute();
+    d = condition->evaluate();
+  }
+  
+  symbolTable->leaveScope();
+}
+
 //represents declaration (and maybe assignment) of a new variable
 NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
   
