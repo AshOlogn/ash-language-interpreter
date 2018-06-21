@@ -5,8 +5,6 @@
 #include <vector>
 #include "token.h"
 
-//lexer error reporting
-void lexError(const char* message);
 
 //convert literals to actual numerical values
 uint64_t stringToInt(char* str);

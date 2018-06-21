@@ -44,9 +44,49 @@ double stringToDouble(char* str, uint32_t start, uint32_t end) {
   return whole + decimal;
 }
 
+//convert source code into array of lines
+vector<char*>* getLines(char* code) {
+  
+  vector<char*>* lines = new vector<char*>();
+  uint32_t codeIndex = 0;
+  
+  while(code[codeIndex]) {
+    
+    //edge cases
+    if(code[codeIndex] == '\n') {
+      char* c = new char[2];
+      c[0] = '\n'; c[1] = '\0';
+      lines->push_back(c);
+      codeIndex++;
+      continue;
+    }
+    
+    //setup
+    uint32_t start = codeIndex;
+    uint32_t end = codeIndex;
+    
+    while(code[end] != '\n' && code[end] != '\0') {
+      end++;
+    }
+    
+    char* c = new char[end-start+2];
+    for(uint32_t i = start; i < end; i++) {
+      c[i-start] = code[i];
+    }
+    c[end-start] = '\n';
+    c[end-start+1] = '\0';
+
+    lines->push_back(c);
+    codeIndex = end+1;
+  }
+  
+  return lines;
+}
 
 //Lexes source code into array of Tokens
 vector<Token> lex(char* code) {
+  
+  getLines(code);
 
   vector<Token> tokens;
 
