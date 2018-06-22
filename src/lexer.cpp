@@ -4,11 +4,14 @@
 #include <cctype>
 #include <vector>
 
+#include "exceptions.h"
 #include "token.h"
 #include "lexer.h"
 
 using namespace std;
 
+static vector<char*>* codeLines = NULL;
+static uint32_t line = 0;
 
 //Convert string to uint64_t
 uint64_t stringToInt(char* str, uint32_t start, uint32_t end) {
@@ -86,12 +89,15 @@ vector<char*>* getLines(char* code) {
 //Lexes source code into array of Tokens
 vector<Token> lex(char* code) {
   
-  getLines(code);
-
+  //store code length
+  uint32_t codeLength = strlen(code);
+  
+  //split source code into lines for error handling
+  codeLines = getLines(code);
+ 
   vector<Token> tokens;
-
   uint32_t index = 0;
-  uint32_t line = 1;  
+  line = 0;  
 
   while(code[index] != 0) {
 
@@ -422,19 +428,29 @@ vector<Token> lex(char* code) {
     if(code[index] == '"') {
 
       uint32_t currentIndex = index+1;
-      while(code[currentIndex] != '"') {
+      uint32_t currentLine = line;
+      
+      while(code[currentIndex] != '"' && currentIndex < codeLength) {
 
-        if(code[currentIndex] == '\n')
+        if(code[currentIndex] == '\n') {
           line++;
+        }
 
         currentIndex++;
       }
+      
       
       //allocate memory for the lexeme and copy it
       char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index));
       for(uint32_t i = index+1; i < currentIndex; i++)
         lexeme[i-index-1] = code[i];
       lexeme[currentIndex-index-1] = 0;
+      
+      //if closing quotation mark is not found, throw an error
+      if(currentIndex == codeLength) {
+        // !!!
+        throw LexerException(currentLine+1, codeLines->at(currentLine), lexeme, "String literal not terminated with \"");         
+      }
 
 
       Data tokenVal;
@@ -450,12 +466,22 @@ vector<Token> lex(char* code) {
       //parse integers
       uint32_t decimalCount = 0;
       uint32_t currentIndex = index;
+      uint32_t currentLine = line;
     
       while(isdigit(code[currentIndex]) || code[currentIndex] == '.' || code[currentIndex] == '_') {
 
         if(code[currentIndex] == '.') {
           if(decimalCount > 0) {
-            cout << "Error: number literal can have at most 1 decimal point" << endl;
+            
+            // !!!
+            //first create lexeme
+            char* errorLex = new char[currentIndex-index+2];
+            for(uint32_t i = index; i <= currentIndex; i++) {
+              errorLex[i-index] = code[i];
+            }
+            errorLex[currentIndex-index+1] = '\0';   
+            throw LexerException(currentLine+1, codeLines->at(currentLine), errorLex, "Number literal can have at most 1 decimal point"); 
+            
           } else {
             decimalCount++;
           }
@@ -463,9 +489,10 @@ vector<Token> lex(char* code) {
         currentIndex++;
       }
 
+      
       //make sure this token actually ends here
       if(isEndOfToken(code[currentIndex])) {
-
+ 
         //Copy numerical value to add to Token
         char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index+1));
         strncpy(lexeme, code+index, currentIndex-index); 
@@ -481,6 +508,16 @@ vector<Token> lex(char* code) {
           tokenVal.integer = stringToInt(code, index, currentIndex-1);
           tokens.push_back(makeToken(INT32, line, lexeme, tokenVal)); 
         }
+        
+      } else {
+        
+       // !!! Otherwise throw an exception
+       //first copy error lexeme, including bad character
+       char* errorLexeme = new char[currentIndex-index+2];
+       strncpy(errorLexeme, code+index, currentIndex-index+1);
+       errorLexeme[currentIndex-index+1] = '\0';
+       
+       throw LexerException(currentLine+1, codeLines->at(currentLine), errorLexeme, "Number literal can only contain digits and <= 1 decimal point"); 
       }
 
       index = currentIndex;
@@ -517,8 +554,10 @@ vector<Token> lex(char* code) {
 
     //consume white space
     while(isspace(code[index])) {
-      if(code[index] == '\n')
-        line++;
+      if(code[index] == '\n') {
+        line++;  
+      }
+      
       index++;
     }
   }

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cctype>
 
+#include "exceptions.h"
 #include "token.h"
 #include "lexer.h"
 #include "parser.h"
@@ -30,7 +31,15 @@ int main(int argc, char** argv) {
   in.close();
 
   //generate array of Tokens from source code 
-  vector<Token> tokens = lex(sourceCode);  
+  vector<Token> tokens;
+  
+  try {
+    tokens = lex(sourceCode);
+  } catch(exception& e) {
+    cout << e.what() << endl;
+    return 1;
+  }
+  
   vector<Token>::iterator it;
 
   for(it = tokens.begin(); it != tokens.end(); it++) {
