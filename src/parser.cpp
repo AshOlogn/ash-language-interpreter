@@ -86,7 +86,7 @@ AbstractExpressionNode* evalMemberAccess() {
 
   while(peek()->type == LEFT_BRACKET) {
   
-    consume(); //consume [
+    Token* memberAccessToken = consume(); //consume [
 
     //if next value is colon, this is a slice with implicit start = 0
     if(peek()->type == COLON) {
@@ -114,9 +114,10 @@ AbstractExpressionNode* evalMemberAccess() {
         AbstractExpressionNode* end = evalExpression();
 
         if(peek()->type != RIGHT_BRACKET) {
-          cout << "ERROR MEMBER ACCESS!!!" << endl;
-          return NULL;
-
+          
+          //!!! If [ does not have a corresponding ], throw an error
+          throw ParseSyntaxException(memberAccessToken->line+1, codeLines->at(memberAccessToken->line), "[", "Array access operation must end with ']'");
+          
         } else {
     
           consume(); //consume ]
@@ -129,6 +130,13 @@ AbstractExpressionNode* evalMemberAccess() {
   
       //defined start index
       AbstractExpressionNode* start = evalExpression();
+      
+      //make sure that the expression evaluates to an integer
+      if(!typecheckMemberAccessExpression(start->evalType)) {
+        
+        //!!!
+        
+      }
 
       //accessing a slice with explicit start
       if(peek()->type == COLON) {
@@ -151,8 +159,9 @@ AbstractExpressionNode* evalMemberAccess() {
           AbstractExpressionNode* end = evalExpression();
             
           if(peek()->type != RIGHT_BRACKET) {
-            cout << "ERROR MEMBER ACCESS!!!" << endl;
-            return NULL;
+            
+            //!!! If [ does not have a corresponding ], throw an error
+            throw ParseSyntaxException(memberAccessToken->line+1, codeLines->at(memberAccessToken->line), "[", "Array access operation must end with ']'");
 
           } else {
             consume(); //consume ]
@@ -164,8 +173,9 @@ AbstractExpressionNode* evalMemberAccess() {
         
         //accessing single value
         if(peek()->type != RIGHT_BRACKET) {
-          cout << "ERROR MEMBER ACCESS!!!" << endl;
-          return NULL;
+          
+          //!!! If [ does not have a corresponding ], throw an error
+          throw ParseSyntaxException(memberAccessToken->line+1, codeLines->at(memberAccessToken->line), "[", "Array access operation must end with ']'");
 
         } else {
           consume(); //consume ]
@@ -195,7 +205,9 @@ AbstractExpressionNode* evalCastSignNot() {
     AbstractExpressionNode* next = evalCastSignNot();
 
     if(typecheckUnaryExpression(op, next->evalType)) {
+      
       return new UnaryOperatorNode(op, next);
+      
     } else {
       cout << "ERROR SIGN NOT!" << endl;
       return NULL;

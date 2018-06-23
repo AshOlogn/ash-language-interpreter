@@ -6,6 +6,12 @@
 ///////       Typecheck      ///////
 ////////////////////////////////////
 
+//typecheck member access
+bool typecheckMemberAccessExpression(ParseDataType index) {
+  return index == INT32_T || index == INT64_T || index == UINT32_T || index == UINT64_T ||
+         index == CHAR_T;
+}
+
 //typecheck expression appropriately depending on type of AbstractExpressionNode
 bool typecheckImplicitCastExpression(ParseDataType origType, ParseDataType finalType) {
 

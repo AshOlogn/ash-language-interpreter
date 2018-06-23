@@ -174,17 +174,17 @@ ParseOperatorType binaryTokenConversion(TokenType tt) {
 const char* toStringParseDataType(ParseDataType p) {
  
   switch(p) {
-    case INT32_T: return "INT32_T";
-		case INT64_T: return "INT64_T";
-		case UINT32_T: return "UINT32_T";
-    case UINT64_T: return "UINT64_T";
-    case CHAR_T: return "CHAR_T";
-    case BOOL_T: return "BOOL_T"; 
-    case DOUBLE_T: return "DOUBLE_T"; 
-    case STRING_T: return "STRING_T";
-		case VOID_T: return "VOID_T";
-    case CUSTOM_T: return "CUSTOM_T";
-    default: return "INVALID_T";
+    case INT32_T: return "int32";
+		case INT64_T: return "int64";
+		case UINT32_T: return "uint32";
+    case UINT64_T: return "uint64";
+    case CHAR_T: return "char";
+    case BOOL_T: return "bool"; 
+    case DOUBLE_T: return "double"; 
+    case STRING_T: return "string";
+		case VOID_T: return "void";
+    case CUSTOM_T: return "custom";
+    default: return "invalid";
   } 
 }
 

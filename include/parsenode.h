@@ -1,6 +1,5 @@
 #ifndef PARSENODE_H
 #define PARSENODE_H
-
 #include <string>
 #include "parsetoken.h"
 #include "symboltable.h"
