@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static vector<char*>* codeLines = NULL;
+static vector<char*>* codeLines;
 static uint32_t line = 0;
 
 //Convert string to uint64_t
@@ -47,53 +47,14 @@ double stringToDouble(char* str, uint32_t start, uint32_t end) {
   return whole + decimal;
 }
 
-//convert source code into array of lines
-vector<char*>* getLines(char* code) {
-  
-  vector<char*>* lines = new vector<char*>();
-  uint32_t codeIndex = 0;
-  
-  while(code[codeIndex]) {
-    
-    //edge cases
-    if(code[codeIndex] == '\n') {
-      char* c = new char[2];
-      c[0] = '\n'; c[1] = '\0';
-      lines->push_back(c);
-      codeIndex++;
-      continue;
-    }
-    
-    //setup
-    uint32_t start = codeIndex;
-    uint32_t end = codeIndex;
-    
-    while(code[end] != '\n' && code[end] != '\0') {
-      end++;
-    }
-    
-    char* c = new char[end-start+2];
-    for(uint32_t i = start; i < end; i++) {
-      c[i-start] = code[i];
-    }
-    c[end-start] = '\n';
-    c[end-start+1] = '\0';
-
-    lines->push_back(c);
-    codeIndex = end+1;
-  }
-  
-  return lines;
-}
 
 //Lexes source code into array of Tokens
-vector<Token> lex(char* code) {
+vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
+  
+  codeLines = sourceCodeLines;
   
   //store code length
   uint32_t codeLength = strlen(code);
-  
-  //split source code into lines for error handling
-  codeLines = getLines(code);
  
   vector<Token> tokens;
   uint32_t index = 0;
@@ -428,7 +389,7 @@ vector<Token> lex(char* code) {
     if(code[index] == '"') {
 
       uint32_t currentIndex = index+1;
-      uint32_t currentLine = line;
+      uint32_t startLine = line;
       
       while(code[currentIndex] != '"' && currentIndex < codeLength) {
 
@@ -449,7 +410,7 @@ vector<Token> lex(char* code) {
       //if closing quotation mark is not found, throw an error
       if(currentIndex == codeLength) {
         // !!!
-        throw LexerException(currentLine+1, codeLines->at(currentLine), lexeme, "String literal not terminated with \"");         
+        throw LexerException(startLine+1, codeLines->at(startLine), lexeme, "String literal not terminated with \"");         
       }
 
 
@@ -458,7 +419,7 @@ vector<Token> lex(char* code) {
       std::strcpy(c, lexeme);
       tokenVal.allocated = (void*) c;
 
-      tokens.push_back(makeToken(STRING, line, lexeme, tokenVal));
+      tokens.push_back(makeToken(STRING, startLine, lexeme, tokenVal));
       index = currentIndex+1;
 
     } else if(isdigit(code[index]) || code[index] == '.') {
@@ -466,7 +427,6 @@ vector<Token> lex(char* code) {
       //parse integers
       uint32_t decimalCount = 0;
       uint32_t currentIndex = index;
-      uint32_t currentLine = line;
     
       while(isdigit(code[currentIndex]) || code[currentIndex] == '.' || code[currentIndex] == '_') {
 
@@ -480,12 +440,13 @@ vector<Token> lex(char* code) {
               errorLex[i-index] = code[i];
             }
             errorLex[currentIndex-index+1] = '\0';   
-            throw LexerException(currentLine+1, codeLines->at(currentLine), errorLex, "Number literal can have at most 1 decimal point"); 
+            throw LexerException(line+1, codeLines->at(line), errorLex, "Number literal can have at most 1 decimal point"); 
             
           } else {
             decimalCount++;
           }
         }
+        
         currentIndex++;
       }
 
@@ -517,7 +478,7 @@ vector<Token> lex(char* code) {
        strncpy(errorLexeme, code+index, currentIndex-index+1);
        errorLexeme[currentIndex-index+1] = '\0';
        
-       throw LexerException(currentLine+1, codeLines->at(currentLine), errorLexeme, "Number literal can only contain digits and <= 1 decimal point"); 
+       throw LexerException(line+1, codeLines->at(line), errorLexeme, "Number literal can only contain digits and <= 1 decimal point"); 
       }
 
       index = currentIndex;
@@ -525,10 +486,20 @@ vector<Token> lex(char* code) {
     } else if(code[index] == '_' || isalpha(code[index])) {
       
       uint32_t currentIndex = index;
-      while(code[index] == '_' || isalpha(code[currentIndex]) || isdigit(code[currentIndex])) {
+      while(code[currentIndex] == '_' || isalpha(code[currentIndex]) || isdigit(code[currentIndex])) {
         currentIndex++;
       }
 
+      //if identifier contains invalid characters, throw an error
+      if(!isspace(code[currentIndex]) && !isEndOfToken(code[currentIndex])) {
+        
+        char* errorLexeme = (char*) malloc(sizeof(char) * (currentIndex-index+2));
+        strncpy(errorLexeme, code+index, currentIndex-index+1);
+        errorLexeme[currentIndex-index+1] = 0;
+        
+        throw LexerException(line+1, codeLines->at(line), errorLexeme, "Identifier can only contain digits, letters, and underscores");
+      } 
+      
       char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index+1));
       strncpy(lexeme, code+index, currentIndex-index);
       lexeme[currentIndex-index] = 0;
@@ -551,13 +522,12 @@ vector<Token> lex(char* code) {
       
       index = currentIndex;
     }
-
+    
     //consume white space
     while(isspace(code[index])) {
       if(code[index] == '\n') {
         line++;  
       }
-      
       index++;
     }
   }

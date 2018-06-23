@@ -9,7 +9,7 @@
 //////     Return Tree     //////
 /////////////////////////////////
 
-std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokens);
+std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokens, std::vector<char*>* codeLines);
 
 /////////////////////////////////
 //////  Return Statements  //////

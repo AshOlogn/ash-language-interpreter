@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <vector>
+#include "exceptions.h"
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
@@ -13,6 +14,7 @@ using namespace std;
 static uint32_t tokenIndex;
 static vector<Token>* tokens;
 static SymbolTable* symbolTable;
+static vector<char*>* codeLines;
 
 /////////////////////////////////
 //////    Access Tokens     /////
@@ -46,12 +48,12 @@ AbstractExpressionNode* evalLiteralGroup() {
   //if grouped expression
   if(peek()->type == LEFT_PAREN) {
 
-    consume(); //consume left parenthesis
+    Token* startGroupToken = consume(); //consume left parenthesis
     next = evalExpression();
 
     if(peek()->type != RIGHT_PAREN) {
-      //error
-      cout << "ERROR LITERAL!!!!, index: " << tokenIndex << endl;
+      //parse syntax error
+      throw ParseSyntaxException(startGroupToken->line+1, codeLines->at(startGroupToken->line), "(", "The parenthesized expression is missing a ')'");
     } else {
       consume(); //consume right parenthesis
     }
@@ -727,7 +729,9 @@ AbstractStatementNode* addStatement() {
 }
 
 //generate Abstract Syntax Tree from list of tokens
-vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef) {
+vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef, vector<char*>* sourceCodeLines) {
+
+  codeLines = sourceCodeLines;
 
   //set static variables to correct initial values
   tokenIndex = 0;

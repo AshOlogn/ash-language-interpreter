@@ -15,6 +15,8 @@
 
 using namespace std;
 
+vector<char*>* getLines(char* code);
+
 int main(int argc, char** argv) {
   
   //read in source code
@@ -30,11 +32,14 @@ int main(int argc, char** argv) {
   sourceCode[length] = 0;
   in.close();
 
+  //convert source code into array of lines
+  vector<char*>* codeLines = getLines(sourceCode);
+  
   //generate array of Tokens from source code 
   vector<Token> tokens;
   
   try {
-    tokens = lex(sourceCode);
+    tokens = lex(sourceCode, codeLines);
   } catch(exception& e) {
     cout << e.what() << endl;
     return 1;
@@ -47,18 +52,60 @@ int main(int argc, char** argv) {
   }
   
   //get list of statements from list of tokens (parse)
-  vector<AbstractStatementNode*>* statements = parse(&tokens);
-  vector<AbstractStatementNode*>::iterator it2;
+  vector<AbstractStatementNode*>* statements;
   
-	//print string representation of each expression
-	/*for(it2 = statements->begin(); it2 != statements->end(); it2++) {
-    cout << ((ExpressionStatementNode*) (*it2))->expression->toString() << endl;
-  }*/
+  try {
+    statements = parse(&tokens, codeLines); 
+  } catch(exception& e) {
+    cout << e.what() << endl;
+    return 1;
+  }
+  
+  vector<AbstractStatementNode*>::iterator it2;
 	
   //execute statements
   for(it2 = statements->begin(); it2 != statements->end(); it2++) {
     (*it2)->execute();
   }
 
+}
+
+//convert source code into array of lines
+vector<char*>* getLines(char* code) {
+  
+  vector<char*>* lines = new vector<char*>();
+  uint32_t codeIndex = 0;
+  
+  while(code[codeIndex]) {
+    
+    //edge cases
+    if(code[codeIndex] == '\n') {
+      char* c = new char[2];
+      c[0] = '\n'; c[1] = '\0';
+      lines->push_back(c);
+      codeIndex++;
+      continue;
+    }
+    
+    //setup
+    uint32_t start = codeIndex;
+    uint32_t end = codeIndex;
+    
+    while(code[end] != '\n' && code[end] != '\0') {
+      end++;
+    }
+    
+    char* c = new char[end-start+2];
+    for(uint32_t i = start; i < end; i++) {
+      c[i-start] = code[i];
+    }
+    c[end-start] = '\n';
+    c[end-start+1] = '\0';
+
+    lines->push_back(c);
+    codeIndex = end+1;
+  }
+  
+  return lines;
 }
 
