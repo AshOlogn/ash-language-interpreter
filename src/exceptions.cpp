@@ -47,22 +47,20 @@ const char* ParseSyntaxException::what() const throw() {
 
 const char* StaticTypeException::what() const throw() {
 
-  std::string str  = "Type error on line ";
-  str.append(std::to_string(lineNumber));
-  str.append(":\n\t");
-  str.append(context);
+  std::string str = "";
   
-  if(isBinary) {
-    str.append("with elements ");
-    str.append(lexeme);
-    str.append(" and ");
-    str.append(lexeme2);
+  if(startLineNumber == endLineNumber) {
+    str.append("Type error on line ");
+    str.append(std::to_string(startLineNumber));
   } else {
-    str.append("with element ");
-    str.append(lexeme);     
+    str.append("Type error from line ");
+    str.append(std::to_string(startLineNumber));
+    str.append(" to line ");
+    str.append(std::to_string(endLineNumber));
   }
   
   str.append("\n");
+  str.append(context);
   
   //now append customized message
   str.append("The ");

@@ -4,6 +4,8 @@
 #include "parsetoken.h"
 
 //typecheck expression appropriately depending on type of AbstractExpressionNode
+bool typecheckMemberAccessExpression(ParseDataType index);
+
 bool typecheckImplicitCastExpression(ParseDataType origType, ParseDataType finalType);
 
 bool typecheckExplicitCastExpression(ParseDataType origType, ParseDataType finalType);

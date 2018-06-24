@@ -61,6 +61,7 @@ struct ParseData {
 
 const char* toStringParseDataType(ParseDataType p);
 const char* toStringParseOperatorType(ParseOperatorType p);
+const char* toWordParseOperatorType(ParseOperatorType p);
 char* toStringParseData(ParseData d);
 
 

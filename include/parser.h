@@ -30,6 +30,7 @@ Token* peek();
 //examine a Token at given index
 Token* peekAhead(uint32_t offset);
 
+char* getCodeLineBlock(uint32_t start, uint32_t end);
 
 /////////////////////////////////
 //////    Subroutines     ///////

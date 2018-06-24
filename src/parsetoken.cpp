@@ -243,6 +243,61 @@ const char* toStringParseOperatorType(ParseOperatorType p) {
 }
 
 
+//returns word string representation of ParseOperatorType enum
+const char* toWordParseOperatorType(ParseOperatorType p) {
+
+  switch(p) {
+
+    case INC_OP: return "increment";
+    case DEC_OP: return "decrement";
+    case POSITIVE_OP: return "positive";
+    case NEGATIVE_OP: return "negation";
+    case ADD_OP: return "addition";
+    case SUBTRACT_OP: return "subtraction";
+    case NOT_OP: return "logical NOT";
+    case BIT_NOT_OP: return "bitwise NOT";
+
+    case EXPONENT_OP: return "exponentiation"; 
+    case MULTIPLY_OP: return "multiplication";
+    case DIVIDE_OP: return "division"; 
+    case MOD_OP: return "modulus";
+ 
+    case BIT_LEFT_OP: return "bitshift left";
+    case BIT_RIGHT_OP: return "bitshift right";
+    
+    case GREATER_OP: return "greater-than"; 
+    case LESS_OP: return "less-than"; 
+    case GREATER_EQ_OP: return "greater-equal-than"; 
+    case LESS_EQ_OP: return "less-equal-than";
+    case EQ_EQ_OP: return "equality"; 
+    case NOT_EQ_OP: return "not-equality";
+
+    case BIT_AND_OP: return "bitwise AND";
+    case BIT_XOR_OP: return "bitwise XOR";
+    case BIT_OR_OP: return "bitwise OR";  
+
+    case AND_OP: return "logical AND";
+    case XOR_OP: return "logical XOR";
+    case OR_OP: return "logical OR";
+
+    case EQ_OP: return "assignment"; 
+    case ADD_EQ_OP: return "addition-assignment";
+    case SUBTRACT_EQ_OP: return "subtraction-assignment";
+    case EXPONENT_EQ_OP: return "exponentiation-assignment";
+    case MULTIPLY_EQ_OP: return "mutliplication-assignment";
+    case DIVIDE_EQ_OP: return "division-assignment";
+    case MOD_EQ_OP: return "modulus-assignment"; 
+    case AND_EQ_OP: return "AND-assignment";
+    case XOR_EQ_OP: return "XOR-assignment";
+    case OR_EQ_OP: return "OR-assignment";
+    case BIT_LEFT_EQ_OP: return "bitshift-left-assignment";
+    case BIT_RIGHT_EQ_OP: return "bitshift-right-assignment";
+    
+    default: return "invalid";
+  }
+}
+
+
 char* toStringParseData(ParseData d) {
 
   switch(d.type) {

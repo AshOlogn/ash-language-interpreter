@@ -1,5 +1,6 @@
 #ifndef PARSENODE_H
 #define PARSENODE_H
+#include <cstdint>
 #include <string>
 #include "parsetoken.h"
 #include "symboltable.h"
@@ -11,6 +12,8 @@
 //abstract class that represents node in AST
 class AbstractExpressionNode {
   public:
+    uint32_t startLine;
+    uint32_t endLine;
     ParseDataType evalType;
     virtual ParseData evaluate() = 0;
     virtual std::string toString() = 0;
@@ -33,7 +36,7 @@ class AbstractOperatorNode : public AbstractExpressionNode {
 //class that represents unary operations
 class UnaryOperatorNode : public AbstractOperatorNode {
   public:
-    UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l);
+    UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, uint32_t operatorLine);
     ParseData evaluate();
     std::string toString();
 };
@@ -101,8 +104,8 @@ class ArrayAccessNode : public AbstractExpressionNode {
     AbstractExpressionNode* end;
     bool isSlice;
     
-    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s);
-    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e);
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, uint32_t endLine);
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLine);
   
     ParseData evaluate();
     std::string toString();
@@ -116,7 +119,7 @@ class VariableNode : public AbstractExpressionNode {
   public:
     SymbolTable* symbolTable;
     char* variable;
-    VariableNode(char* var, SymbolTable* table);
+    VariableNode(char* var, SymbolTable* table, uint32_t line);
     ParseData evaluate();
     std::string toString();
 };
@@ -129,7 +132,7 @@ class VariableNode : public AbstractExpressionNode {
 class LiteralNode : public AbstractExpressionNode {
   public:
     ParseData data;
-    LiteralNode(ParseData d);
+    LiteralNode(ParseData d, uint32_t line);
     ParseData evaluate();
     std::string toString();
 };
@@ -143,7 +146,7 @@ class LiteralNode : public AbstractExpressionNode {
 class GroupedExpressionNode : public AbstractExpressionNode {
   public:
     AbstractExpressionNode* closedExpression;
-    GroupedExpressionNode(AbstractExpressionNode* closedExp);
+    GroupedExpressionNode(AbstractExpressionNode* closedExp, uint32_t startLine, uint32_t endLine);
     ParseData evaluate();
     std::string toString();
 };

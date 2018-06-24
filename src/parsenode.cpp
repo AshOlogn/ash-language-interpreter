@@ -1,4 +1,5 @@
 #include <string>
+#include <algorithm>
 #include <iostream>
 #include "token.h"
 #include "parsetoken.h"
@@ -11,10 +12,12 @@
 ///////////////////////////////////
 
 //unary operations
-UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l) {
+UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, uint32_t operatorLine) {
   operation = op;
-  leftArg = l; 
+  leftArg = l;
   evalType = getTypeUnaryExpression(op, l->evalType); 
+  startLine = std::min(operatorLine, l->startLine);
+  endLine = std::max(operatorLine, l->endLine);
 }
 
 ParseData UnaryOperatorNode::evaluate() {
@@ -47,6 +50,8 @@ ArithmeticOperatorNode::ArithmeticOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  startLine = l->startLine;
+  endLine = r->endLine;
   evalType = getTypeArithmeticExpression(op, l->evalType, r->evalType);
 }
 
@@ -59,6 +64,8 @@ BitLogicalOperatorNode::BitLogicalOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  startLine = l->startLine;
+  endLine = r->endLine;
   evalType = getTypeBitLogicalExpression(op, l->evalType, r->evalType);
 }
 
@@ -82,6 +89,8 @@ ComparisonOperatorNode::ComparisonOperatorNode(ParseOperatorType op, AbstractExp
   operation = op;
   leftArg = l;
   rightArg = r;
+  startLine = l->startLine;
+  endLine = r->endLine;
   evalType = getTypeComparisonExpression(op, l->evalType, r->evalType);
 }
 
@@ -117,12 +126,16 @@ ParseData CastNode::evaluate() {
 ///////    Member Access    ///////
 ///////////////////////////////////
 
-ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s) {
-  array = arr; start = s; isSlice = false;
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, uint32_t endLin) {
+  array = arr; start = s; endLine = endLin; isSlice = false;
+  startLine = arr->startLine;
+  endLine = endLin;
 }
 
-ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e) {
-  array = arr; start = s; end = e; isSlice = true;
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLin) {
+  array = arr; start = s; end = e; endLine = endLin; isSlice = true;
+  startLine = arr->startLine;
+  endLine = endLin;
 }
 
 ParseData ArrayAccessNode::evaluate() {
@@ -153,9 +166,10 @@ std::string ArrayAccessNode::toString() {
 ///////      Variable       ///////
 ///////////////////////////////////
 
-VariableNode::VariableNode(char* var, SymbolTable* table) {
+VariableNode::VariableNode(char* var, SymbolTable* table, uint32_t line) {
   symbolTable = table;
   variable = var;
+  startLine = endLine = line;
   evalType = (symbolTable->get(var)).type;
 }
 
@@ -171,8 +185,9 @@ std::string VariableNode::toString() {
 ///////      Literal        ///////
 ///////////////////////////////////
 
-LiteralNode::LiteralNode(ParseData d) {
+LiteralNode::LiteralNode(ParseData d, uint32_t line) {
   data = d;
+  startLine = endLine = line;
   evalType = d.type;
 }
 
@@ -188,8 +203,10 @@ std::string LiteralNode::toString() {
 ///////      Grouped        ///////
 ///////////////////////////////////
 
-GroupedExpressionNode::GroupedExpressionNode(AbstractExpressionNode* exp) {
+GroupedExpressionNode::GroupedExpressionNode(AbstractExpressionNode* exp, uint32_t startLin, uint32_t endLin) {
   closedExpression = exp;
+  startLine = startLin;
+  endLine = endLin;
   evalType = exp->evalType;
 }
 
