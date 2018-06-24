@@ -580,7 +580,8 @@ AbstractStatementNode* addStatement() {
     //existing variable assignment
     
     //get variable name
-    const char* constVariable = consume()->lexeme;
+    Token* varToken = consume();
+    const char* constVariable = varToken->lexeme;
     uint32_t len = strlen(constVariable);
     char* variable = new char[len+1];
     strcpy(variable, constVariable);
@@ -595,14 +596,46 @@ AbstractStatementNode* addStatement() {
     //get variable type from the symbol table
     ParseDataType type = (symbolTable->get(variable)).type;
     
-    if(peek()->type != EQ) {
+    Token* assignmentToken;
+    if(!isAssignmentOperatorTokenType(peek()->type)) {
       std::cout << "'=' must follow variable name when assigning value" << std::endl;
       return NULL;
     } else {
-      consume(); //consume = 
+      assignmentToken = consume(); //consume = 
     }
     
     AbstractExpressionNode* expression = evalExpression();
+    switch(assignmentToken->type) {
+      case EQ: break;
+      case ADD_EQ: expression = new ArithmeticOperatorNode(ADD_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break; 
+      case SUBTRACT_EQ: expression = new ArithmeticOperatorNode(SUBTRACT_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
+      case EXPONENT_EQ: expression = new ArithmeticOperatorNode(EXPONENT_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
+      case MULTIPLY_EQ: expression = new ArithmeticOperatorNode(MULTIPLY_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
+      case DIVIDE_EQ: expression = new ArithmeticOperatorNode(DIVIDE_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
+      case AND_EQ: {
+        if(type == BOOL_T)
+          expression = new BitLogicalOperatorNode(AND_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        else 
+          expression = new BitLogicalOperatorNode(BIT_AND_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        break;
+      }
+      
+      case XOR_EQ: {
+        if(type == BOOL_T)
+          expression = new BitLogicalOperatorNode(XOR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        else 
+          expression = new BitLogicalOperatorNode(BIT_XOR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        break;
+      }
+      
+      case OR_EQ: {
+        if(type == BOOL_T)
+          expression = new BitLogicalOperatorNode(OR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        else 
+          expression = new BitLogicalOperatorNode(BIT_OR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+        break;
+      }
+    }
     
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
