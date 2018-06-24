@@ -6,9 +6,22 @@
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "symboltable.h"
+#include "casteval.h"
 
-ParseData evaluateAssignmentExpression(AbstractExpressionNode* node) {
+//similar to assignment in statement level, but you return the assigned value
+ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node) {
+
+  //get stuff out of the node first
+  SymbolTable* symbolTable = node->symbolTable;
+  char* variable = node->variable;
+  AbstractExpressionNode* value = node->value;
   
-  ParseData d;
+  ParseDataType type = node->evalType;
+  ParseData d = value->evaluate();
+  
+  //update variable value (innermost scope)
+  symbolTable->update(variable, castHelper(d, type));
+  
   return d;
 }

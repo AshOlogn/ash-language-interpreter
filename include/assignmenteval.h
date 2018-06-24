@@ -4,6 +4,6 @@
 #include "token.h"
 #include "parsenode.h"
 
-ParseData evaluateAssignmentExpression(AbstractExpressionNode* node);
+ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node);
 
 #endif

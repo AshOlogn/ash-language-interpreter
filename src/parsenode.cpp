@@ -6,6 +6,33 @@
 #include "parsenode.h"
 #include "typehandler.h"
 #include "evaluator.h"
+#include "symboltable.h"
+
+
+///////////////////////////////////
+///////     Assignment      ///////
+///////////////////////////////////
+
+AssignmentExpressionNode::AssignmentExpressionNode(char* var, ParseDataType varType, AbstractExpressionNode* val, SymbolTable* table, uint32_t varLine) {
+
+  variable = var;
+  variableType = varType;
+  value = val;
+  symbolTable = table;
+  
+  evalType = varType;
+  startLine = varLine;
+  endLine = val->endLine;
+}
+
+ParseData AssignmentExpressionNode::evaluate() {
+  return evaluateAssignmentExpression(this);
+}
+
+std::string AssignmentExpressionNode::toString() {
+  
+}
+
 
 ///////////////////////////////////
 ///////     Operations      ///////
@@ -73,16 +100,6 @@ ParseData BitLogicalOperatorNode::evaluate() {
   return evaluateBitLogicalExpression(this);
 }
 
-//class that represents assignment
-AssignmentOperatorNode::AssignmentOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) {
-  operation = op;
-  leftArg = l;
-  rightArg = r;
-}
-
-ParseData AssignmentOperatorNode::evaluate() { 
-  return evaluateAssignmentExpression(this);
-}
 
 //class that represents comparison
 ComparisonOperatorNode::ComparisonOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r) { 

@@ -19,6 +19,23 @@ class AbstractExpressionNode {
     virtual std::string toString() = 0;
 };
 
+///////////////////////////////////
+///////     Assignment      ///////
+///////////////////////////////////
+class AssignmentExpressionNode : public AbstractExpressionNode {
+  
+  public:
+    char* variable;
+    ParseDataType variableType;
+    AbstractExpressionNode* value;
+    SymbolTable* symbolTable;
+    
+    AssignmentExpressionNode(char* variable, ParseDataType variableType, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t varLine);
+    ParseData evaluate();
+    std::string toString();
+};
+
+
 
 ///////////////////////////////////
 ///////     Operations      ///////
@@ -60,13 +77,6 @@ class ArithmeticOperatorNode : public AbstractBinaryOperatorNode {
 class BitLogicalOperatorNode : public AbstractBinaryOperatorNode {
   public:
     BitLogicalOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
-    ParseData evaluate();
-};
-
-//class that represents assignment
-class AssignmentOperatorNode : public AbstractBinaryOperatorNode {
-  public:
-    AssignmentOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, AbstractExpressionNode* r);
     ParseData evaluate();
 };
 

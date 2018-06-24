@@ -522,12 +522,72 @@ AbstractExpressionNode* evalLogicOr() {
 
 //  = += -= *= **= /= &= ^= |= <<= >>=
 AbstractExpressionNode* evalAssignment() {
-  return evalLogicOr();
+  
+  AbstractExpressionNode* head = evalLogicOr();
+  VariableNode* var = dynamic_cast<VariableNode*>(head);
+  
+  if(var && isAssignmentOperatorTokenType(peek()->type)) {
+  
+    //make sure variable is already declared in some scope
+    if(!symbolTable->isDeclared(var->variable)) {
+      std::cout << "ERROR: variable is not yet declared!" << std::endl;
+      return NULL;
+    }
+    
+    //get variable's type
+    ParseDataType type = var->evalType;
+    
+    Token* assignmentToken = consume();
+    AbstractExpressionNode* next = evalAssignment();
+    
+    switch(assignmentToken->type) {
+      case EQ: break;
+      case ADD_EQ: next = new ArithmeticOperatorNode(ADD_OP, var, next); break; 
+      case SUBTRACT_EQ: next = new ArithmeticOperatorNode(SUBTRACT_OP, var, next); break;
+      case EXPONENT_EQ: next = new ArithmeticOperatorNode(EXPONENT_OP, var, next); break;
+      case MULTIPLY_EQ: next = new ArithmeticOperatorNode(MULTIPLY_OP, var, next); break;
+      case DIVIDE_EQ: next = new ArithmeticOperatorNode(DIVIDE_OP, var, next); break;
+      case AND_EQ: {
+        if(type == BOOL_T)
+          next = new BitLogicalOperatorNode(AND_OP, var, next);
+        else 
+          next = new BitLogicalOperatorNode(BIT_AND_OP, var, next);
+        break;
+      }
+      
+      case XOR_EQ: {
+        if(type == BOOL_T)
+          next = new BitLogicalOperatorNode(XOR_OP, var, next);
+        else 
+          next = new BitLogicalOperatorNode(BIT_XOR_OP, var, next);
+        break;
+      }
+      
+      case OR_EQ: {
+        if(type == BOOL_T)
+          next = new BitLogicalOperatorNode(OR_OP, var, next);
+        else 
+          next = new BitLogicalOperatorNode(BIT_OR_OP, var, next);
+        break;
+      }
+    }
+    
+    //now make sure that implicit type cast is valid
+    if(!typecheckImplicitCastExpression(next->evalType, type)) {
+      std::cout << "ERROR: invalid implicit type cast" << std::endl;
+      return NULL;
+    }
+    
+    return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
+    
+  } else {
+    return head;
+  }
   
 }
 
 AbstractExpressionNode* evalExpression() {
-  return evalLogicOr();
+  return evalAssignment();
 }
 
 
