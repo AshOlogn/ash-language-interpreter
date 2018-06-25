@@ -85,6 +85,12 @@ AbstractExpressionNode* evalLiteralGroup() {
   } else if(peek()->type == VARIABLE) {
   
     Token* variable = consume();
+
+    //make sure variable is already declared
+    if(!symbolTable->isDeclared((char*) variable->lexeme)) {
+      throw StaticVariableScopeException(variable->line, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
+    }
+
     const char* name = variable->lexeme;
     uint32_t len = strlen(name);
     char* variableName = new char[len+1];
@@ -108,7 +114,12 @@ AbstractExpressionNode* evalMemberAccess() {
 
   while(peek()->type == LEFT_BRACKET) {
   
-    //TODO: make sure data can be indexed (string or array)
+    if(head->evalType != STRING_T) {
+      
+      //first write message
+      const char* arrayAccessErrorMessage = "A value must be of array or string type to be indexed";
+      throw StaticTypeException(head->startLine+1, peek()->line+1, getCodeLineBlock(head->startLine, peek()->line), arrayAccessErrorMessage);
+    }
   
     Token* leftBracketToken = consume(); //consume [
 
@@ -249,17 +260,15 @@ AbstractExpressionNode* evalCastSignNot() {
 
   } else if(isCastStructure()) {   
     
-    consume(); //consume (
+    Token* leftParenToken = consume(); //consume (
     ParseDataType finalType = typeTokenConversion(consume()->type);
     consume(); //consume )
     
     AbstractExpressionNode* next = evalCastSignNot();
     if(typecheckExplicitCastExpression(next->evalType, finalType)) {
-      return new CastNode(next, finalType);
+      return new CastNode(next, finalType, leftParenToken->line);
     } else {
-      //TODO: error handling
-      cout << "ERROR IMPROPER CAST!" << endl;
-      return NULL;
+      throw StaticCastException(leftParenToken->line+1, next->endLine+1, getCodeLineBlock(leftParenToken->line, next->endLine), next->evalType, finalType, true);
     }
     
   } else {
@@ -530,8 +539,7 @@ AbstractExpressionNode* evalAssignment() {
   
     //make sure variable is already declared in some scope
     if(!symbolTable->isDeclared(var->variable)) {
-      std::cout << "ERROR: variable is not yet declared!" << std::endl;
-      return NULL;
+      throw StaticVariableScopeException(var->startLine, var->variable, getCodeLineBlock(var->startLine, var->startLine), false);
     }
     
     //get variable's type
@@ -574,8 +582,8 @@ AbstractExpressionNode* evalAssignment() {
     
     //now make sure that implicit type cast is valid
     if(!typecheckImplicitCastExpression(next->evalType, type)) {
-      std::cout << "ERROR: invalid implicit type cast" << std::endl;
-      return NULL;
+      //!!!
+      throw StaticCastException(var->startLine+1, next->endLine+1, getCodeLineBlock(var->startLine, next->endLine), next->evalType, type, false);
     }
     
     return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
@@ -603,17 +611,18 @@ AbstractStatementNode* addStatement() {
     consume(); //consume type Token    
     
     //get variable name
-    const char* constVariable = consume()->lexeme;
+    Token* variableToken = consume();
+
+    //make sure variable is not already declared
+    if(symbolTable->isDeclaredInScope((char*) variableToken->lexeme)) {
+      throw StaticVariableScopeException(variableToken->line, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
+    }
+    
+    const char* constVariable = variableToken->lexeme;
     uint32_t len = strlen(constVariable);
     char* variable = new char[len+1];
     strcpy(variable, constVariable);
     variable[len] = '\0';
-    
-    //make sure variable is not already declared
-    if(symbolTable->isDeclaredInScope(variable)) {
-      std::cout << "ERROR: variable " << variable << " already declared!" << std::endl;
-      return NULL;
-    }
     
     //if being assigned
     if(peek()->type == EQ) {
@@ -623,8 +632,8 @@ AbstractStatementNode* addStatement() {
       
       //check implicit casting validity
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
-        std::cout << "ERROR: invalid implicit type cast" << std::endl;
-        return NULL;
+        //!!!
+        throw StaticCastException(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
       } else {
         AbstractStatementNode* troll =  new NewAssignmentStatementNode(variable, type, expression, symbolTable);
         return troll;
@@ -649,8 +658,7 @@ AbstractStatementNode* addStatement() {
     
     //make sure variable is already declared in some scope
     if(!symbolTable->isDeclared(variable)) {
-      std::cout << "ERROR: variable is not yet declared!" << std::endl;
-      return NULL;
+      throw StaticVariableScopeException(varToken->line, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
     //get variable type from the symbol table
@@ -699,8 +707,7 @@ AbstractStatementNode* addStatement() {
     
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
-      std::cout << "ERROR: invalid implicit type cast" << std::endl;
-      return NULL;
+      throw StaticCastException(varToken->line+1, expression->endLine+1, getCodeLineBlock(varToken->line, expression->endLine), expression->evalType, type, false);
     } else {
       return new AssignmentStatementNode(variable, expression, symbolTable);
     }

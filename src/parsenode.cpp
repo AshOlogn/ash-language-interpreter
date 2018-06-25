@@ -120,9 +120,12 @@ ParseData ComparisonOperatorNode::evaluate() {
 ///////        Cast         ///////
 ///////////////////////////////////
 
-CastNode::CastNode(AbstractExpressionNode* e, ParseDataType type) {
+CastNode::CastNode(AbstractExpressionNode* e, ParseDataType type, uint32_t startLin) {
   expression = e;
   evalType = finalType = type;
+
+  startLine = startLin;
+  endLine = e->endLine;
 }
 
 std::string CastNode::toString() {

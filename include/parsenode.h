@@ -98,7 +98,7 @@ class CastNode : public AbstractExpressionNode {
     AbstractExpressionNode* expression;
     ParseDataType finalType;
     
-    CastNode(AbstractExpressionNode* e, ParseDataType type);
+    CastNode(AbstractExpressionNode* e, ParseDataType type, uint32_t startLine);
     ParseData evaluate();
     std::string toString();
 };
