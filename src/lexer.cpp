@@ -130,10 +130,10 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
           
           switch(code[index+1]) {
   
-            case '+': {
-              tokens.push_back(makeToken(INC, line, (char*) "++"));
-              index += 2; break;
-            }
+            // case '+': {
+            //   tokens.push_back(makeToken(INC, line, (char*) "++"));
+            //   index += 2; break;
+            // }
 
             case '=': {
               tokens.push_back(makeToken(ADD_EQ, line, (char*) "+="));
@@ -160,10 +160,10 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
           
           switch(code[index+1]) {
   
-            case '-': {
-              tokens.push_back(makeToken(DEC, line, (char*) "--"));
-              index += 2; break;
-            }
+            // case '-': {
+            //   tokens.push_back(makeToken(DEC, line, (char*) "--"));
+            //   index += 2; break;
+            // }
 
             case '=': {
               tokens.push_back(makeToken(SUBTRACT_EQ, line, (char*) "-="));

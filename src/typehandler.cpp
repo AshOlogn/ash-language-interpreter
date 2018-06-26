@@ -48,6 +48,10 @@ bool typecheckExplicitCastExpression(ParseDataType origType, ParseDataType final
 bool typecheckUnaryExpression(ParseOperatorType op, ParseDataType arg) {
   
   switch(op) {
+    case POSTFIX_INC_OP: return isNumberParseDataType(arg);
+    case PREFIX_INC_OP: return isNumberParseDataType(arg);
+    case POSTFIX_DEC_OP: return isNumberParseDataType(arg);
+    case PREFIX_DEC_OP: return isNumberParseDataType(arg);
     case POSITIVE_OP: return isNumberParseDataType(arg);
     case NEGATIVE_OP: return isNumberParseDataType(arg);
     case BIT_NOT_OP: return isIntParseDataType(arg);
@@ -103,6 +107,10 @@ ParseDataType getTypeUnaryExpression(ParseOperatorType op, ParseDataType arg) {
     return INVALID_T;
 
   switch(op) {
+    case POSTFIX_INC_OP: return arg;
+    case POSTFIX_DEC_OP: return arg;
+    case PREFIX_INC_OP: return arg;
+    case PREFIX_DEC_OP: return arg;
     case POSITIVE_OP: return arg;
     case NEGATIVE_OP: return arg;
     case BIT_NOT_OP: return arg;

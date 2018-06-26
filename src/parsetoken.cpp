@@ -107,8 +107,6 @@ ParseDataType typeTokenConversion(TokenType tt) {
 //returns corresponding ParseDataType enum from unary operator TokenType enum
 ParseOperatorType unaryTokenConversion(TokenType tt) {
   switch(tt) {
-    case INC: return INC_OP;
-    case DEC: return DEC_OP;
     case ADD: return POSITIVE_OP;
     case SUBTRACT: return NEGATIVE_OP;
     case NOT: return NOT_OP;
@@ -193,8 +191,10 @@ const char* toStringParseOperatorType(ParseOperatorType p) {
 
   switch(p) {
 
-    case INC_OP: return "++";
-    case DEC_OP: return "--";
+    case PREFIX_INC_OP: return "++";
+    case PREFIX_DEC_OP: return "--";
+    case POSTFIX_INC_OP: return "++";
+    case POSTFIX_DEC_OP: return "--";
     case POSITIVE_OP: return "+";
     case NEGATIVE_OP: return "-";
     case ADD_OP: return "+";
@@ -248,8 +248,10 @@ const char* toWordParseOperatorType(ParseOperatorType p) {
 
   switch(p) {
 
-    case INC_OP: return "increment";
-    case DEC_OP: return "decrement";
+    case PREFIX_INC_OP: return "prefix increment";
+    case PREFIX_DEC_OP: return "prefix decrement";
+    case POSTFIX_INC_OP: return "postfix increment";
+    case POSTFIX_DEC_OP: return "postfix decrement";
     case POSITIVE_OP: return "positive";
     case NEGATIVE_OP: return "negation";
     case ADD_OP: return "addition";

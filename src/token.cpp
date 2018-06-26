@@ -46,8 +46,6 @@ Token makeToken(TokenType typ, uint32_t lin, char* lex) {
 const char* toStringTokenType(TokenType tokenType) {
   
   switch(tokenType) {
-    case INC: return "INC";
-    case DEC: return "DEC";
     case LEFT_PAREN: return "LEFT_PAREN";
     case RIGHT_PAREN: return "RIGHT_PAREN";
     case LEFT_BRACKET: return "LEFT_BRACKET";
@@ -172,7 +170,7 @@ bool isTypeTokenType(TokenType tt) {
 //returns whether Token is an operator
 bool isOperatorTokenType(TokenType tt) {
 
-  return tt == INC || tt == DEC || tt == LEFT_PAREN ||
+  return tt == LEFT_PAREN ||
          tt == RIGHT_PAREN || tt == LEFT_BRACKET || 
          tt == RIGHT_BRACKET || tt == LEFT_BRACE || 
          tt == RIGHT_BRACE || tt == PERIOD || tt == ADD || 
@@ -196,8 +194,7 @@ bool isOperatorTokenType(TokenType tt) {
 //returns whether Token is a unary/binary operator
 bool isUnaryOperatorTokenType(TokenType tt) {
 
-  return tt == INC || tt == DEC || 
-         tt == ADD || tt == SUBTRACT || 
+  return tt == ADD || tt == SUBTRACT || 
          tt == NOT || tt == BIT_NOT;
 }
 

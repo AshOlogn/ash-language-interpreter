@@ -47,6 +47,15 @@ UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNod
   endLine = std::max(operatorLine, l->endLine);
 }
 
+UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, SymbolTable* table, uint32_t operatorLine) {
+  operation = op;
+  leftArg = l;
+  symbolTable = table;
+  evalType = getTypeUnaryExpression(op, l->evalType); 
+  startLine = std::min(operatorLine, l->startLine);
+  endLine = std::max(operatorLine, l->endLine);
+}
+
 ParseData UnaryOperatorNode::evaluate() {
   return evaluateUnaryExpression(this);
 }

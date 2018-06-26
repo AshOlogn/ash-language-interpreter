@@ -53,7 +53,9 @@ class AbstractOperatorNode : public AbstractExpressionNode {
 //class that represents unary operations
 class UnaryOperatorNode : public AbstractOperatorNode {
   public:
+    SymbolTable* symbolTable;
     UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, uint32_t operatorLine);
+    UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNode* l, SymbolTable* symbolTable, uint32_t operatorLine);
     ParseData evaluate();
     std::string toString();
 };

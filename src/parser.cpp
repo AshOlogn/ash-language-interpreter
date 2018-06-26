@@ -108,129 +108,170 @@ AbstractExpressionNode* evalLiteralGroup() {
 }
 
 //member access
-AbstractExpressionNode* evalMemberAccess() {
-  
-  AbstractExpressionNode* head = evalLiteralGroup();
+bool isPostfixStructure() {
+  return (peek()->type == ADD && peekAhead(1)->type == ADD) || (peek()->type == SUBTRACT && peekAhead(1)->type == SUBTRACT);
+}
 
-  while(peek()->type == LEFT_BRACKET) {
-  
-    if(head->evalType != STRING_T) {
+AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
+
+  if(head->evalType != STRING_T) {
       
-      //first write message
-      const char* arrayAccessErrorMessage = "A value must be of array or string type to be indexed";
-      throw StaticTypeException(head->startLine+1, peek()->line+1, getCodeLineBlock(head->startLine, peek()->line), arrayAccessErrorMessage);
-    }
+    //first write message
+    const char* arrayAccessErrorMessage = "A value must be of array or string type to be indexed";
+    throw StaticTypeException(head->startLine+1, peek()->line+1, getCodeLineBlock(head->startLine, peek()->line), arrayAccessErrorMessage);
+  }
   
-    Token* leftBracketToken = consume(); //consume [
+  Token* leftBracketToken = consume(); //consume [
 
-    //if next value is colon, this is a slice with implicit start = 0
+  //if next value is colon, this is a slice with implicit start = 0
+  if(peek()->type == COLON) {
+
+    Token* colonToken = consume(); //consume :
+    
+    //start = 0
+    ParseData startIndex;
+    startIndex.type = INT32_T;
+    startIndex.value.integer = 0;
+
+    //if next value is ], implicit end = -1
+    if(peek()->type == RIGHT_BRACKET) {
+
+      Token* rightBracketToken = consume(); //consume ]
+      ParseData endIndex;
+      endIndex.type = INT32_T;
+      endIndex.value.integer = (int32_t) -1;
+      
+      return new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line), 
+                                  new LiteralNode(endIndex, rightBracketToken->line), rightBracketToken->line);
+
+    } else {
+
+      //defined end index
+      AbstractExpressionNode* end = evalExpression();
+      
+      //make sure that the expression evaluates to an integer
+      if(!typecheckMemberAccessExpression(end->evalType)) {
+        //!!!
+        throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);
+      }
+
+      if(peek()->type != RIGHT_BRACKET) {
+        
+        //!!! If [ does not have a corresponding ], throw an error
+        throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
+        
+      } else {
+  
+        Token* rightBracketToken = consume(); //consume ]
+        return new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line), end, rightBracketToken->line);
+      }
+    }
+
+  } else {
+
+    //defined start index
+    AbstractExpressionNode* start = evalExpression();
+    
+    //make sure that the expression evaluates to an integer
+    if(!typecheckMemberAccessExpression(start->evalType)) {
+      //!!!
+      throw StaticTypeException(head->startLine+1, start->endLine+1, getCodeLineBlock(head->startLine, start->endLine), "array indexing", start->evalType);
+    }
+
+    //accessing a slice with explicit start
     if(peek()->type == COLON) {
   
-      Token* colonToken = consume(); //consume :
-      
-      //start = 0
-      ParseData startIndex;
-      startIndex.type = INT32_T;
-      startIndex.value.integer = 0;
+      consume(); //consume :
 
-      //if next value is ], implicit end = -1
+      //end = -1 implied
       if(peek()->type == RIGHT_BRACKET) {
-  
+
         Token* rightBracketToken = consume(); //consume ]
         ParseData endIndex;
         endIndex.type = INT32_T;
         endIndex.value.integer = (int32_t) -1;
-        
-        head = new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line), 
-                                   new LiteralNode(endIndex, rightBracketToken->line), rightBracketToken->line);
+    
+        return new ArrayAccessNode(head, start, new LiteralNode(endIndex, rightBracketToken->line), rightBracketToken->line);
 
       } else {
-  
+
         //defined end index
         AbstractExpressionNode* end = evalExpression();
         
         //make sure that the expression evaluates to an integer
         if(!typecheckMemberAccessExpression(end->evalType)) {
           //!!!
-          throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);
+          throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);            
         }
-
+          
         if(peek()->type != RIGHT_BRACKET) {
           
           //!!! If [ does not have a corresponding ], throw an error
           throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
-          
+
         } else {
-    
           Token* rightBracketToken = consume(); //consume ]
-          head = new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line), end, rightBracketToken->line);
+          return new ArrayAccessNode(head, start, end, rightBracketToken->line);
         }
       }
 
     } else {
-  
-      //defined start index
-      AbstractExpressionNode* start = evalExpression();
       
-      //make sure that the expression evaluates to an integer
-      if(!typecheckMemberAccessExpression(start->evalType)) {
-        //!!!
-        throw StaticTypeException(head->startLine+1, start->endLine+1, getCodeLineBlock(head->startLine, start->endLine), "array indexing", start->evalType);
-      }
-
-      //accessing a slice with explicit start
-      if(peek()->type == COLON) {
-    
-        consume(); //consume :
-
-        //end = -1 implied
-        if(peek()->type == RIGHT_BRACKET) {
-  
-          Token* rightBracketToken = consume(); //consume ]
-          ParseData endIndex;
-          endIndex.type = INT32_T;
-          endIndex.value.integer = (int32_t) -1;
-      
-          head = new ArrayAccessNode(head, start, new LiteralNode(endIndex, rightBracketToken->line), rightBracketToken->line);
-
-        } else {
-  
-          //defined end index
-          AbstractExpressionNode* end = evalExpression();
-          
-          //make sure that the expression evaluates to an integer
-          if(!typecheckMemberAccessExpression(end->evalType)) {
-            //!!!
-            throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);            
-          }
-            
-          if(peek()->type != RIGHT_BRACKET) {
-            
-            //!!! If [ does not have a corresponding ], throw an error
-            throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
-
-          } else {
-            Token* rightBracketToken = consume(); //consume ]
-            head = new ArrayAccessNode(head, start, end, rightBracketToken->line);
-          }
-        }
+      //accessing single value
+      if(peek()->type != RIGHT_BRACKET) {
+        
+        //!!! If [ does not have a corresponding ], throw an error
+        throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
 
       } else {
-        
-        //accessing single value
-        if(peek()->type != RIGHT_BRACKET) {
-          
-          //!!! If [ does not have a corresponding ], throw an error
-          throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
-
-        } else {
-          Token* rightBracketToken = consume(); //consume ]
-          head = new ArrayAccessNode(head, start, rightBracketToken->line);
-        }
+        Token* rightBracketToken = consume(); //consume ]
+        return new ArrayAccessNode(head, start, rightBracketToken->line);
       }
+    }
+  }
 
-    }   
+  return NULL;
+}
 
+AbstractExpressionNode* evalPostfixMemberAccess() {
+  
+  AbstractExpressionNode* head = evalLiteralGroup();
+  VariableNode* varNode = dynamic_cast<VariableNode*>(head);
+
+  if(varNode && isPostfixStructure()) {
+
+    cout << "index: " << tokenIndex << endl;
+    cout << "string: " << toStringParseDataType(varNode->evalType) << endl;
+
+    //make sure variable is declared
+    if(!symbolTable->isDeclared(varNode->variable)) {
+      throw StaticVariableScopeException(varNode->startLine+1, varNode->variable, getCodeLineBlock(varNode->startLine, varNode->startLine), false);   
+    }
+
+    //get variable type
+    ParseDataType varType = varNode->evalType;
+
+    consume(); //consume first +
+    Token* secondPlus = consume();
+
+    if(secondPlus->type == ADD) {
+      //make sure type is correct
+      if(!typecheckUnaryExpression(POSTFIX_INC_OP, varType)) {
+        throw StaticTypeException(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix increment", varType);
+      }
+      return new UnaryOperatorNode(POSTFIX_INC_OP, varNode, symbolTable, secondPlus->line);
+
+    } else {
+      //make sure type is correct
+      if(!typecheckUnaryExpression(POSTFIX_DEC_OP, varType)) {
+        throw StaticTypeException(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix decrement", varType);
+      }
+      return new UnaryOperatorNode(POSTFIX_DEC_OP, varNode, symbolTable, secondPlus->line); 
+    }
+  }
+
+  while(peek()->type == LEFT_BRACKET) {
+    head = handleMemberAccess(head);
   }
 
   return head;
@@ -273,7 +314,7 @@ AbstractExpressionNode* evalCastSignNot() {
     
   } else {
 
-    return evalMemberAccess();  
+    return evalPostfixMemberAccess();  
   }
 }
 
