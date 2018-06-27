@@ -27,15 +27,29 @@ const char* LexerException::what() const throw() {
 
 const char* ParseSyntaxException::what() const throw() {
   
-  std::string str  = "ParseSyntaxException error on line ";
-  str.append(std::to_string(lineNumber));
+  std::string str = "";
+  
+  if(startLineNumber == endLineNumber) {
+    str.append("ParseSyntaxException error on line ");
+    str.append(std::to_string(startLineNumber));
+  } else {
+    str.append("ParseSyntaxException error from line ");
+    str.append(std::to_string(startLineNumber));
+    str.append(" to ");
+    str.append(std::to_string(endLineNumber));
+  }
+  
   str.append(":\n\t");
   str.append(context);
-  str.append("with element ");
-  str.append(lexeme);
-  str.append("\n");
-  str.append(message);
+
+  if(lexeme != NULL) {
+    str.append("with element ");
+    str.append(lexeme);
+    str.append("\n");
+  }
   
+  str.append(message);
+
   const char* c = str.c_str();
   uint32_t len = strlen(c);
   char* res = new char[len+1];

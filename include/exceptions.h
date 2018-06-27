@@ -26,10 +26,24 @@ class ParseSyntaxException : public std::exception {
     const char* context;
     const char* lexeme;
     const char* message;
-    uint32_t lineNumber;
+    uint32_t startLineNumber;
+    uint32_t endLineNumber;
     
+    //single line, with lexeme specified
     ParseSyntaxException(uint32_t line, const char* con, const char* lex, const char* mes) 
-      : lineNumber{line}, context{con}, lexeme{lex}, message{mes} {}
+      : startLineNumber{line}, endLineNumber{line}, context{con}, lexeme{lex}, message{mes} {}
+
+    //single line, no lexeme specified
+    ParseSyntaxException(uint32_t line, const char* con, const char* mes) 
+      : startLineNumber{line}, endLineNumber{line}, context{con}, lexeme{NULL}, message{mes} {}
+
+    //multiple lines, lexeme specified
+    ParseSyntaxException(uint32_t startLine, uint32_t endLine, const char* con, const char* lex, const char* mes) 
+      : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, lexeme{lex}, message{mes} {}
+
+    //multiple lines, no lexeme specified
+    ParseSyntaxException(uint32_t startLine, uint32_t endLine, const char* con, const char* mes) 
+      : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, lexeme{NULL}, message{mes} {}
     
     const char* what() const throw ();
 };

@@ -278,6 +278,119 @@ ParseData evaluateUnaryExpression(UnaryOperatorNode* node) {
       return d;
     }
 
+    case PREFIX_INC_OP: {
+      
+      VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
+
+      //get variable name
+      char* variableName = varNode->variable;
+
+      //get variable type
+      ParseDataType varType = varNode->evalType;
+
+      switch(arg.type) {
+        
+        case CHAR_T: {
+          unsigned char val = (unsigned char) (arg.value.integer + 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case INT32_T: {
+          int32_t val = (int32_t) (arg.value.integer + 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case INT64_T: {
+          int64_t val = (int64_t) (arg.value.integer + 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case UINT32_T:  {
+          uint32_t val = (uint32_t) (arg.value.integer + 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case UINT64_T: {
+          uint64_t val = (uint64_t) (arg.value.integer + 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case DOUBLE_T: {
+          double val = (double) (arg.value.floatingPoint + 1.0);
+          d.value.floatingPoint = val;
+          break;
+        }
+        
+      }
+
+      //update value in symbol table
+      SymbolTable* symbolTable = node->symbolTable;
+      symbolTable->update(variableName, d);
+
+      //return original value
+      return d;
+    }
+
+    case PREFIX_DEC_OP: {
+      
+      VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
+
+      //get variable name
+      char* variableName = varNode->variable;
+
+      //get variable type
+      ParseDataType varType = varNode->evalType;
+
+      switch(arg.type) {
+        
+        case CHAR_T: {
+          unsigned char val = (unsigned char) (arg.value.integer - 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case INT32_T: {
+          int32_t val = (int32_t) (arg.value.integer - 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case INT64_T: {
+          int64_t val = (int64_t) (arg.value.integer - 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case UINT32_T:  {
+          uint32_t val = (uint32_t) (arg.value.integer - 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case UINT64_T: {
+          uint64_t val = (uint64_t) (arg.value.integer - 1);
+          d.value.integer = val;
+          break;
+        }
+        
+        case DOUBLE_T: {
+          double val = (double) (arg.value.floatingPoint - 1.0);
+          d.value.floatingPoint = val;
+          break;
+        }
+      }
+
+      SymbolTable* symbolTable = node->symbolTable;
+      symbolTable->update(variableName, d);
+
+      //return original value
+      return d;
+    }
   }
   
   return d;

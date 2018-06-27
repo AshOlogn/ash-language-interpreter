@@ -240,9 +240,6 @@ AbstractExpressionNode* evalPostfixMemberAccess() {
 
   if(varNode && isPostfixStructure()) {
 
-    cout << "index: " << tokenIndex << endl;
-    cout << "string: " << toStringParseDataType(varNode->evalType) << endl;
-
     //make sure variable is declared
     if(!symbolTable->isDeclared(varNode->variable)) {
       throw StaticVariableScopeException(varNode->startLine+1, varNode->variable, getCodeLineBlock(varNode->startLine, varNode->startLine), false);   
@@ -282,15 +279,42 @@ bool isCastStructure() {
   return peek()->type == LEFT_PAREN && isTypeTokenType(peekAhead(1)->type) && peekAhead(2)->type == RIGHT_PAREN;
 }
 
+bool isPrefixStructure() {
+  return (peek()->type == ADD && peekAhead(1)->type == ADD) || (peek()->type == SUBTRACT && peekAhead(1)->type == SUBTRACT);
+}
+
 //sign and bit/logical NOT
-AbstractExpressionNode* evalCastSignNot() {
+AbstractExpressionNode* evalPrefixCastSignNot() {
  
-  //check if sign, not, or cast
-  if(isSignNotTokenType(peek()->type)) {
+  //check if prefix
+  if(isPrefixStructure()) {
+
+    Token* firstPlus = consume();
+    consume(); //consume second +
+
+    AbstractExpressionNode* head = evalPostfixMemberAccess();
+    VariableNode* varNode = dynamic_cast<VariableNode*>(head);
+
+    //if it's not a variable, throw a syntax error
+    if(!varNode) {
+      throw ParseSyntaxException(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), "Prefix operator expects variable argument");
+    }
+
+    ParseDataType type = varNode->evalType;
+    ParseOperatorType op = (firstPlus->type == ADD) ? PREFIX_INC_OP : PREFIX_DEC_OP;
+
+    //if it's not a number, throw a type error
+    if(!typecheckUnaryExpression(op, type)) {
+      throw StaticTypeException(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), (op == PREFIX_INC_OP) ? "prefix increment" : "prefix decrement", type);
+    }
+
+    return new UnaryOperatorNode(op, varNode, symbolTable, firstPlus->line);
+
+  } else if(isSignNotTokenType(peek()->type)) {
 
     Token* signNotToken = consume();
     ParseOperatorType op = unaryTokenConversion(signNotToken->type);
-    AbstractExpressionNode* next = evalCastSignNot();
+    AbstractExpressionNode* next = evalPrefixCastSignNot();
 
     if(typecheckUnaryExpression(op, next->evalType)) {
       return new UnaryOperatorNode(op, next, signNotToken->line);
@@ -305,7 +329,7 @@ AbstractExpressionNode* evalCastSignNot() {
     ParseDataType finalType = typeTokenConversion(consume()->type);
     consume(); //consume )
     
-    AbstractExpressionNode* next = evalCastSignNot();
+    AbstractExpressionNode* next = evalPrefixCastSignNot();
     if(typecheckExplicitCastExpression(next->evalType, finalType)) {
       return new CastNode(next, finalType, leftParenToken->line);
     } else {
@@ -322,12 +346,12 @@ AbstractExpressionNode* evalCastSignNot() {
 // **
 AbstractExpressionNode* evalExponent() {
 
-  AbstractExpressionNode* head = evalCastSignNot();
+  AbstractExpressionNode* head = evalPrefixCastSignNot();
   AbstractExpressionNode* next;
 
   while(peek()->type == EXPONENT) {
     consume(); 
-    next = evalCastSignNot();
+    next = evalPrefixCastSignNot();
 
     if(typecheckArithmeticExpression(EXPONENT_OP, head->evalType, next->evalType)) {
       head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
