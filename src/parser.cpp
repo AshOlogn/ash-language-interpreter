@@ -9,6 +9,7 @@
 #include "typehandler.h"
 #include "statementnode.h"
 #include "parser.h"
+#include "function.h"
 
 using namespace std;
 
@@ -923,6 +924,134 @@ AbstractStatementNode* addStatement() {
       
       return new ConditionalStatementNode(cond, stat, symbolTable);
     }
+
+		//TODO error handling
+		case FUN: {
+
+			consume(); //consume the FUN token
+
+			//next token should be a variable, the function name
+			if(peek()->type != VARIABLE) {
+				cout << "ERROR: expected function name after 'fun' keyword" << endl;
+				return NULL;
+			}
+
+			Token* varToken = consume(); //function name
+			const char* funName = varToken->lexeme;
+			uint32_t len = strlen(funName);
+			char* functionName = new char[len+1];
+			functionName[0] = '\0';
+			strcpy(functionName, funName);
+			functionName[len] = '\0';
+
+			//now create a Function struct
+			Function function;
+
+			//now read in arguments enclosed in parentheses
+			if(peek()->type != LEFT_PAREN) {
+				cout << "ERROR: expected parentheses containing function arguments" << endl;
+				return NULL;
+			}
+			
+			consume(); //consume (
+			
+			//first scan to figure out how many arguments must be allocated in Function
+			uint32_t currentIndex = 0;
+			uint32_t argCount = 0;
+
+			while(peekAhead(currentIndex)->type != RIGHT_PAREN) {
+
+				//make sure you have a type then variable
+				if(!isTypeTokenType(peekAhead(currentIndex)->type)) {
+					cout << "ERROR: expected argument type" << endl;
+					return NULL;	
+				}
+				currentIndex++;
+
+				if(peekAhead(currentIndex)->type != VARIABLE) {
+					cout << "ERROR: expected argument variable name" << endl;
+					return NULL;
+				}
+				currentIndex++;
+
+				argCount++;
+
+				//if next token is not closing parenthesis, it must be a comma
+				TokenType nextToken = peekAhead(currentIndex)->type;
+				if(nextToken != RIGHT_PAREN && nextToken != COMMA) {
+					cout << "ERROR: expected comma separating arguments or closing parenthesis" << endl;
+					return NULL;
+				} else if(nextToken == COMMA) {
+					currentIndex++; //"consume" COMMA token
+				}
+			}
+
+			//now allocate memory for argument names and types
+			function.numArgs = argCount;
+			ParseDataType* argTypes = new ParseDataType[argCount+1];
+			char** argNames = (char**) malloc(sizeof(char*) * argCount);
+
+			//now read in arguments for real
+			uint32_t argIndex = 0;
+			while(peek()->type != RIGHT_PAREN) {
+
+				argTypes[argIndex] = typeTokenConversion(consume()->type);
+
+				const char* aName = consume()->lexeme;
+				uint32_t len = strlen(aName);
+				char* argName = new char[len+1];
+				argName[0] = '\0';
+				strcpy(argName, aName);
+				argName[len] = '\0';
+				argNames[argIndex] = argName;
+
+				argIndex++;
+				if(argIndex < argCount)
+					consume(); //consume ,
+			}
+			consume(); //consume ')' token
+
+			function.argTypes = argTypes;
+			function.argNames = argNames;
+
+			//now get the return type
+			if(peek()->type != RIGHTARROW) {
+				cout << "ERROR: expected -> followed by a return type" << endl;
+				return NULL;
+			}
+			consume(); //consume ->
+
+			function.returnType = typeTokenConversion(consume()->type);
+
+			//now create GroupedExpressionNode
+			if(peek()->type != LEFT_BRACE) {
+				cout << "ERROR: expected braced function body" << endl;
+				return NULL;
+			}
+			consume(); //consume {
+
+      vector<AbstractStatementNode*>* body = new vector<AbstractStatementNode*>();
+      
+      //enter a new scope in symbol table (for static scope-checking)
+      symbolTable->enterNewScope();
+      
+			//add statements declaring the parameter variables
+			for(uint32_t i = 0; i < argCount; i++) {
+				body->push_back(new NewAssignmentStatementNode(argNames[i], argTypes[i], symbolTable));
+			}
+
+      while(peek()->type != RIGHT_BRACE) {
+        body->push_back(addStatement());  
+      }
+      
+      consume(); //consume right brace
+      
+      //leave scope
+      symbolTable->leaveScope();
+			
+			//create function node
+
+		}
     
     default: return new ExpressionStatementNode(evalExpression(), symbolTable);
     

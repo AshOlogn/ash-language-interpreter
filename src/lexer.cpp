@@ -165,6 +165,11 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
             //   index += 2; break;
             // }
 
+						case '>': {
+							tokens.push_back(makeToken(RIGHTARROW, line, (char*) "->"));
+							index += 2; break;
+						}
+
             case '=': {
               tokens.push_back(makeToken(SUBTRACT_EQ, line, (char*) "-="));
               index += 2; break;
