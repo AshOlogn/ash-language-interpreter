@@ -21,4 +21,8 @@ void executeAssignmentStatement(AssignmentStatementNode* node);
 
 void executeNewAssignmentStatement(NewAssignmentStatementNode* node);
 
+void executeFunctionStatement(FunctionStatementNode* node);
+
+void executeReturnStatement(ReturnStatementNode* node);
+
 #endif

@@ -5,6 +5,11 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "symboltable.h"
+#include "function.h"
+
+//forward declarations to break cyclic dependencies with function.h and parsenode.h
+struct Function;
+class AbstractExpressionNode;
 
 ///////////////////////////////////
 ///////     Superclass      ///////
@@ -123,6 +128,29 @@ class AssignmentStatementNode : public AbstractStatementNode {
     
     AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* symbolTable);
     void execute();
+};
+
+
+//represents return statement in a function
+class ReturnStatementNode : public AbstractStatementNode {
+	public:
+		bool* returnFlag;
+		ParseData* returnValue;
+		AbstractExpressionNode* expression;
+		ReturnStatementNode(AbstractExpressionNode* expression, bool* returnFlag, ParseData* returnValue);
+		void execute();
+};
+
+//represents declaration (and maybe definition) of a function
+class FunctionStatementNode : public AbstractStatementNode {
+
+	public:
+		Function* function;
+		char* functionName;
+
+		FunctionStatementNode(char* functionName, Function* function, SymbolTable* symbolTable);
+		FunctionStatementNode(char* functionName, SymbolTable* symbolTable);
+		void execute();
 };
 
 

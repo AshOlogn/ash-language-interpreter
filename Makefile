@@ -13,6 +13,7 @@ source = main.cpp \
 	groupeval.cpp \
 	literaleval.cpp \
 	unaryeval.cpp \
+	functioneval.cpp \
 	memberaccesseval.cpp \
 	casteval.cpp \
 	evaluator.cpp \
@@ -35,12 +36,14 @@ include = token.h \
 	literaleval.h \
 	unaryeval.h \
 	memberaccesseval.h \
+	functioneval.h \
 	casteval.h \
 	evaluator.h \
 	statementnode.h \
 	typehandler.h \
 	symboltable.h \
 	executor.h \
+	function.h \
 	parser.h
 
 bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))

@@ -151,5 +151,42 @@ void AssignmentStatementNode::execute() {
 	executeAssignmentStatement(this);
 }
 
+//represents return statement in a function
+ReturnStatementNode::ReturnStatementNode(AbstractExpressionNode* exp, bool* retFlag, ParseData* retVal) {
+	expression = exp;
+	returnFlag = retFlag;
+	returnValue = retVal;
+}
+
+void ReturnStatementNode::execute() {
+	executeReturnStatement(this);
+}
+
+//represents function declaration (and maybe definition)
+FunctionStatementNode::FunctionStatementNode(char* fName, Function* f, SymbolTable* table) {
+	functionName = fName;
+	function = f;
+	symbolTable = table;
+
+	ParseData d;
+	d.type = FUN_T;
+	d.value.allocated = (void*) f;
+
+	table->declare(fName, d);
+}
+
+FunctionStatementNode::FunctionStatementNode(char* fName, SymbolTable* table) {
+	functionName = fName;
+	function = NULL;
+	symbolTable = table;
+
+	ParseData d;
+	d.type = FUN_T;
+	table->declare(fName, d);
+}
+
+void FunctionStatementNode::execute() {
+	executeFunctionStatement(this);
+}
 
 

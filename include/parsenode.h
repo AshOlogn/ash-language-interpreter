@@ -4,6 +4,11 @@
 #include <string>
 #include "parsetoken.h"
 #include "symboltable.h"
+#include "function.h"
+
+//forward declarations to break cyclic dependencies with function.h and statementnode.h
+struct Function;
+class AbstractStatementNode;
 
 ///////////////////////////////////
 ///////     Superclass      ///////
@@ -135,6 +140,25 @@ class VariableNode : public AbstractExpressionNode {
     ParseData evaluate();
     std::string toString();
 };
+
+///////////////////////////////////
+///////    Function Call    ///////
+///////////////////////////////////
+
+class FunctionExpressionNode : public AbstractExpressionNode {
+	public:
+		uint32_t numArgs;
+		AbstractExpressionNode** arguments;
+		Function* function;
+		SymbolTable* symbolTable;
+		bool* isReturned;
+		ParseData* returnValue;
+
+		FunctionExpressionNode(uint32_t numArgs, AbstractExpressionNode** arguments, Function* function, SymbolTable* symbolTable);	
+		ParseData evaluate();
+		std::string toString();
+};
+
 
 ///////////////////////////////////
 ///////      Literal        ///////

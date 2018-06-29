@@ -3,11 +3,11 @@
 #include <iostream>
 #include "token.h"
 #include "parsetoken.h"
-#include "parsenode.h"
 #include "typehandler.h"
 #include "evaluator.h"
 #include "symboltable.h"
-
+#include "function.h"
+#include "parsenode.h"
 
 ///////////////////////////////////
 ///////     Assignment      ///////
@@ -209,6 +209,31 @@ ParseData VariableNode::evaluate() {
 std::string VariableNode::toString() {
   return std::string(variable);
 }
+
+///////////////////////////////////
+///////    Function Call    ///////
+///////////////////////////////////
+
+FunctionExpressionNode::FunctionExpressionNode(uint32_t nArgs, AbstractExpressionNode** args, Function* f, SymbolTable* table) {
+	numArgs = nArgs;
+	arguments = args;
+	function = f;
+	symbolTable = table;
+	evalType = f->returnType;
+
+	isReturned = f->returnFlag;
+	returnValue = f->returnValue;
+}
+
+ParseData FunctionExpressionNode::evaluate() {
+	return evaluateFunctionExpression(this);
+}
+
+std::string FunctionExpressionNode::toString() {
+	std::string str;
+	return str;
+}
+
 
 ///////////////////////////////////
 ///////      Literal        ///////

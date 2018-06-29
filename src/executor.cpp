@@ -95,4 +95,25 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
   symbolTable->update(variable, castHelper(d, type));
 }
 
+void executeFunctionStatement(FunctionStatementNode* node) {
+
+	SymbolTable* symbolTable = node->symbolTable;
+	char* functionName = node->functionName;
+	Function* function = node->function;
+
+	ParseData d;
+	d.type = FUN_T;
+	d.value.allocated = (void*) function;
+
+	//declare the function, with or without implementation
+	symbolTable->declare(functionName, d);
+}
+
+void executeReturnStatement(ReturnStatementNode* node) {
+	bool* returnFlag = node->returnFlag;
+	ParseData* returnValue = node->returnValue;
+	*returnValue = node->expression->evaluate();
+	*returnFlag = true;
+}
+
 

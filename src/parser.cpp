@@ -18,6 +18,9 @@ static vector<Token>* tokens;
 static SymbolTable* symbolTable;
 static vector<char*>* codeLines;
 
+static bool* returnFlag = NULL;
+static ParseData* returnValue = NULL;
+
 /////////////////////////////////
 //////    Access Tokens     /////
 /////////////////////////////////
@@ -84,22 +87,70 @@ AbstractExpressionNode* evalLiteralGroup() {
     return new GroupedExpressionNode(next, startGroupToken->line, endGroupToken->line);
 
   } else if(peek()->type == VARIABLE) {
+
+		Token* variable = consume();
+
+		//make sure variable is already declared
+		if(!symbolTable->isDeclared((char*) variable->lexeme)) {
+			throw StaticVariableScopeException(variable->line, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
+		}
+
+		const char* name = variable->lexeme;
+		uint32_t len = strlen(name);
+		char* variableName = new char[len+1];
+		strcpy(variableName, name);
+		variableName[len] = '\0';
+
+		//get variable type
+		ParseDataType varType = symbolTable->get(variableName).type;
+
+		if(peek()->type == LEFT_PAREN) {
+
+			//function call case
+
+			//make sure this variable is of function type
+			cout << toStringParseDataType(varType) << endl;
+			if(varType != FUN_T) {
+				cout << "ERROR: can't call a variable that is not of function type";
+				return NULL;
+			}
+
+			Token* leftParenToken = consume(); //consume (
+			
+			//get function information
+			Function* function = (Function*) (symbolTable->get(variableName).value.allocated);
+			uint32_t numArgs = function->numArgs;
+			
+			//read in arguments
+			AbstractExpressionNode** arguments = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * numArgs);
+			for(uint32_t i = 0; i < numArgs; i++) {
+
+				arguments[i] = evalExpression();
+
+				if(i < numArgs-1) {
+					if(peek()->type != COMMA) {
+						cout << "ERROR: expected , to separate function arguments" << endl;
+						return NULL;
+					}
+					consume(); //consume ,
+				}
+			}
+
+			if(peek()->type != RIGHT_PAREN) {
+				cout << "ERROR: expected ')' to close function argument list" << endl;
+				return NULL;
+			}
+			consume(); //consume )
+
+			//now return FunctionExpressionNode
+			return new FunctionExpressionNode(numArgs, arguments, function, symbolTable);
+
+		} else {
+
+			//simple value substitution case
+			return new VariableNode(variableName, symbolTable, variable->line);
+		}
   
-    Token* variable = consume();
-
-    //make sure variable is already declared
-    if(!symbolTable->isDeclared((char*) variable->lexeme)) {
-      throw StaticVariableScopeException(variable->line, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
-    }
-
-    const char* name = variable->lexeme;
-    uint32_t len = strlen(name);
-    char* variableName = new char[len+1];
-    strcpy(variableName, name);
-    variableName[len] = '\0';
-    
-    return new VariableNode(variableName, symbolTable, variable->line);
-    
   } else {
 
     Token* literal = consume();
@@ -925,6 +976,11 @@ AbstractStatementNode* addStatement() {
       return new ConditionalStatementNode(cond, stat, symbolTable);
     }
 
+		case RETURN: {
+			consume(); //consume return
+			return new ReturnStatementNode(evalExpression(), returnFlag, returnValue);
+		}
+
 		//TODO error handling
 		case FUN: {
 
@@ -945,7 +1001,13 @@ AbstractStatementNode* addStatement() {
 			functionName[len] = '\0';
 
 			//now create a Function struct
-			Function function;
+			Function* function = (Function*) malloc(sizeof(Function));
+			function->returnFlag = (bool*) malloc(sizeof(bool));
+			function->returnValue = (ParseData*) malloc(sizeof(ParseData)); 
+
+			//assign the global returnFlag and returnValue pointers to this function
+			returnFlag = function->returnFlag;
+			returnValue = function->returnValue;
 
 			//now read in arguments enclosed in parentheses
 			if(peek()->type != LEFT_PAREN) {
@@ -987,16 +1049,18 @@ AbstractStatementNode* addStatement() {
 			}
 
 			//now allocate memory for argument names and types
-			function.numArgs = argCount;
-			ParseDataType* argTypes = new ParseDataType[argCount+1];
+			function->numArgs = argCount;
+			ParseDataType* argTypes = new ParseDataType[argCount];
 			char** argNames = (char**) malloc(sizeof(char*) * argCount);
 
 			//now read in arguments for real
 			uint32_t argIndex = 0;
 			while(peek()->type != RIGHT_PAREN) {
 
+				//read in parameter type
 				argTypes[argIndex] = typeTokenConversion(consume()->type);
 
+				//read in parameter name
 				const char* aName = consume()->lexeme;
 				uint32_t len = strlen(aName);
 				char* argName = new char[len+1];
@@ -1011,8 +1075,8 @@ AbstractStatementNode* addStatement() {
 			}
 			consume(); //consume ')' token
 
-			function.argTypes = argTypes;
-			function.argNames = argNames;
+			function->argTypes = argTypes;
+			function->argNames = argNames;
 
 			//now get the return type
 			if(peek()->type != RIGHTARROW) {
@@ -1021,25 +1085,28 @@ AbstractStatementNode* addStatement() {
 			}
 			consume(); //consume ->
 
-			function.returnType = typeTokenConversion(consume()->type);
+			function->returnType = typeTokenConversion(consume()->type);
 
-			//now create GroupedExpressionNode
+			//now declare the variables just for scope-checking purposes
+			//and enter a new scope
+      symbolTable->enterNewScope();
+			NewAssignmentStatementNode* dummy;
+
+			for(uint32_t i = 0; i < argCount; i++) {
+				//this construction declares variable as well
+				dummy = new NewAssignmentStatementNode(argNames[i], argTypes[i], symbolTable);
+			}
+
+			//now store AbstractStatementNode* vector representing function body
 			if(peek()->type != LEFT_BRACE) {
 				cout << "ERROR: expected braced function body" << endl;
 				return NULL;
 			}
 			consume(); //consume {
 
+			//represents statements in body
       vector<AbstractStatementNode*>* body = new vector<AbstractStatementNode*>();
       
-      //enter a new scope in symbol table (for static scope-checking)
-      symbolTable->enterNewScope();
-      
-			//add statements declaring the parameter variables
-			for(uint32_t i = 0; i < argCount; i++) {
-				body->push_back(new NewAssignmentStatementNode(argNames[i], argTypes[i], symbolTable));
-			}
-
       while(peek()->type != RIGHT_BRACE) {
         body->push_back(addStatement());  
       }
@@ -1048,9 +1115,14 @@ AbstractStatementNode* addStatement() {
       
       //leave scope
       symbolTable->leaveScope();
-			
-			//create function node
+			function->body = body;
 
+			//reset global pointers
+			returnFlag = NULL;
+			returnValue = NULL;
+
+			//now return a FunctionStatementNode
+			return new FunctionStatementNode(functionName, function, symbolTable);
 		}
     
     default: return new ExpressionStatementNode(evalExpression(), symbolTable);
