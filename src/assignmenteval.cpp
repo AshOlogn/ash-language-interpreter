@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "token.h"
 #include "typehandler.h"
 #include "parsetoken.h"
@@ -14,7 +15,7 @@ ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node) {
 
   //get stuff out of the node first
   SymbolTable* symbolTable = node->symbolTable;
-  char* variable = node->variable;
+  std::string variable = node->variable;
   AbstractExpressionNode* value = node->value;
   
   ParseDataType type = node->evalType;

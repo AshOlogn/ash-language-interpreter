@@ -30,12 +30,12 @@ class AbstractExpressionNode {
 class AssignmentExpressionNode : public AbstractExpressionNode {
   
   public:
-    char* variable;
+    std::string variable;
     ParseDataType variableType;
     AbstractExpressionNode* value;
     SymbolTable* symbolTable;
     
-    AssignmentExpressionNode(char* variable, ParseDataType variableType, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t varLine);
+    AssignmentExpressionNode(std::string variable, ParseDataType variableType, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t varLine);
     ParseData evaluate();
     std::string toString();
 };
@@ -135,8 +135,8 @@ class ArrayAccessNode : public AbstractExpressionNode {
 class VariableNode : public AbstractExpressionNode {
   public:
     SymbolTable* symbolTable;
-    char* variable;
-    VariableNode(char* var, SymbolTable* table, uint32_t line);
+    std::string variable;
+    VariableNode(std::string var, SymbolTable* table, uint32_t line);
     ParseData evaluate();
     std::string toString();
 };

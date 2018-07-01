@@ -109,7 +109,7 @@ void ForStatementNode::execute() {
 }
 
 //represents declaration (and maybe assignment) of a new variable
-NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
   
 	variable = var;
 	type = typ;
@@ -122,7 +122,7 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType 
   symbolTable->declare(variable, d);
 }
 
-NewAssignmentStatementNode::NewAssignmentStatementNode(char* var, ParseDataType typ, SymbolTable* table) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* table) {
 	variable = var;
 	type = typ;
   value = NULL;
@@ -139,12 +139,10 @@ void NewAssignmentStatementNode::execute() {
 }
 
 //represents existing variable assignment
-AssignmentStatementNode::AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* table) {
-  
+AssignmentStatementNode::AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* table) {
   variable = var;
   value = val;
   symbolTable = table;
-
 }
 
 void AssignmentStatementNode::execute() {
@@ -163,26 +161,25 @@ void ReturnStatementNode::execute() {
 }
 
 //represents function declaration (and maybe definition)
-FunctionStatementNode::FunctionStatementNode(char* fName, Function* f, SymbolTable* table) {
+FunctionStatementNode::FunctionStatementNode(std::string fName, Function* f, SymbolTable* table) {
 	functionName = fName;
 	function = f;
 	symbolTable = table;
 
 	ParseData d;
 	d.type = FUN_T;
-	d.value.allocated = (void*) f;
-
-	table->declare(fName, d);
+	d.value.allocated = f;
+	//table->declare(fName, d);
 }
 
-FunctionStatementNode::FunctionStatementNode(char* fName, SymbolTable* table) {
+FunctionStatementNode::FunctionStatementNode(std::string fName, SymbolTable* table) {
 	functionName = fName;
 	function = NULL;
 	symbolTable = table;
 
 	ParseData d;
 	d.type = FUN_T;
-	table->declare(fName, d);
+	//table->declare(fName, d);
 }
 
 void FunctionStatementNode::execute() {

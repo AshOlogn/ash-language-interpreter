@@ -18,8 +18,8 @@ static vector<Token>* tokens;
 static SymbolTable* symbolTable;
 static vector<char*>* codeLines;
 
-static bool* returnFlag = NULL;
-static ParseData* returnValue = NULL;
+static vector<bool*> returnFlag;
+static vector<ParseData*> returnValue;
 
 /////////////////////////////////
 //////    Access Tokens     /////
@@ -91,17 +91,13 @@ AbstractExpressionNode* evalLiteralGroup() {
 		Token* variable = consume();
 
 		//make sure variable is already declared
-		if(!symbolTable->isDeclared((char*) variable->lexeme)) {
-			throw StaticVariableScopeException(variable->line, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
+		string variableName((char*) variable->lexeme);
+		if(false && !symbolTable->isDeclared(variableName)) {
+			throw StaticVariableScopeException(variable->line+1, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
 		}
 
-		const char* name = variable->lexeme;
-		uint32_t len = strlen(name);
-		char* variableName = new char[len+1];
-		strcpy(variableName, name);
-		variableName[len] = '\0';
-
 		//get variable type
+		
 		ParseDataType varType = symbolTable->get(variableName).type;
 
 		if(peek()->type == LEFT_PAREN) {
@@ -109,9 +105,8 @@ AbstractExpressionNode* evalLiteralGroup() {
 			//function call case
 
 			//make sure this variable is of function type
-			cout << toStringParseDataType(varType) << endl;
 			if(varType != FUN_T) {
-				cout << "ERROR: can't call a variable that is not of function type";
+				cout << "ERROR: can't call a variable that is not of function type" << endl;
 				return NULL;
 			}
 
@@ -292,8 +287,10 @@ AbstractExpressionNode* evalPostfixMemberAccess() {
 
   if(varNode && isPostfixStructure()) {
 
+		string variableName(varNode->variable);
+
     //make sure variable is declared
-    if(!symbolTable->isDeclared(varNode->variable)) {
+    if(!symbolTable->isDeclared(variableName)) {
       throw StaticVariableScopeException(varNode->startLine+1, varNode->variable, getCodeLineBlock(varNode->startLine, varNode->startLine), false);   
     }
 
@@ -656,7 +653,7 @@ AbstractExpressionNode* evalAssignment() {
   
     //make sure variable is already declared in some scope
     if(!symbolTable->isDeclared(var->variable)) {
-      throw StaticVariableScopeException(var->startLine, var->variable, getCodeLineBlock(var->startLine, var->startLine), false);
+      throw StaticVariableScopeException(var->startLine+1, var->variable, getCodeLineBlock(var->startLine, var->startLine), false);
     }
     
     //get variable's type
@@ -729,17 +726,13 @@ AbstractStatementNode* addStatement() {
     
     //get variable name
     Token* variableToken = consume();
+		string variable((char*) variableToken->lexeme);
 
     //make sure variable is not already declared
-    if(symbolTable->isDeclaredInScope((char*) variableToken->lexeme)) {
-      throw StaticVariableScopeException(variableToken->line, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
+    if(symbolTable->isDeclaredInScope(variable)) {
+      throw StaticVariableScopeException(variableToken->line+1, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
     }
     
-    const char* constVariable = variableToken->lexeme;
-    uint32_t len = strlen(constVariable);
-    char* variable = new char[len+1];
-    strcpy(variable, constVariable);
-    variable[len] = '\0';
     
     //if being assigned
     if(peek()->type == EQ) {
@@ -767,15 +760,11 @@ AbstractStatementNode* addStatement() {
     
     //get variable name
     Token* varToken = consume();
-    const char* constVariable = varToken->lexeme;
-    uint32_t len = strlen(constVariable);
-    char* variable = new char[len+1];
-    strcpy(variable, constVariable);
-    variable[len] = '\0';
+    string variable(varToken->lexeme);
     
     //make sure variable is already declared in some scope
     if(!symbolTable->isDeclared(variable)) {
-      throw StaticVariableScopeException(varToken->line, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
+      throw StaticVariableScopeException(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
     //get variable type from the symbol table
@@ -978,7 +967,7 @@ AbstractStatementNode* addStatement() {
 
 		case RETURN: {
 			consume(); //consume return
-			return new ReturnStatementNode(evalExpression(), returnFlag, returnValue);
+			return new ReturnStatementNode(evalExpression(), returnFlag.back(), returnValue.back());
 		}
 
 		//TODO error handling
@@ -993,12 +982,7 @@ AbstractStatementNode* addStatement() {
 			}
 
 			Token* varToken = consume(); //function name
-			const char* funName = varToken->lexeme;
-			uint32_t len = strlen(funName);
-			char* functionName = new char[len+1];
-			functionName[0] = '\0';
-			strcpy(functionName, funName);
-			functionName[len] = '\0';
+			string functionName(varToken->lexeme);
 
 			//now create a Function struct
 			Function* function = (Function*) malloc(sizeof(Function));
@@ -1006,8 +990,8 @@ AbstractStatementNode* addStatement() {
 			function->returnValue = (ParseData*) malloc(sizeof(ParseData)); 
 
 			//assign the global returnFlag and returnValue pointers to this function
-			returnFlag = function->returnFlag;
-			returnValue = function->returnValue;
+			returnFlag.push_back(function->returnFlag);
+			returnValue.push_back(function->returnValue);
 
 			//now read in arguments enclosed in parentheses
 			if(peek()->type != LEFT_PAREN) {
@@ -1087,16 +1071,25 @@ AbstractStatementNode* addStatement() {
 
 			function->returnType = typeTokenConversion(consume()->type);
 
+			//just declare function up front with dummy data and Function public interface data
+			//(to allow for recursive definitions)
+			ParseData dummyFunctionData;
+			dummyFunctionData.type = FUN_T;
+			dummyFunctionData.value.allocated = function;
+			symbolTable->declare(functionName, dummyFunctionData);
+
+
 			//now declare the variables just for scope-checking purposes
-			//and enter a new scope
+			//and enter a new scope for function body
       symbolTable->enterNewScope();
 			NewAssignmentStatementNode* dummy;
 
 			for(uint32_t i = 0; i < argCount; i++) {
 				//this construction declares variable as well
-				dummy = new NewAssignmentStatementNode(argNames[i], argTypes[i], symbolTable);
+				string argName(argNames[i]);
+				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable);
 			}
-
+			
 			//now store AbstractStatementNode* vector representing function body
 			if(peek()->type != LEFT_BRACE) {
 				cout << "ERROR: expected braced function body" << endl;
@@ -1110,23 +1103,22 @@ AbstractStatementNode* addStatement() {
       while(peek()->type != RIGHT_BRACE) {
         body->push_back(addStatement());  
       }
-      
-      consume(); //consume right brace
+      consume(); //consume }
       
       //leave scope
       symbolTable->leaveScope();
+			
 			function->body = body;
 
 			//reset global pointers
-			returnFlag = NULL;
-			returnValue = NULL;
+			returnFlag.pop_back();
+			returnValue.pop_back();
 
 			//now return a FunctionStatementNode
 			return new FunctionStatementNode(functionName, function, symbolTable);
 		}
     
     default: return new ExpressionStatementNode(evalExpression(), symbolTable);
-    
   }
   
 }
@@ -1140,6 +1132,8 @@ vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef, vector<char*>* so
   tokenIndex = 0;
   tokens = tokenRef;
   symbolTable = new SymbolTable();
+	returnFlag = vector<bool*>();
+	returnValue = vector<ParseData*>();
   
   //create empty statement vector
   vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();

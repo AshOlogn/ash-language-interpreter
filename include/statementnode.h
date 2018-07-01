@@ -2,6 +2,7 @@
 #define STATEMENTNODE_H
 
 #include <vector>
+#include <string>
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "symboltable.h"
@@ -109,12 +110,12 @@ class ForStatementNode: public AbstractStatementNode {
 class NewAssignmentStatementNode : public AbstractStatementNode {
 	
 	public:
-		char* variable;
+		std::string variable;
 		ParseDataType type;
 		AbstractExpressionNode* value;
 		
-		NewAssignmentStatementNode(char* var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable);
-		NewAssignmentStatementNode(char* var, ParseDataType typ, SymbolTable* symbolTable);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable);
 		void execute();
 };
 
@@ -123,10 +124,10 @@ class NewAssignmentStatementNode : public AbstractStatementNode {
 class AssignmentStatementNode : public AbstractStatementNode {
 
   public:
-    char* variable;
+    std::string variable;
     AbstractExpressionNode* value;
     
-    AssignmentStatementNode(char* var, AbstractExpressionNode* val, SymbolTable* symbolTable);
+    AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable);
     void execute();
 };
 
@@ -146,10 +147,10 @@ class FunctionStatementNode : public AbstractStatementNode {
 
 	public:
 		Function* function;
-		char* functionName;
+		std::string functionName;
 
-		FunctionStatementNode(char* functionName, Function* function, SymbolTable* symbolTable);
-		FunctionStatementNode(char* functionName, SymbolTable* symbolTable);
+		FunctionStatementNode(std::string functionName, Function* function, SymbolTable* symbolTable);
+		FunctionStatementNode(std::string functionName, SymbolTable* symbolTable);
 		void execute();
 };
 

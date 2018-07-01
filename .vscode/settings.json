@@ -1,6 +1,7 @@
 {
 		"files.associations": {
 			"system_error": "cpp",
-			"functional": "cpp"
+			"functional": "cpp",
+			"vector": "cpp"
 		}
 	}

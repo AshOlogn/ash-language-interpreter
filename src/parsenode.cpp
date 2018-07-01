@@ -13,7 +13,7 @@
 ///////     Assignment      ///////
 ///////////////////////////////////
 
-AssignmentExpressionNode::AssignmentExpressionNode(char* var, ParseDataType varType, AbstractExpressionNode* val, SymbolTable* table, uint32_t varLine) {
+AssignmentExpressionNode::AssignmentExpressionNode(std::string var, ParseDataType varType, AbstractExpressionNode* val, SymbolTable* table, uint32_t varLine) {
 
   variable = var;
   variableType = varType;
@@ -195,7 +195,7 @@ std::string ArrayAccessNode::toString() {
 ///////      Variable       ///////
 ///////////////////////////////////
 
-VariableNode::VariableNode(char* var, SymbolTable* table, uint32_t line) {
+VariableNode::VariableNode(std::string var, SymbolTable* table, uint32_t line) {
   symbolTable = table;
   variable = var;
   startLine = endLine = line;

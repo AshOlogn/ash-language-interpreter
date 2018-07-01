@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 #include <unordered_map>
 #include "parsetoken.h"
 #include "parsenode.h"
@@ -64,7 +65,7 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   
   //get stuff out of the node first
   SymbolTable* symbolTable = node->symbolTable;
-  char* variable = node->variable;
+  std::string variable = node->variable;
   ParseDataType type = node->type;
   
   //add variable to table
@@ -85,7 +86,7 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
 	
   //get stuff out of the node first
   SymbolTable* symbolTable = node->symbolTable;
-  char* variable = node->variable;
+  std::string variable = node->variable;
   AbstractExpressionNode* value = node->value;
   
   ParseDataType type = (symbolTable->get(variable)).type;
@@ -98,7 +99,7 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
 void executeFunctionStatement(FunctionStatementNode* node) {
 
 	SymbolTable* symbolTable = node->symbolTable;
-	char* functionName = node->functionName;
+	std::string functionName = node->functionName;
 	Function* function = node->function;
 
 	ParseData d;

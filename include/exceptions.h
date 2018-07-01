@@ -2,6 +2,7 @@
 #define EXCEPTIONS_H
 
 #include <cstdint>
+#include <string>
 #include <exception>
 #include "parsetoken.h"
 
@@ -78,12 +79,12 @@ class StaticTypeException : public std::exception {
 class StaticVariableScopeException : public std::exception {
 
   public:
-    const char* variable;
+    std::string variable;
     const char* context;
     const bool isDeclaredError;
     const uint32_t lineNumber;
 
-    StaticVariableScopeException(uint32_t line, const char* var, const char* con, bool isDeclaredErr)
+    StaticVariableScopeException(uint32_t line, std::string var, const char* con, bool isDeclaredErr)
       : lineNumber(line), variable{var}, context{con}, isDeclaredError{isDeclaredErr} {}
 
     const char* what() const throw ();

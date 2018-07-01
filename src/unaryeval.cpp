@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "exceptions.h"
 #include "symboltable.h"
 #include "token.h"
@@ -151,7 +152,12 @@ ParseData evaluateUnaryExpression(UnaryOperatorNode* node) {
       VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
 
       //get variable name
-      char* variableName = varNode->variable;
+      const char* constVariableName = varNode->variable.c_str();
+			uint32_t len = strlen(constVariableName);
+			char* variableName = new char[len+1];
+			variableName[0] = '\0';
+			strcpy(variableName, constVariableName);
+			variableName[len] = '\0';
 
       //get variable type
       ParseDataType varType = varNode->evalType;
@@ -217,7 +223,12 @@ ParseData evaluateUnaryExpression(UnaryOperatorNode* node) {
       VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
 
       //get variable name
-      char* variableName = varNode->variable;
+      const char* constVariableName = varNode->variable.c_str();
+			uint32_t len = strlen(constVariableName);
+			char* variableName = new char[len+1];
+			variableName[0] = '\0';
+			strcpy(variableName, constVariableName);
+			variableName[len] = '\0';
 
       //get variable type
       ParseDataType varType = varNode->evalType;
@@ -283,7 +294,12 @@ ParseData evaluateUnaryExpression(UnaryOperatorNode* node) {
       VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
 
       //get variable name
-      char* variableName = varNode->variable;
+      const char* constVariableName = varNode->variable.c_str();
+			uint32_t len = strlen(constVariableName);
+			char* variableName = new char[len+1];
+			variableName[0] = '\0';
+			strcpy(variableName, constVariableName);
+			variableName[len] = '\0';
 
       //get variable type
       ParseDataType varType = varNode->evalType;
@@ -341,7 +357,12 @@ ParseData evaluateUnaryExpression(UnaryOperatorNode* node) {
       VariableNode* varNode = dynamic_cast<VariableNode*>(node->leftArg);
 
       //get variable name
-      char* variableName = varNode->variable;
+      const char* constVariableName = varNode->variable.c_str();
+			uint32_t len = strlen(constVariableName);
+			char* variableName = new char[len+1];
+			variableName[0] = '\0';
+			strcpy(variableName, constVariableName);
+			variableName[len] = '\0';
 
       //get variable type
       ParseDataType varType = varNode->evalType;

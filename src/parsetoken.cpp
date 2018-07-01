@@ -181,6 +181,7 @@ const char* toStringParseDataType(ParseDataType p) {
     case DOUBLE_T: return "double"; 
     case STRING_T: return "string";
 		case VOID_T: return "void";
+		case FUN_T: return "fun";
     case CUSTOM_T: return "custom";
     default: return "invalid";
   } 
