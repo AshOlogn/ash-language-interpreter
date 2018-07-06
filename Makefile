@@ -44,6 +44,7 @@ include = token.h \
 	symboltable.h \
 	executor.h \
 	function.h \
+	array.h \
 	parser.h
 
 bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))

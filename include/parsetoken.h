@@ -14,11 +14,11 @@ enum ParseDataType {
   INT8_T, INT16_T, INT32_T, INT64_T,
   UINT8_T, UINT16_T, UINT32_T, UINT64_T,
   CHAR_T, BOOL_T, DOUBLE_T, STRING_T,
+	ARRAY_T,
 	FUN_T,
 	VOID_T,
   CUSTOM_T,
   INVALID_T
-
 };
 
 //represents operator type

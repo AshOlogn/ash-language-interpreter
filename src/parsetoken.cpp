@@ -180,6 +180,7 @@ const char* toStringParseDataType(ParseDataType p) {
     case BOOL_T: return "bool"; 
     case DOUBLE_T: return "double"; 
     case STRING_T: return "string";
+		case ARRAY_T: return "array";
 		case VOID_T: return "void";
 		case FUN_T: return "fun";
     case CUSTOM_T: return "custom";
@@ -305,6 +306,8 @@ char* toStringParseData(ParseData d) {
 
   switch(d.type) {
   
+		//TODO: add toString for array
+		
     case INT8_T: {
       int8_t val = (int8_t) d.value.integer;
       std::string str = std::to_string(val);

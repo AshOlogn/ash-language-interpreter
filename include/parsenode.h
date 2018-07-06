@@ -20,6 +20,7 @@ class AbstractExpressionNode {
     uint32_t startLine;
     uint32_t endLine;
     ParseDataType evalType;
+		ParseDataType subType; //only used if evalType is ARRAY_T
     virtual ParseData evaluate() = 0;
     virtual std::string toString() = 0;
 };

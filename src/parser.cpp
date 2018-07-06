@@ -10,6 +10,7 @@
 #include "statementnode.h"
 #include "parser.h"
 #include "function.h"
+#include "array.h"
 
 using namespace std;
 
@@ -722,7 +723,27 @@ AbstractStatementNode* addStatement() {
    
     //variable declaration
     ParseDataType type = typeTokenConversion(t->type);
-    consume(); //consume type Token    
+
+		//only in the case of an array
+		ParseDataType subtype; 
+
+    consume(); //consume type Token
+
+		//check if it is an array type
+		if(peek()->type == LEFT_BRACKET) {
+
+			Token* leftBracket = consume();
+			if(peek()->type == RIGHT_BRACKET) {
+				cout << "ERROR: require ']' to declare array type" << endl;
+				return NULL;
+			}
+
+			Token* rightBracket = consume();
+
+			//update typing
+			subtype = type;
+			type = ARRAY_T;
+		}    
     
     //get variable name
     Token* variableToken = consume();
@@ -733,7 +754,6 @@ AbstractStatementNode* addStatement() {
       throw StaticVariableScopeException(variableToken->line+1, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
     }
     
-    
     //if being assigned
     if(peek()->type == EQ) {
       
@@ -741,6 +761,23 @@ AbstractStatementNode* addStatement() {
       AbstractExpressionNode* expression = evalExpression();
       
       //check implicit casting validity
+			if(type == ARRAY_T) {
+
+				if(expression->evalType != ARRAY_T) {
+					cout << "ERROR: can't cast current type to an array" << endl;
+					return NULL;	
+				}
+
+				if(!typecheckImplicitCastExpression(expression->subType, subtype)) {
+					cout << "ERROR: array's member type can't be implicitly casted!" << endl;
+					return NULL;
+				}
+
+				//TODO tomorrow			
+
+			}
+
+			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
         //!!!
         throw StaticCastException(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
