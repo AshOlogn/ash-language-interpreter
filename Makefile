@@ -16,11 +16,13 @@ source = main.cpp \
 	functioneval.cpp \
 	memberaccesseval.cpp \
 	casteval.cpp \
+	arrayeval.cpp \
 	evaluator.cpp \
 	statementnode.cpp \
 	typehandler.cpp \
 	symboltable.cpp \
 	executor.cpp \
+	utils.cpp \
 	parser.cpp
 	
 include = token.h \
@@ -38,6 +40,7 @@ include = token.h \
 	memberaccesseval.h \
 	functioneval.h \
 	casteval.h \
+	arrayeval.h \
 	evaluator.h \
 	statementnode.h \
 	typehandler.h \
@@ -45,6 +48,7 @@ include = token.h \
 	executor.h \
 	function.h \
 	array.h \
+	utils.h \
 	parser.h
 
 bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))
@@ -54,6 +58,3 @@ bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))
 clean:
 	@echo cleaning...
 	rm bin/main
-	  
-	  
-	  

@@ -6,8 +6,9 @@
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "array.h"
 
 //just return the value represented by node's ParseData
-ParseData evaluateLiteralExpression(AbstractExpressionNode* node) {
-  return ((LiteralNode*) node)->data;
+ParseData evaluateLiteralExpression(LiteralNode* node) {
+	return node->data;
 }

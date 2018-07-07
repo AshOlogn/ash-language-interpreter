@@ -2,6 +2,7 @@
 		"files.associations": {
 			"system_error": "cpp",
 			"functional": "cpp",
-			"vector": "cpp"
+			"vector": "cpp",
+			"type_traits": "cpp"
 		}
 	}

@@ -7,6 +7,7 @@
 #include "evaluator.h"
 #include "symboltable.h"
 #include "function.h"
+#include "array.h"
 #include "parsenode.h"
 
 ///////////////////////////////////
@@ -189,6 +190,33 @@ std::string ArrayAccessNode::toString() {
   str.append(")");
  
   return str;
+}
+
+///////////////////////////////////
+///////        Arrays       ///////
+///////////////////////////////////
+
+//represents an array of primitive values
+ArrayNode::ArrayNode(ParseDataType sType, bool isInit, AbstractExpressionNode* len, AbstractExpressionNode** vals) {
+	evalType = ARRAY_T;
+	subType = sType;
+	isInitialized = isInit;
+	length = len;
+	values = vals;
+}
+
+ParseData ArrayNode::evaluate() {
+	return evaluateArrayExpression(this);
+}
+
+std::string ArrayNode::toString() {
+	std::string str = "";
+	str.append("[length = ");
+	str.append(length->toString());
+	str.append(", type = ");
+	str.append(toStringParseDataType(subType));
+	str.append("]");
+	return str;
 }
 
 ///////////////////////////////////

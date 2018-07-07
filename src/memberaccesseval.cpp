@@ -7,58 +7,67 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "memberaccesseval.h"
+#include "array.h"
+#include "utils.h"
 
-
-ParseData sliceHelper(char* arr, uint64_t startIndex, uint64_t endIndex) {
+ParseData sliceHelper(ParseDataType type, ParseData arr, int32_t startIndex, int32_t endIndex) {
   
   ParseData d;
-  int32_t len = strlen(arr);
-  d.type = STRING_T;
+  d.type = type;
   
-  int32_t startInd = (int32_t) startIndex;
-  int32_t endInd = (int32_t) endIndex;
-  
-  if(startInd < 0)
-    startInd += len+1;
-  
-  if(endInd < 0)
-    endInd += len+1;
-  
-  
-  if(endInd <= startInd) {
-    char* substring = new char[1];
-    substring[0] = '\0';
-    d.value.allocated = (void*) substring;
-    return d;
-  }
-  
-  char* substring = new char[endInd - startInd + 1];
-  for(int32_t i = startInd; i < endInd; i++)
-    substring[i-startInd] = arr[i];
-  substring[endInd-startInd] = '\0';
-  
-  d.value.allocated = (void*) substring;
+	if(type == STRING_T) {
 
+		char* substring = copySubstring((char*) arr.value.allocated, startIndex, endIndex); 
+		d.value.allocated = substring;
+
+	} else if(type == ARRAY_T) {
+
+		Array* array = (Array*) arr.value.allocated;
+		ParseData* subarray = copySubarray((ParseData*) array->values, (int32_t) array->length, startIndex, endIndex);
+		d.value.allocated = subarray;
+	}
+  
   return d;   
 }
 
 
-ParseData elementHelper(char* arr, uint64_t index) {
+ParseData elementHelper(ParseDataType type, ParseData arr, int32_t index) {
   
   ParseData d;
-  int32_t len = strlen(arr);
-  d.type = CHAR_T;
   
-  int32_t ind = (int32_t) index;
-  if(ind < 0)
-    ind += len+1;
-  
-  d.value.integer = (unsigned char) arr[ind];
+	if(type == STRING_T) {
+
+		d.type = CHAR_T;
+		char* str = (char*) arr.value.allocated;
+		int32_t len = strlen(str);
+		
+		int32_t ind = index;
+		if(ind < 0)
+			ind += len+1;
+
+		d.value.integer = str[ind];
+		return d;
+		
+	} else if(type == ARRAY_T) {
+
+		Array* array = (Array*) arr.value.allocated;
+		int32_t len = array->length;
+		ParseData* values = array->values;
+
+		int32_t ind = index;
+		if(ind < 0)
+			ind += len; 
+
+		ParseData val = values[ind];
+		return val;
+	}
+
   return d;
 }
 
 ParseData evaluateArrayAccess(ArrayAccessNode* node) {
   
+	ParseDataType type = node->evalType;
   ParseData array = node->array->evaluate();
   ParseData start = node->start->evaluate();
   ParseData end;
@@ -67,8 +76,8 @@ ParseData evaluateArrayAccess(ArrayAccessNode* node) {
     end = node->end->evaluate();
   
   if(node->isSlice) {
-    return sliceHelper((char*) array.value.allocated, start.value.integer, end.value.integer);
+    return sliceHelper(type, array, (int32_t) start.value.integer, (int32_t) end.value.integer);
   } else {
-    return elementHelper((char*) array.value.allocated, start.value.integer); 
+    return elementHelper(type, array, (int32_t) start.value.integer); 
   }
 }

@@ -87,6 +87,37 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     return new GroupedExpressionNode(next, startGroupToken->line, endGroupToken->line);
 
+	} else if(peek()->type == NEW) {
+
+		//array or object instantiation
+		Token* newToken = consume();
+
+		if(!isTypeTokenType(peek()->type)) {
+			cout << "ERROR: expect <type>[] format for array instantiation" << endl;
+			return NULL;
+		}
+
+		ParseDataType type = ARRAY_T;
+		ParseDataType subtype = typeTokenConversion(consume()->type);
+
+		if(peek()->type != LEFT_BRACKET) {
+			cout << "ERROR: expecting '[' in array initialization" << endl;
+			return NULL;
+		}
+
+		Token* leftBracketToken = consume();
+		AbstractExpressionNode* length = evalExpression();
+
+		if(peek()->type != RIGHT_BRACKET) {
+			cout << "ERROR: expecting ']' in array initialization" << endl;
+			return NULL;
+		}
+
+		Token* rightBracketToken = consume();
+
+		//now return ArrayNode with appropriate information
+		return new ArrayNode(subtype, false, length, NULL);
+
   } else if(peek()->type == VARIABLE) {
 
 		Token* variable = consume();
@@ -98,7 +129,6 @@ AbstractExpressionNode* evalLiteralGroup() {
 		}
 
 		//get variable type
-		
 		ParseDataType varType = symbolTable->get(variableName).type;
 
 		if(peek()->type == LEFT_PAREN) {
@@ -155,14 +185,14 @@ AbstractExpressionNode* evalLiteralGroup() {
   }
 }
 
-//member access
+//member access (strings and arrays)
 bool isPostfixStructure() {
   return (peek()->type == ADD && peekAhead(1)->type == ADD) || (peek()->type == SUBTRACT && peekAhead(1)->type == SUBTRACT);
 }
 
 AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
 
-  if(head->evalType != STRING_T) {
+  if(head->evalType != STRING_T && head->evalType != ARRAY_T) {
       
     //first write message
     const char* arrayAccessErrorMessage = "A value must be of array or string type to be indexed";
@@ -725,7 +755,7 @@ AbstractStatementNode* addStatement() {
     ParseDataType type = typeTokenConversion(t->type);
 
 		//only in the case of an array
-		ParseDataType subtype; 
+		ParseDataType subtype;
 
     consume(); //consume type Token
 
@@ -733,7 +763,7 @@ AbstractStatementNode* addStatement() {
 		if(peek()->type == LEFT_BRACKET) {
 
 			Token* leftBracket = consume();
-			if(peek()->type == RIGHT_BRACKET) {
+			if(peek()->type != RIGHT_BRACKET) {
 				cout << "ERROR: require ']' to declare array type" << endl;
 				return NULL;
 			}
@@ -768,13 +798,13 @@ AbstractStatementNode* addStatement() {
 					return NULL;	
 				}
 
-				if(!typecheckImplicitCastExpression(expression->subType, subtype)) {
+				if(!typecheckImplicitCastExpression(((ArrayNode*)expression)->subType, subtype)) {
 					cout << "ERROR: array's member type can't be implicitly casted!" << endl;
 					return NULL;
 				}
 
-				//TODO tomorrow			
-
+				//return 	NewAssignmentStatementNode with specified expression
+				return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
 			}
 
 			//non-array case
@@ -782,12 +812,11 @@ AbstractStatementNode* addStatement() {
         //!!!
         throw StaticCastException(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
       } else {
-        AbstractStatementNode* troll =  new NewAssignmentStatementNode(variable, type, expression, symbolTable);
-        return troll;
+        return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
       }
       
     } else {  
-      //no initial value
+      //no initial value (IMPOSSIBLE for array for now)
       return new NewAssignmentStatementNode(variable, type, symbolTable);
     }
     

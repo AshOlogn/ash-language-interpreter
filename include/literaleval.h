@@ -4,7 +4,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
-ParseData evaluateLiteralExpression(AbstractExpressionNode* node);
+ParseData evaluateLiteralExpression(LiteralNode* node);
 
 
 #endif
