@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdint>
 #include <unordered_map>
 #include "parsetoken.h"
 #include "parsenode.h"
@@ -9,6 +10,7 @@
 #include "symboltable.h"
 #include "executor.h"
 #include "casteval.h"
+#include "array.h"
 
 void executeExpressionStatement(ExpressionStatementNode* node) {
   node->expression->evaluate();
@@ -70,8 +72,12 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   
   //add variable to table
   if(node->value != NULL) {
+
     ParseData d = node->value->evaluate();
-      
+
+		Array* array = (Array*) d.value.allocated;
+		std::cout << "newassignment address " << (uint64_t) array->values << std::endl;
+
     //consider implicit casting
     symbolTable->declare(variable, castHelper(d, type));
   } else {
@@ -94,6 +100,24 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
   
   //update variable value (innermost scope)
   symbolTable->update(variable, castHelper(d, type));
+}
+
+void executeArrayAssignmentStatement(ArrayAssignmentStatementNode* node) {
+
+	//get stuff out of the node first
+	SymbolTable* symbolTable = node->symbolTable;
+	std::string variable = node->variable;
+	int32_t index = (int32_t) node->index->evaluate().value.integer;
+	ParseData value = node->value->evaluate();
+
+	//get array from the symbol table
+	Array* array = (Array*) (symbolTable->get(variable)).value.allocated;
+	std::cout << "array type " << toStringParseDataType(array->subtype) << std::endl;
+	std::cout << "array assignment address " << (uint64_t) array->values << std::endl;
+	std::cout << toStringParseData(value) << std::endl;
+
+	//do the assignment
+	array->values[index] = value;
 }
 
 void executeFunctionStatement(FunctionStatementNode* node) {

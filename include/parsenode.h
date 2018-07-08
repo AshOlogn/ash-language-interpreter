@@ -20,6 +20,7 @@ class AbstractExpressionNode {
     uint32_t startLine;
     uint32_t endLine;
     ParseDataType evalType;
+		ParseDataType subType;
     virtual ParseData evaluate() = 0;
     virtual std::string toString() = 0;
 };
@@ -132,7 +133,6 @@ class ArrayAccessNode : public AbstractExpressionNode {
 class ArrayNode : public AbstractExpressionNode {
 
 	public:
-		ParseDataType subType;
 		bool isInitialized;
 		AbstractExpressionNode* length;
 		AbstractExpressionNode** values;

@@ -131,13 +131,26 @@ class AssignmentStatementNode : public AbstractStatementNode {
     void execute();
 };
 
+//represents array index assignment, like arr[i] = 5
+class ArrayAssignmentStatementNode : public AbstractStatementNode {
+
+	public:
+		std::string variable;
+		AbstractExpressionNode* index;
+		AbstractExpressionNode* value;
+
+		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable);
+		void execute();
+};
 
 //represents return statement in a function
 class ReturnStatementNode : public AbstractStatementNode {
+	
 	public:
 		bool* returnFlag;
 		ParseData* returnValue;
 		AbstractExpressionNode* expression;
+
 		ReturnStatementNode(AbstractExpressionNode* expression, bool* returnFlag, ParseData* returnValue);
 		void execute();
 };

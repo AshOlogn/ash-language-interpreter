@@ -160,12 +160,14 @@ ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpression
   array = arr; start = s; endLine = endLin; isSlice = false;
   startLine = arr->startLine;
   endLine = endLin;
+	evalType = arr->subType;
 }
 
 ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLin) {
   array = arr; start = s; end = e; endLine = endLin; isSlice = true;
   startLine = arr->startLine;
   endLine = endLin;
+	evalType = arr->evalType;
 }
 
 ParseData ArrayAccessNode::evaluate() {

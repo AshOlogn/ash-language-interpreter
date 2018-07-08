@@ -20,6 +20,12 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
   
   switch(origType) {
         
+		case ARRAY_T: {
+			if(finalType == ARRAY_T)
+				d.value.allocated = orig.value.allocated;
+			break;
+		}	
+
     case BOOL_T: {
       
       switch(finalType) {

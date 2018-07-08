@@ -1,3 +1,4 @@
+#include <iostream>
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "array.h"
@@ -8,7 +9,7 @@ ParseData evaluateArrayExpression(ArrayNode* node) {
 	//extract instance fields
 	bool isInitialized = node->isInitialized;
 	ParseDataType subtype = node->subType;
-	uint32_t length = (uint32_t) node->length->evaluate().value.integer;
+	uint32_t length = (uint32_t) (node->length->evaluate().value.integer);
 	AbstractExpressionNode** elements = node->values;
 
 	//construct the array
@@ -17,6 +18,7 @@ ParseData evaluateArrayExpression(ArrayNode* node) {
 	arr->length = length;
 	
 	ParseData* values = (ParseData*) malloc(sizeof(ParseData) * length);
+	
 
 	//if the array is initialized, fill it accordingly
 	if(isInitialized) {
@@ -25,6 +27,9 @@ ParseData evaluateArrayExpression(ArrayNode* node) {
 		}
 	}
 	arr->values = values;
+
+	std::cout << "arrayeval address " << (uint64_t) arr->values << std::endl;
+
 
 	ParseData d;
 	d.type = ARRAY_T;

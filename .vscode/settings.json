@@ -3,6 +3,9 @@
 			"system_error": "cpp",
 			"functional": "cpp",
 			"vector": "cpp",
-			"type_traits": "cpp"
+			"type_traits": "cpp",
+			"array": "cpp",
+			"tuple": "cpp",
+			"utility": "cpp"
 		}
 	}

@@ -833,9 +833,39 @@ AbstractStatementNode* addStatement() {
       throw StaticVariableScopeException(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
-    //get variable type from the symbol table
-    ParseDataType type = (symbolTable->get(variable)).type;
-    
+    //get variable type (and maybe array element subtype) from the symbol table
+		ParseDataType type;
+		ParseDataType subtype;
+
+    type = (symbolTable->get(variable)).type;
+		if(type == ARRAY_T) {
+			subtype = ((Array*) (symbolTable->get(variable)).value.allocated)->subtype;
+		}
+
+		//initial value of variable being assigned to (in event of *=, -=, etc.)
+		AbstractExpressionNode* initValue = NULL;
+
+		//deal with array index assignment possibility
+		AbstractExpressionNode* arrIndex;
+		if(peek()->type == LEFT_BRACKET) {
+
+			if(type != ARRAY_T) {
+				cout << "ERROR: retrieved variable is not string or array and cannot be indexed" << endl;
+				return NULL;
+			}
+
+			Token* leftBracketToken = consume();
+			arrIndex = evalExpression();
+			
+			if(peek()->type != RIGHT_BRACKET) {
+				cout << "ERROR: require closing ']' in array index assignment syntax" << endl;
+				return NULL;
+			}
+
+			Token* rightBracketToken = consume();
+			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line), arrIndex, -1);
+		}
+
     Token* assignmentToken;
     if(!isAssignmentOperatorTokenType(peek()->type)) {
       std::cout << "'=' must follow variable name when assigning value" << std::endl;
@@ -845,38 +875,49 @@ AbstractStatementNode* addStatement() {
     }
     
     AbstractExpressionNode* expression = evalExpression();
+		
+		//if not an array type, set the initial value
+		if(initValue == NULL) {
+			initValue = new VariableNode(variable, symbolTable, varToken->line);
+		}
+
     switch(assignmentToken->type) {
       case EQ: break;
-      case ADD_EQ: expression = new ArithmeticOperatorNode(ADD_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break; 
-      case SUBTRACT_EQ: expression = new ArithmeticOperatorNode(SUBTRACT_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
-      case EXPONENT_EQ: expression = new ArithmeticOperatorNode(EXPONENT_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
-      case MULTIPLY_EQ: expression = new ArithmeticOperatorNode(MULTIPLY_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
-      case DIVIDE_EQ: expression = new ArithmeticOperatorNode(DIVIDE_OP, new VariableNode(variable, symbolTable, varToken->line), expression); break;
+      case ADD_EQ: expression = new ArithmeticOperatorNode(ADD_OP, initValue, expression); break; 
+      case SUBTRACT_EQ: expression = new ArithmeticOperatorNode(SUBTRACT_OP, initValue, expression); break;
+      case EXPONENT_EQ: expression = new ArithmeticOperatorNode(EXPONENT_OP, initValue, expression); break;
+      case MULTIPLY_EQ: expression = new ArithmeticOperatorNode(MULTIPLY_OP, initValue, expression); break;
+      case DIVIDE_EQ: expression = new ArithmeticOperatorNode(DIVIDE_OP, initValue, expression); break;
       case AND_EQ: {
         if(type == BOOL_T)
-          expression = new BitLogicalOperatorNode(AND_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(AND_OP, initValue, expression);
         else 
-          expression = new BitLogicalOperatorNode(BIT_AND_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(BIT_AND_OP, initValue, expression);
         break;
       }
       
       case XOR_EQ: {
         if(type == BOOL_T)
-          expression = new BitLogicalOperatorNode(XOR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(XOR_OP, initValue, expression);
         else 
-          expression = new BitLogicalOperatorNode(BIT_XOR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(BIT_XOR_OP, initValue, expression);
         break;
       }
       
       case OR_EQ: {
         if(type == BOOL_T)
-          expression = new BitLogicalOperatorNode(OR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(OR_OP, initValue, expression);
         else 
-          expression = new BitLogicalOperatorNode(BIT_OR_OP, new VariableNode(variable, symbolTable, varToken->line), expression);
+          expression = new BitLogicalOperatorNode(BIT_OR_OP, initValue, expression);
         break;
       }
     }
     
+		//if array assignment, just deal with it here for now
+		if(type == ARRAY_T) {
+			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable);
+		}
+
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
       throw StaticCastException(varToken->line+1, expression->endLine+1, getCodeLineBlock(varToken->line, expression->endLine), expression->evalType, type, false);
@@ -1036,7 +1077,6 @@ AbstractStatementNode* addStatement() {
 			return new ReturnStatementNode(evalExpression(), returnFlag.back(), returnValue.back());
 		}
 
-		//TODO error handling
 		case FUN: {
 
 			consume(); //consume the FUN token

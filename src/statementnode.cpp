@@ -149,6 +149,19 @@ void AssignmentStatementNode::execute() {
 	executeAssignmentStatement(this);
 }
 
+
+//represents array index assignment, like arr[i] = 5
+ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* table) {
+	variable = var;
+	index = ind;
+	value = val;
+	symbolTable = table;
+}
+
+void ArrayAssignmentStatementNode::execute() {
+	executeArrayAssignmentStatement(this);
+}
+
 //represents return statement in a function
 ReturnStatementNode::ReturnStatementNode(AbstractExpressionNode* exp, bool* retFlag, ParseData* retVal) {
 	expression = exp;

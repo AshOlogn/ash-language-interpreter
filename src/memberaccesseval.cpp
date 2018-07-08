@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstdint>
 #include <cmath>
 #include <cstring>
@@ -10,9 +11,10 @@
 #include "array.h"
 #include "utils.h"
 
-ParseData sliceHelper(ParseDataType type, ParseData arr, int32_t startIndex, int32_t endIndex) {
+ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
   
   ParseData d;
+	ParseDataType type = arr.type;
   d.type = type;
   
 	if(type == STRING_T) {
@@ -31,11 +33,12 @@ ParseData sliceHelper(ParseDataType type, ParseData arr, int32_t startIndex, int
 }
 
 
-ParseData elementHelper(ParseDataType type, ParseData arr, int32_t index) {
+ParseData elementHelper(ParseData arr, int32_t index) {
   
   ParseData d;
-  
-	if(type == STRING_T) {
+	ParseDataType type = arr.type;
+	
+	if(arr.type == STRING_T) {
 
 		d.type = CHAR_T;
 		char* str = (char*) arr.value.allocated;
@@ -54,10 +57,13 @@ ParseData elementHelper(ParseDataType type, ParseData arr, int32_t index) {
 		int32_t len = array->length;
 		ParseData* values = array->values;
 
+		std::cout << "array access adress " << values << std::endl;
+		
 		int32_t ind = index;
 		if(ind < 0)
 			ind += len; 
-
+		
+		std::cout << "access index " << ind << std::endl;
 		ParseData val = values[ind];
 		return val;
 	}
@@ -76,8 +82,8 @@ ParseData evaluateArrayAccess(ArrayAccessNode* node) {
     end = node->end->evaluate();
   
   if(node->isSlice) {
-    return sliceHelper(type, array, (int32_t) start.value.integer, (int32_t) end.value.integer);
+    return sliceHelper(array, (int32_t) start.value.integer, (int32_t) end.value.integer);
   } else {
-    return elementHelper(type, array, (int32_t) start.value.integer); 
+    return elementHelper(array, (int32_t) start.value.integer); 
   }
 }
