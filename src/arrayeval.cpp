@@ -19,7 +19,6 @@ ParseData evaluateArrayExpression(ArrayNode* node) {
 	
 	ParseData* values = (ParseData*) malloc(sizeof(ParseData) * length);
 	
-
 	//if the array is initialized, fill it accordingly
 	if(isInitialized) {
 		for(uint32_t i = 0; i < length ; i++) {
@@ -27,9 +26,6 @@ ParseData evaluateArrayExpression(ArrayNode* node) {
 		}
 	}
 	arr->values = values;
-
-	std::cout << "arrayeval address " << (uint64_t) arr->values << std::endl;
-
 
 	ParseData d;
 	d.type = ARRAY_T;

@@ -74,9 +74,7 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   if(node->value != NULL) {
 
     ParseData d = node->value->evaluate();
-
 		Array* array = (Array*) d.value.allocated;
-		std::cout << "newassignment address " << (uint64_t) array->values << std::endl;
 
     //consider implicit casting
     symbolTable->declare(variable, castHelper(d, type));
@@ -112,9 +110,6 @@ void executeArrayAssignmentStatement(ArrayAssignmentStatementNode* node) {
 
 	//get array from the symbol table
 	Array* array = (Array*) (symbolTable->get(variable)).value.allocated;
-	std::cout << "array type " << toStringParseDataType(array->subtype) << std::endl;
-	std::cout << "array assignment address " << (uint64_t) array->values << std::endl;
-	std::cout << toStringParseData(value) << std::endl;
 
 	//do the assignment
 	array->values[index] = value;

@@ -22,6 +22,10 @@ AssignmentExpressionNode::AssignmentExpressionNode(std::string var, ParseDataTyp
   symbolTable = table;
   
   evalType = varType;
+	subType = (varType == STRING_T) ? CHAR_T :
+						(varType == ARRAY_T) ? val->subType :
+						INVALID_T;
+	
   startLine = varLine;
   endLine = val->endLine;
 }
@@ -52,7 +56,8 @@ UnaryOperatorNode::UnaryOperatorNode(ParseOperatorType op, AbstractExpressionNod
   operation = op;
   leftArg = l;
   symbolTable = table;
-  evalType = getTypeUnaryExpression(op, l->evalType); 
+  evalType = getTypeUnaryExpression(op, l->evalType);
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T; 
   startLine = std::min(operatorLine, l->startLine);
   endLine = std::max(operatorLine, l->endLine);
 }
@@ -90,6 +95,7 @@ ArithmeticOperatorNode::ArithmeticOperatorNode(ParseOperatorType op, AbstractExp
   startLine = l->startLine;
   endLine = r->endLine;
   evalType = getTypeArithmeticExpression(op, l->evalType, r->evalType);
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
 
 ParseData ArithmeticOperatorNode::evaluate() { 
@@ -104,6 +110,7 @@ BitLogicalOperatorNode::BitLogicalOperatorNode(ParseOperatorType op, AbstractExp
   startLine = l->startLine;
   endLine = r->endLine;
   evalType = getTypeBitLogicalExpression(op, l->evalType, r->evalType);
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
 
 ParseData BitLogicalOperatorNode::evaluate() { 
@@ -119,6 +126,7 @@ ComparisonOperatorNode::ComparisonOperatorNode(ParseOperatorType op, AbstractExp
   startLine = l->startLine;
   endLine = r->endLine;
   evalType = getTypeComparisonExpression(op, l->evalType, r->evalType);
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
 
 ParseData ComparisonOperatorNode::evaluate() { 
@@ -133,6 +141,7 @@ ParseData ComparisonOperatorNode::evaluate() {
 CastNode::CastNode(AbstractExpressionNode* e, ParseDataType type, uint32_t startLin) {
   expression = e;
   evalType = finalType = type;
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 
   startLine = startLin;
   endLine = e->endLine;
@@ -161,6 +170,7 @@ ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpression
   startLine = arr->startLine;
   endLine = endLin;
 	evalType = arr->subType;
+	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
 
 ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLin) {
@@ -168,6 +178,7 @@ ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpression
   startLine = arr->startLine;
   endLine = endLin;
 	evalType = arr->evalType;
+	subType = arr->subType;
 }
 
 ParseData ArrayAccessNode::evaluate() {
@@ -230,6 +241,9 @@ VariableNode::VariableNode(std::string var, SymbolTable* table, uint32_t line) {
   variable = var;
   startLine = endLine = line;
   evalType = (symbolTable->get(var)).type;
+	subType = (evalType == ARRAY_T) ? ((Array*) (symbolTable->get(var)).value.allocated)->subtype : 
+						(evalType == STRING_T) ? CHAR_T :
+						INVALID_T;
 }
 
 ParseData VariableNode::evaluate() {
@@ -250,6 +264,8 @@ FunctionExpressionNode::FunctionExpressionNode(uint32_t nArgs, AbstractExpressio
 	function = f;
 	symbolTable = table;
 	evalType = f->returnType;
+	subType = (evalType == STRING_T) ? CHAR_T :
+						INVALID_T;
 
 	isReturned = f->returnFlag;
 	returnValue = f->returnValue;
@@ -273,6 +289,9 @@ LiteralNode::LiteralNode(ParseData d, uint32_t line) {
   data = d;
   startLine = endLine = line;
   evalType = d.type;
+	subType = (d.type == STRING_T) ? CHAR_T :
+						(d.type == ARRAY_T) ? ((Array*) d.value.allocated)->subtype :
+						INVALID_T;
 }
 
 ParseData LiteralNode::evaluate() { 
@@ -292,6 +311,9 @@ GroupedExpressionNode::GroupedExpressionNode(AbstractExpressionNode* exp, uint32
   startLine = startLin;
   endLine = endLin;
   evalType = exp->evalType;
+	subType = (evalType == STRING_T) ? CHAR_T :
+						(evalType == ARRAY_T) ? exp->subType :
+						INVALID_T;
 }
 
 ParseData GroupedExpressionNode::evaluate() { 

@@ -5,6 +5,7 @@
 #include "statementnode.h"
 #include "symboltable.h"
 #include "executor.h"
+#include "array.h"
 
 //represents a single-expression statement
 ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
@@ -119,6 +120,14 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDat
   //add variable to table with correctly-typed dummy value    
   ParseData d;
   d.type = type;
+
+	//if it's an array, add a subtype
+	if(typ == ARRAY_T) {
+		Array* arr = (Array*) malloc(sizeof(Array));
+		arr->subtype = val->subType;
+		d.value.allocated = (void*) arr;
+	}
+
   symbolTable->declare(variable, d);
 }
 

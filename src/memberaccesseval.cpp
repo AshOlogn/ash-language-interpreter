@@ -57,13 +57,10 @@ ParseData elementHelper(ParseData arr, int32_t index) {
 		int32_t len = array->length;
 		ParseData* values = array->values;
 
-		std::cout << "array access adress " << values << std::endl;
-		
 		int32_t ind = index;
 		if(ind < 0)
 			ind += len; 
 		
-		std::cout << "access index " << ind << std::endl;
 		ParseData val = values[ind];
 		return val;
 	}

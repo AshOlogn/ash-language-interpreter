@@ -763,6 +763,7 @@ AbstractStatementNode* addStatement() {
 		if(peek()->type == LEFT_BRACKET) {
 
 			Token* leftBracket = consume();
+
 			if(peek()->type != RIGHT_BRACKET) {
 				cout << "ERROR: require ']' to declare array type" << endl;
 				return NULL;
@@ -784,12 +785,12 @@ AbstractStatementNode* addStatement() {
       throw StaticVariableScopeException(variableToken->line+1, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
     }
     
-    //if being assigned
+    //if being assigned an initial value
     if(peek()->type == EQ) {
       
       consume(); //consume = Token
       AbstractExpressionNode* expression = evalExpression();
-      
+
       //check implicit casting validity
 			if(type == ARRAY_T) {
 
@@ -798,7 +799,7 @@ AbstractStatementNode* addStatement() {
 					return NULL;	
 				}
 
-				if(!typecheckImplicitCastExpression(((ArrayNode*)expression)->subType, subtype)) {
+				if(!typecheckImplicitCastExpression(expression->subType, subtype)) {
 					cout << "ERROR: array's member type can't be implicitly casted!" << endl;
 					return NULL;
 				}

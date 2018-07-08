@@ -1,8 +1,11 @@
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include <iostream>
 #include "token.h"
 #include "parsetoken.h"
+#include "array.h"
+#include "utils.h"
 
 static const ParseDataType signedIntegerTypes[] = {INT8_T, INT16_T, INT32_T, INT64_T}; 
 static const ParseDataType unsignedIntegerTypes[] = {UINT8_T, UINT16_T, UINT32_T, UINT64_T}; 
@@ -406,6 +409,26 @@ char* toStringParseData(ParseData d) {
       std::strcpy(c, val);
       return c;
     }
+
+		case ARRAY_T: {
+
+			Array* arr = (Array*) d.value.allocated;
+			uint32_t length = arr->length;
+			ParseData* values = arr->values;
+
+			std::string str("[");
+
+			if(length > 0)
+				str.append(toStringParseData(values[0]));
+			
+			for(uint32_t i = 1; i < length; i++) {
+				str.append(", ");
+				str.append(toStringParseData(values[i]));
+			}
+			str.append("]");
+
+			return copyString(str.c_str());
+		}
 		
 		case VOID_T: {
 			char* v = new char[5];
