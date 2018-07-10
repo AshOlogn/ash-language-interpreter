@@ -8,6 +8,7 @@
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "casteval.h"
 #include "array.h"
 
 
@@ -535,16 +536,12 @@ ParseData additionHelper<Array*, Array*>(Array* a1, Array* a2, ParseDataType typ
 	ParseDataType finalType = getTypeArithmeticExpression(ADD_OP, type1, type2);
 	ParseData* values = (ParseData*) malloc(sizeof(ParseData) * length);
 
-	for(uint32_t i = 0; i < length; i++) {
+	for(uint32_t i = 0; i < len1; i++) {
+		values[i] = castHelper(values1[i], finalType);
+	}
 
-		ParseData d;
-		d.type = finalType;
-
-		
-
-
-
-
+	for(uint32_t i = 0; i < len2; i++) {
+		values[i+len1] = castHelper(values2[i], finalType);
 	}
 
 	Array* arr = (Array*) malloc(sizeof(Array));
@@ -556,6 +553,7 @@ ParseData additionHelper<Array*, Array*>(Array* a1, Array* a2, ParseDataType typ
 	d.type = ARRAY_T;
 	d.value.allocated = (void*) arr;
 
+	return d;
 }
 
 
@@ -1053,6 +1051,13 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
       
       switch(left.type) {
         
+				case ARRAY_T: {
+					if(right.type == ARRAY_T) {
+						return additionHelper((Array*) left.value.allocated, (Array*) right.value.allocated, ARRAY_T);
+					}
+					break;
+				}
+
         case BOOL_T: return additionHelper((bool) left.value.integer, (char*) right.value.allocated, finalType); 
 
         case CHAR_T: {
