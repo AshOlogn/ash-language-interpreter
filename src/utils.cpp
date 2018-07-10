@@ -1,6 +1,8 @@
+#include <iostream>
 #include <cstdint>
 #include <cstring>
 #include <cstdlib>
+#include "array.h"
 #include "utils.h"
 
 //allocate a char* copy of a string
@@ -46,7 +48,11 @@ char* copySubstring(const char* str, int32_t startIndex, int32_t pastEndIndex) {
 }
 
 //return ParseData subarray
-ParseData* copySubarray(ParseData* arr, int32_t length, int32_t startIndex, int32_t pastEndIndex) {
+Array* copySubarray(Array* arr, int32_t startIndex, int32_t pastEndIndex) {
+
+	//extract fields from Array
+	int32_t length = (int32_t) arr->length;
+	ParseData* values = arr->values;
 
 	int32_t start = startIndex;
 	int32_t pastEnd = pastEndIndex;
@@ -58,10 +64,16 @@ ParseData* copySubarray(ParseData* arr, int32_t length, int32_t startIndex, int3
 	if(pastEnd < 0)
 		pastEnd += length + 1;
 
-	ParseData* subarray = (ParseData*) malloc(sizeof(ParseData) * (pastEnd-start));
+	ParseData* subarrayValues = (ParseData*) malloc(sizeof(ParseData) * (pastEnd-start));
 	for(int32_t i = start; i < pastEnd; i++) {
-		subarray[i-start] = arr[i];
+		subarrayValues[i-start] = values[i];
 	}
+
+	//create subarray Array and return it
+	Array* subarray = (Array*) malloc(sizeof(Array));
+	subarray->length = (uint32_t) (pastEnd-start);
+	subarray->subtype = arr->subtype;
+	subarray->values = subarrayValues;
 
 	return subarray;
 }

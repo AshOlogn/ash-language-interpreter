@@ -1,12 +1,14 @@
 #include <cstdint>
 #include <cmath>
 #include <cstring>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include "token.h"
 #include "typehandler.h"
 #include "parsetoken.h"
 #include "parsenode.h"
+#include "array.h"
 
 
 //helper functions
@@ -516,6 +518,44 @@ ParseData additionHelper<double, char*>(double n1, char* n2, ParseDataType type)
   d.value.allocated = (void*) res;
   
   return d;
+}
+
+template<>
+ParseData additionHelper<Array*, Array*>(Array* a1, Array* a2, ParseDataType type) {
+
+	//get fields out of the array structs
+	uint32_t len1 = a1->length;
+	uint32_t len2 = a2->length;
+	ParseDataType type1 = a1->subtype;
+	ParseDataType type2 = a2->subtype;
+	ParseData* values1 = a1->values;
+	ParseData* values2 = a2->values;
+
+	uint32_t length = len1 + len2;
+	ParseDataType finalType = getTypeArithmeticExpression(ADD_OP, type1, type2);
+	ParseData* values = (ParseData*) malloc(sizeof(ParseData) * length);
+
+	for(uint32_t i = 0; i < length; i++) {
+
+		ParseData d;
+		d.type = finalType;
+
+		
+
+
+
+
+	}
+
+	Array* arr = (Array*) malloc(sizeof(Array));
+	arr->length = length;
+	arr->subtype = finalType;
+	arr->values = values;
+
+	ParseData d;
+	d.type = ARRAY_T;
+	d.value.allocated = (void*) arr;
+
 }
 
 

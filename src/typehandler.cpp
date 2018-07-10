@@ -52,8 +52,8 @@ bool typecheckUnaryExpression(ParseOperatorType op, ParseDataType arg) {
     case PREFIX_INC_OP: return isNumberParseDataType(arg);
     case POSTFIX_DEC_OP: return isNumberParseDataType(arg);
     case PREFIX_DEC_OP: return isNumberParseDataType(arg);
-    case POSITIVE_OP: return isNumberParseDataType(arg);
-    case NEGATIVE_OP: return isNumberParseDataType(arg);
+    case POSITIVE_OP: return isNumberParseDataType(arg) || arg == STRING_T || arg == ARRAY_T;
+    case NEGATIVE_OP: return isNumberParseDataType(arg) || arg == STRING_T || arg == ARRAY_T;
     case BIT_NOT_OP: return isIntParseDataType(arg);
     case NOT_OP: return arg == BOOL_T;
     default: return false;
@@ -68,11 +68,14 @@ bool typecheckArithmeticExpression(ParseOperatorType op, ParseDataType l, ParseD
     case DIVIDE_OP: return isNumberParseDataType(l) && isNumberParseDataType(r);
     case MULTIPLY_OP: return (isNumberParseDataType(l) && isNumberParseDataType(r)) ||
                              (isIntParseDataType(l) && r == STRING_T) ||
-                             (l == STRING_T && isIntParseDataType(r));
+                             (l == STRING_T && isIntParseDataType(r)) ||
+														 (isIntParseDataType(l) && r == ARRAY_T) ||
+                             (l == ARRAY_T && isIntParseDataType(r));
 
     case MOD_OP: return isNumberParseDataType(l) && isNumberParseDataType(r);
 
     case ADD_OP: return l == STRING_T || r == STRING_T ||
+												(l == ARRAY_T && r == ARRAY_T) ||
                         (isNumberParseDataType(l) && isNumberParseDataType(r));
 
     case SUBTRACT_OP: return isNumberParseDataType(l) && isNumberParseDataType(r);
@@ -128,13 +131,15 @@ ParseDataType getTypeArithmeticExpression(ParseOperatorType op, ParseDataType l,
   
     case EXPONENT_OP: return DOUBLE_T;
     case DIVIDE_OP: return getLargerNumberParseDataType(l, r);    
-    case MULTIPLY_OP: return (l == STRING_T || r == STRING_T) ? STRING_T : 
-                            getLargerNumberParseDataType(l, r);
+    case MULTIPLY_OP: return (l == STRING_T || r == STRING_T) ? STRING_T :
+														 (l == ARRAY_T || r == ARRAY_T) ? ARRAY_T :
+                             getLargerNumberParseDataType(l, r);
 
     case MOD_OP: return getLargerNumberParseDataType(l, r);
 
     case ADD_OP: return (l == STRING_T || r == STRING_T) ? STRING_T :
-                       getLargerNumberParseDataType(l, r);   
+												(l == ARRAY_T && r == ARRAY_T) ? ARRAY_T :
+                        getLargerNumberParseDataType(l, r);   
     
     case SUBTRACT_OP: return getLargerNumberParseDataType(l, r);
     default: return INVALID_T;

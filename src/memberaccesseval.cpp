@@ -25,8 +25,7 @@ ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
 	} else if(type == ARRAY_T) {
 
 		Array* array = (Array*) arr.value.allocated;
-		ParseData* subarray = copySubarray((ParseData*) array->values, (int32_t) array->length, startIndex, endIndex);
-		d.value.allocated = subarray;
+		d.value.allocated = copySubarray(array, startIndex, endIndex);
 	}
   
   return d;   
