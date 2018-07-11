@@ -743,9 +743,137 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
 
     case MULTIPLY_OP: {
   
-      //string operation case
-      if(left.type == STRING_T || right.type == STRING_T) {
+			//array case
+			if(left.type == ARRAY_T || right.type == ARRAY_T) {
+
+				Array* arr = (Array*) ((left.type == ARRAY_T) ? left.value.allocated :
+                             right.value.allocated);
+				
+				uint64_t num = (left.type == ARRAY_T) ? right.value.integer : left.value.integer;
+				ParseDataType intType = (left.type == ARRAY_T) ? right.type : left.type;
+
+				//determine absolute value of scale factor (and direction)
+				uint64_t val = 0;
+        bool rev = false;
+      
+        switch(intType) {
+          
+          case INT8_T: {
+            int8_t v = (int8_t) num;
+            if(v < 0) {
+              rev = true;
+              val = -v;
+            } else {
+              rev = false;
+              val = v;
+            }
+            break;
+          }
+
+          case INT16_T: {
+            int16_t v = (int16_t) num;
+            if(v < 0) {
+              rev = true;
+              val = -v;
+            } else {
+              rev = false;
+              val = v;
+            }
+            break;
+          }
+
+          case INT32_T: {
+            int32_t v = (int32_t) num;
+            if(v < 0) {
+              rev = true;
+              val = -v;
+            } else {
+              rev = false;
+              val = v;
+            }
+            break;
+          }
+
+          case INT64_T: {
+            int64_t v = (int64_t) num;
+            if(v < 0) {
+              rev = true;
+              val = -v;
+            } else {
+              rev = false;
+              val = v;
+            }
+            break;
+          }
+
+          case UINT8_T: {
+            uint8_t v = (uint8_t) num;
+            rev = false;
+            val = v;
+            break;
+          }
+
+          case CHAR_T: {
+            char v = (char) num;
+            if(v < 0) {
+              rev = true;
+              val = -v;
+            } else {
+              rev = false;
+              val = v;
+            }
+            break; 
+          }
+
+          case UINT16_T: {
+            uint16_t v = (uint16_t) num;
+            rev = false;
+            val = v;
+            break;
+          }
+
+          case UINT32_T: {
+            uint32_t v = (uint32_t) num;
+            rev = false;
+            val = v;
+            break;
+          }
+
+          case UINT64_T: {
+            uint64_t v = (uint64_t) num;
+            rev = false;
+            val = v;
+            break;
+          }
+        }
+
+				//extract fields from Array struct
+				uint32_t length = arr->length;
+				ParseDataType type = arr->subtype;
+				ParseData* values = arr->values;
+
+				//copy into a new Array
+				Array* arr2 = (Array*) malloc(sizeof(Array));
+				arr2->length = length * val;
+				arr2->subtype = type;
+				
+				ParseData* values2 = (ParseData*) malloc(sizeof(ParseData) * length * val);
+
+				for(uint32_t i = 0; i < length*val; i++) {
+					uint32_t curr = i % length;
+					values2[i] = rev ? values[length-1-curr] : values[curr];
+				}
+
+				arr2->values = values2;
+
+				d.type = ARRAY_T;
+				d.value.allocated = (void*) arr2;
+
+				return d;
+
+			} else if(left.type == STRING_T || right.type == STRING_T) {
   
+				//string operation case
         char* str = (char*) ((left.type == STRING_T) ? left.value.allocated :
                              right.value.allocated);
 
@@ -871,6 +999,8 @@ ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
         } else {
           d.value.allocated = (void*) c;
         }
+
+				return d;
 
       } else {
 

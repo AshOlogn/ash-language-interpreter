@@ -87,6 +87,46 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     return new GroupedExpressionNode(next, startGroupToken->line, endGroupToken->line);
 
+
+	} else if(peek()->type == LEFT_BRACKET) {
+
+		//initialized array
+		Token* leftBracketToken = consume();
+
+		//insert the initial values into a list
+		vector<AbstractExpressionNode*> initValues;
+		while(peek()->type != RIGHT_BRACKET) {
+
+			initValues.push_back(evalExpression());
+
+			if(peek()->type == COMMA) {
+				consume(); //consume , token
+			} else if(peek()->type == RIGHT_BRACKET) {
+				//do nothing, deal with it outside the while loop
+			} else {
+				cout << "ERROR: expected , to separate array values or a terminating ']'" << endl;
+				return NULL;
+			}
+		}
+
+		Token* rightBracketToken = consume(); //consume ]
+
+		uint32_t length = (uint32_t) initValues.size();
+		AbstractExpressionNode** values = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * length);
+
+		//copy references out of list into array
+		for(uint32_t i = 0; i < length; i++) {
+			values[i] = initValues[i];
+		}
+
+		//convert fixed length into a LiteralNode
+		ParseData len;
+		len.type = UINT32_T;
+		len.value.integer = length;
+
+		//TODO: find a better way to resolve array type
+		return new ArrayNode(values[0]->evalType, true, new LiteralNode(len, -1), values);
+
 	} else if(peek()->type == NEW) {
 
 		//array or object instantiation
