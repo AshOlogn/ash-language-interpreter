@@ -10,6 +10,50 @@
 static const ParseDataType signedIntegerTypes[] = {INT8_T, INT16_T, INT32_T, INT64_T}; 
 static const ParseDataType unsignedIntegerTypes[] = {UINT8_T, UINT16_T, UINT32_T, UINT64_T}; 
 
+////////////////////////////////////
+///////      Deep Copy       ///////
+////////////////////////////////////
+
+ParseData copyParseData(ParseData d) {
+
+	ParseDataType type = d.type;
+	ParseData d2;
+	d2.type = type;
+
+	//string deep copy
+	if(type == STRING_T) {
+
+		d2.value.allocated = (void*) copyString((char*) d.value.allocated);
+
+	} else if(type == ARRAY_T) {
+
+		//array deep copy
+		Array* arr = (Array*) d.value.allocated;
+		uint32_t length = arr->length;
+		ParseData* values = arr->values;
+
+		Array* arr2 = (Array*) malloc(sizeof(Array));
+		arr2->length = length;
+		arr2->subtype = arr->subtype;
+
+		ParseData* values2 = (ParseData*) malloc(sizeof(ParseData)*length);
+		for(uint32_t i = 0; i < length; i++) {
+			values2[i] = copyParseData(values[i]);
+		}
+		arr2->values = values2;
+		d2.value.allocated = (void*) arr2;
+
+	} else if(type == DOUBLE_T) {
+		d2.value.floatingPoint = d.value.floatingPoint;
+	} else {
+		d2.value.integer = d.value.integer;
+	}
+
+	return d2;
+}
+
+
+
 
 ////////////////////////////////////
 ///////      Useful Info     ///////
@@ -310,69 +354,52 @@ char* toStringParseData(ParseData d) {
   switch(d.type) {
   
 		//TODO: add toString for array
-		
     case INT8_T: {
       int8_t val = (int8_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case INT16_T: {
       int16_t val = (int16_t) d.value.integer;  
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case INT32_T: {
       int32_t val = (int32_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case INT64_T: {
       int64_t val = (int64_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case UINT8_T: {
       uint8_t val = (uint8_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case UINT16_T: {
       uint16_t val = (uint16_t) d.value.integer;  
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case UINT32_T: {
       uint32_t val = (uint32_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case UINT64_T: {
       uint64_t val = (uint64_t) d.value.integer;
       std::string str = std::to_string(val);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
 
     case CHAR_T: {
@@ -385,29 +412,20 @@ char* toStringParseData(ParseData d) {
 
     case DOUBLE_T: {
       std::string str = std::to_string((double) d.value.floatingPoint);
-      char* c = new char[str.length()+1];
-      std::strcpy(c, str.c_str());
-      return c;
+      return copyString(str.c_str());
     }
     
     case BOOL_T: {
      
       if(d.value.integer) {
-        char* ans = new char[5];
-        std::strcpy(ans, "true");
-        return ans;
+        return copyString("true");
       } else {
-        char* ans = new char[6];
-        std::strcpy(ans, "false");
-        return ans;
+        return copyString("false");
       }
     }
 
     case STRING_T: {
-      char* val = (char*) d.value.allocated;
-      char* c = new char[strlen(val)+1];
-      std::strcpy(c, val);
-      return c;
+      return copyString((char*) d.value.allocated);
     }
 
 		case ARRAY_T: {
@@ -431,15 +449,11 @@ char* toStringParseData(ParseData d) {
 		}
 		
 		case VOID_T: {
-			char* v = new char[5];
-			v[0] = 'v'; v[1] = 'o'; v[2] = 'i'; v[3] = 'd'; v[4] = '\0';
-			return v;
+			return copyString("VOID");
 		}
 
     default: {
-      char* c = new char[8];
-      std::strcpy(c, "INVALID");
-      return c;
+      return copyString("INVALID");
     }
 
   }

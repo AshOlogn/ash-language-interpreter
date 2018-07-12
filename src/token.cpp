@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cstdint>
 #include <algorithm>
+#include "utils.h"
 #include "token.h"
 
 static const char* RESERVED_WORDS[] = {"for", "while", "do", "if", "elif", "else", "break",
@@ -22,21 +23,21 @@ static const uint8_t NUM_RESERVED_WORDS = 29;
 
 //Token class constructors
 //full "constructor"
-Token makeToken(TokenType typ, uint32_t lin, char* lex, Data val) {
+Token makeToken(TokenType typ, uint32_t lin, const char* lex, Data val) {
   Token tokenPtr;
   tokenPtr.type = typ;
   tokenPtr.line = lin;
-  tokenPtr.lexeme = lex;
+  tokenPtr.lexeme = copyString(lex);
   tokenPtr.value = val;
   return tokenPtr;
 }
 
 //"constructor" for tokens without literal value
-Token makeToken(TokenType typ, uint32_t lin, char* lex) {
+Token makeToken(TokenType typ, uint32_t lin, const char* lex) {
   Token tokenPtr;
   tokenPtr.type = typ;
   tokenPtr.line = lin;
-  tokenPtr.lexeme = lex;
+  tokenPtr.lexeme = copyString(lex);
   return tokenPtr;
 }
 

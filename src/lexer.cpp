@@ -66,60 +66,60 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
     switch(code[index]) {
   
       case '(': {
-        tokens.push_back(makeToken(LEFT_PAREN, line, (char*) "("));
+        tokens.push_back(makeToken(LEFT_PAREN, line, "("));
         index++; break;
       }  
 
       case ')': {
-        tokens.push_back(makeToken(RIGHT_PAREN, line, (char*) ")"));
+        tokens.push_back(makeToken(RIGHT_PAREN, line, ")"));
         index++; break;
       }
 
       case '[': {
-        tokens.push_back(makeToken(LEFT_BRACKET, line, (char*) "["));
+        tokens.push_back(makeToken(LEFT_BRACKET, line, "["));
         index++; break;
       }  
   
       case ']': {
-        tokens.push_back(makeToken(RIGHT_BRACKET, line,  (char*) "]"));
+        tokens.push_back(makeToken(RIGHT_BRACKET, line,  "]"));
         index++; break;
       }  
 
       case '{': {
-        tokens.push_back(makeToken(LEFT_BRACE, line, (char*) "{"));
+        tokens.push_back(makeToken(LEFT_BRACE, line, "{"));
         index++; break;
       }  
 
       case '}': {
-        tokens.push_back(makeToken(RIGHT_BRACE, line, (char*) "}"));
+        tokens.push_back(makeToken(RIGHT_BRACE, line, "}"));
         index++; break;
       }  
 
       case '.': {
         if(!isdigit(code[index+1])) {
-          tokens.push_back(makeToken(PERIOD, line, (char*) "."));
+          tokens.push_back(makeToken(PERIOD, line, "."));
           index++; 
         }
         break;
       }
 
       case '?': {
-        tokens.push_back(makeToken(QUESTION, line, (char*) "?"));
+        tokens.push_back(makeToken(QUESTION, line, "?"));
         index++; break;
       }
 
       case ':': {
-        tokens.push_back(makeToken(COLON, line, (char*) ":"));
+        tokens.push_back(makeToken(COLON, line, ":"));
         index++; break;
       }
 
       case ';': {
-        tokens.push_back(makeToken(SEMICOLON, line, (char*) ";"));
+        tokens.push_back(makeToken(SEMICOLON, line, ";"));
         index++; break;
       }
 
       case ',': {
-        tokens.push_back(makeToken(COMMA, line, (char*) ","));
+        tokens.push_back(makeToken(COMMA, line, ","));
         index++; break;
       }
 
@@ -136,18 +136,18 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
             // }
 
             case '=': {
-              tokens.push_back(makeToken(ADD_EQ, line, (char*) "+="));
+              tokens.push_back(makeToken(ADD_EQ, line, "+="));
               index += 2; break;
             }
     
             default: {
-              tokens.push_back(makeToken(ADD, line, (char*) "+"));
+              tokens.push_back(makeToken(ADD, line, "+"));
               index++; break;
             }
           }
 
         } else {
-          tokens.push_back(makeToken(ADD, line, (char*) "+"));
+          tokens.push_back(makeToken(ADD, line, "+"));
           index++;
         }
 
@@ -166,23 +166,23 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
             // }
 
 						case '>': {
-							tokens.push_back(makeToken(RIGHTARROW, line, (char*) "->"));
+							tokens.push_back(makeToken(RIGHTARROW, line, "->"));
 							index += 2; break;
 						}
 
             case '=': {
-              tokens.push_back(makeToken(SUBTRACT_EQ, line, (char*) "-="));
+              tokens.push_back(makeToken(SUBTRACT_EQ, line, "-="));
               index += 2; break;
             }
     
             default: {
-              tokens.push_back(makeToken(SUBTRACT, line, (char*) "-"));
+              tokens.push_back(makeToken(SUBTRACT, line, "-"));
               index++; break;
             }
           }
 
         } else {
-          tokens.push_back(makeToken(SUBTRACT, line, (char*)  "-"));
+          tokens.push_back(makeToken(SUBTRACT, line, "-"));
           index++;
         }
 
@@ -194,18 +194,18 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         if(code[index+1] == '*') {
           
           if(code[index+2] == '=') {
-            tokens.push_back(makeToken(EXPONENT_EQ, line, (char*) "**="));
+            tokens.push_back(makeToken(EXPONENT_EQ, line, "**="));
             index+=3; 
           } else { 
-            tokens.push_back(makeToken(EXPONENT, line, (char*) "**"));
+            tokens.push_back(makeToken(EXPONENT, line, "**"));
             index+=2;
           }          
 
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(MULTIPLY_EQ, line, (char*) "*="));
+          tokens.push_back(makeToken(MULTIPLY_EQ, line, "*="));
           index+=2;
         } else {
-          tokens.push_back(makeToken(MULTIPLY, line, (char*) "*"));
+          tokens.push_back(makeToken(MULTIPLY, line, "*"));
           index++;
         }
 
@@ -243,11 +243,11 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         
         } else if(code[index+1] == '=') {
           
-          tokens.push_back(makeToken(DIVIDE_EQ, line, (char*) "/="));
+          tokens.push_back(makeToken(DIVIDE_EQ, line, "/="));
           index += 2;
 
         } else {
-          tokens.push_back(makeToken(DIVIDE, line, (char*) "/"));
+          tokens.push_back(makeToken(DIVIDE, line, "/"));
           index++;
         }
 
@@ -258,11 +258,11 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
   
         if(code[index+1] == '=') {
 
-          tokens.push_back(makeToken(MOD_EQ, line, (char*) "%="));
+          tokens.push_back(makeToken(MOD_EQ, line, "%="));
           index += 2;
 
         } else {
-          tokens.push_back(makeToken(MOD, line, (char*) "%"));
+          tokens.push_back(makeToken(MOD, line, "%"));
           index++;
         }
         
@@ -273,11 +273,11 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
   
         if(code[index+1] == '=') {
   
-          tokens.push_back(makeToken(NOT_EQ, line, (char*) "!="));
+          tokens.push_back(makeToken(NOT_EQ, line, "!="));
           index += 2;
 
         } else {
-          tokens.push_back(makeToken(NOT, line, (char*) "!"));
+          tokens.push_back(makeToken(NOT, line, "!"));
           index++;
         }
 
@@ -285,7 +285,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       }
   
       case '~': {
-        tokens.push_back(makeToken(BIT_NOT, line, (char*) "~"));
+        tokens.push_back(makeToken(BIT_NOT, line, "~"));
         index++; break;
       }
 
@@ -294,19 +294,19 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         if(code[index+1] == '<') {
   
           if(code[index+2] == '=') {
-            tokens.push_back(makeToken(BIT_LEFT_EQ, line, (char*) "<<="));
+            tokens.push_back(makeToken(BIT_LEFT_EQ, line, "<<="));
             index += 3;
           } else {
-            tokens.push_back(makeToken(BIT_LEFT, line, (char*) "<<"));
+            tokens.push_back(makeToken(BIT_LEFT, line, "<<"));
             index += 2;
           }
          
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(LESS_EQ, line, (char*) "<="));
+          tokens.push_back(makeToken(LESS_EQ, line, "<="));
           index += 2;
 
         } else {
-          tokens.push_back(makeToken(LESS, line, (char*) "<"));
+          tokens.push_back(makeToken(LESS, line, "<"));
           index++;
         }
 
@@ -318,18 +318,18 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         if(code[index+1] == '>') {
   
           if(code[index+2] == '=') {
-            tokens.push_back(makeToken(BIT_RIGHT_EQ, line, (char*) ">>="));
+            tokens.push_back(makeToken(BIT_RIGHT_EQ, line, ">>="));
             index += 3;
           } else {
-            tokens.push_back(makeToken(BIT_RIGHT, line, (char*) ">>"));
+            tokens.push_back(makeToken(BIT_RIGHT, line, ">>"));
             index += 2;
           }
          
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(GREATER_EQ, line, (char*) ">="));
+          tokens.push_back(makeToken(GREATER_EQ, line, ">="));
           index += 2;
         } else {
-          tokens.push_back(makeToken(GREATER, line, (char*) ">"));
+          tokens.push_back(makeToken(GREATER, line, ">"));
           index++;
         }
 
@@ -338,10 +338,10 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 
       case '=': {
         if(code[index+1] == '=') {
-          tokens.push_back(makeToken(EQ_EQ, line, (char*) "=="));
+          tokens.push_back(makeToken(EQ_EQ, line, "=="));
           index += 2;
         } else {
-          tokens.push_back(makeToken(EQ, line, (char*) "="));
+          tokens.push_back(makeToken(EQ, line, "="));
           index++;
         }
         break;  
@@ -349,13 +349,13 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 
       case '&': {
         if(code[index+1] == '&') {
-          tokens.push_back(makeToken(AND, line, (char*) "&&"));
+          tokens.push_back(makeToken(AND, line, "&&"));
           index += 2;
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(AND_EQ, line, (char*) "&="));
+          tokens.push_back(makeToken(AND_EQ, line, "&="));
           index += 2;
         } else {
-          tokens.push_back(makeToken(BIT_AND, line, (char*) "&"));
+          tokens.push_back(makeToken(BIT_AND, line, "&"));
           index++;
         }
         break;
@@ -363,13 +363,13 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 
       case '^': {
         if(code[index+1] == '^') {
-          tokens.push_back(makeToken(XOR, line, (char*) "^^"));
+          tokens.push_back(makeToken(XOR, line, "^^"));
           index += 2;
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(XOR_EQ, line, (char*) "^="));
+          tokens.push_back(makeToken(XOR_EQ, line, "^="));
           index += 2;
         } else {
-          tokens.push_back(makeToken(BIT_XOR, line, (char*) "^"));
+          tokens.push_back(makeToken(BIT_XOR, line, "^"));
           index++;
         }
         break;
@@ -377,13 +377,13 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 
       case '|': {
         if(code[index+1] == '|') {
-          tokens.push_back(makeToken(OR, line, (char*) "||"));
+          tokens.push_back(makeToken(OR, line, "||"));
           index += 2;
         } else if(code[index+1] == '=') {
-          tokens.push_back(makeToken(OR_EQ, line, (char*) "|="));
+          tokens.push_back(makeToken(OR_EQ, line, "|="));
           index += 2;
         } else {
-          tokens.push_back(makeToken(BIT_OR, line, (char*) "|"));
+          tokens.push_back(makeToken(BIT_OR, line, "|"));
           index++;
         }
         break;
@@ -407,7 +407,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       
       
       //allocate memory for the lexeme and copy it
-      char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index));
+      char* lexeme = new char[currentIndex-index];
       for(uint32_t i = index+1; i < currentIndex; i++)
         lexeme[i-index-1] = code[i];
       lexeme[currentIndex-index-1] = 0;
@@ -460,7 +460,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       if(isEndOfToken(code[currentIndex])) {
  
         //Copy numerical value to add to Token
-        char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index+1));
+        char* lexeme = new char[currentIndex-index+1];
         strncpy(lexeme, code+index, currentIndex-index); 
         lexeme[currentIndex-index] = 0;
         
@@ -498,14 +498,14 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       //if identifier contains invalid characters, throw an error
       if(!isspace(code[currentIndex]) && !isEndOfToken(code[currentIndex])) {
         
-        char* errorLexeme = (char*) malloc(sizeof(char) * (currentIndex-index+2));
+        char* errorLexeme = new char[currentIndex-index+2];
         strncpy(errorLexeme, code+index, currentIndex-index+1);
         errorLexeme[currentIndex-index+1] = 0;
         
         throw LexerException(line+1, codeLines->at(line), errorLexeme, "Identifier can only contain digits, letters, and underscores");
       } 
       
-      char* lexeme = (char*) malloc(sizeof(char) * (currentIndex-index+1));
+      char* lexeme = new char[currentIndex-index+1];
       strncpy(lexeme, code+index, currentIndex-index);
       lexeme[currentIndex-index] = 0;
 
@@ -537,7 +537,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
     }
   }
     
-  tokens.push_back(makeToken(END, line, (char*) "END"));
+  tokens.push_back(makeToken(END, line, "END"));
 
   return tokens;
 }

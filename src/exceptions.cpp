@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <exception>
+#include "utils.h"
 #include "parsetoken.h"
 #include "exceptions.h"
 
@@ -16,13 +17,7 @@ const char* LexerException::what() const throw() {
   str.append("\n");
   str.append(message);
   
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  return copyString(str.c_str());
 }
 
 const char* ParseSyntaxException::what() const throw() {
@@ -50,13 +45,7 @@ const char* ParseSyntaxException::what() const throw() {
   
   str.append(message);
 
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  return copyString(str.c_str());
 }
 
 const char* StaticTypeException::what() const throw() {
@@ -97,13 +86,7 @@ const char* StaticTypeException::what() const throw() {
     }
   }
   
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  return copyString(str.c_str());
 }
 
 
@@ -125,13 +108,7 @@ const char* StaticVariableScopeException::what() const throw() {
                 " being accessed or assigned a value.");
   }
 
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  return copyString(str.c_str());
 }
 
 const char* StaticCastException::what() const throw() {
@@ -161,13 +138,7 @@ const char* StaticCastException::what() const throw() {
   str.append(" to type ");
   str.append(toStringParseDataType(finalType));
 
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  return copyString(str.c_str());
 }
 
 

@@ -112,10 +112,10 @@ struct Token {
 };
 
 //full "constructor"
-Token makeToken(TokenType type, uint32_t line, char* lexeme, Data value);
+Token makeToken(TokenType type, uint32_t line, const char* lexeme, Data value);
 
 //"constructor" for tokens without literal value
-Token makeToken(TokenType type, uint32_t line, char* lexeme);
+Token makeToken(TokenType type, uint32_t line, const char* lexeme);
 
 #endif
 

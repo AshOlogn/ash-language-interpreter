@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include <iostream>
+#include "utils.h"
 #include "token.h"
 #include "typehandler.h"
 #include "parsetoken.h"
@@ -37,12 +38,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) orig.value.integer; break;
         case DOUBLE_T: d.value.floatingPoint = (double) orig.value.integer; break;
         case STRING_T: {
-          const char* temp = (orig.value.integer) ? "true" : "false";
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString((orig.value.integer) ? "true" : "false");
           break;
         }
       } 
@@ -78,12 +74,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) ((int32_t) orig.value.integer); break;
         case DOUBLE_T: d.value.floatingPoint = (double) ((int32_t) orig.value.integer); break;
         case STRING_T: {
-          const char* temp = std::to_string((int32_t) orig.value.integer).c_str();
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString(std::to_string((int32_t) orig.value.integer).c_str());
           break;
         }
       }
@@ -100,12 +91,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) ((int64_t) orig.value.integer); break;
         case DOUBLE_T: d.value.floatingPoint = (double) ((int64_t) orig.value.integer); break;
         case STRING_T: {
-          const char* temp = std::to_string((int64_t) orig.value.integer).c_str();
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString(std::to_string((int64_t) orig.value.integer).c_str());
           break;
         }
       }
@@ -122,12 +108,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) ((uint32_t) orig.value.integer); break;
         case DOUBLE_T: d.value.floatingPoint = (double) ((uint32_t) orig.value.integer); break;
         case STRING_T: {
-          const char* temp = std::to_string((uint32_t) orig.value.integer).c_str();
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString(std::to_string((uint32_t) orig.value.integer).c_str());
           break;
         }
       }
@@ -144,12 +125,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) ((uint64_t) orig.value.integer); break;
         case DOUBLE_T: d.value.floatingPoint = (double) ((uint64_t) orig.value.integer); break;
         case STRING_T: {
-          const char* temp = std::to_string((uint64_t) orig.value.integer).c_str();
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString(std::to_string((uint64_t) orig.value.integer).c_str());
           break;
         }
       }
@@ -167,12 +143,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
         case UINT64_T: d.value.integer = (uint64_t) ((double) orig.value.floatingPoint); break; 
         case DOUBLE_T: d.value.floatingPoint = orig.value.floatingPoint; break;
         case STRING_T: {
-          const char* temp = std::to_string((double) orig.value.floatingPoint).c_str();
-          uint32_t len = strlen(temp);
-          char* res = new char[len+1];
-          strcpy(res, temp);
-          res[len] = '\0';
-          d.value.allocated = (void*) res;
+          d.value.allocated = (void*) copyString(std::to_string((double) orig.value.floatingPoint).c_str());
           break;
         }
       }
@@ -181,12 +152,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
     
     case STRING_T: {
       if(finalType == STRING_T) {
-        const char* temp = (char*) orig.value.allocated;
-        uint32_t len = strlen(temp);
-        char* res = new char[len+1];
-        strcpy(res, temp);
-        res[len] = '\0';
-        d.value.allocated = (void*) res;
+        d.value.allocated = (void*) copyString((char*) orig.value.allocated);
       }
       
       break;

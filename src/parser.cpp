@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <cstring>
+#include "utils.h"
 #include "exceptions.h"
 #include "token.h"
 #include "parsetoken.h"
@@ -50,15 +51,8 @@ char* getCodeLineBlock(uint32_t startIndex, uint32_t endIndex) {
     str.append(codeLines->at(i));
   }
   
-  //copy into a char array
-  const char* c = str.c_str();
-  uint32_t len = strlen(c);
-  char* res = new char[len+1];
-  res[0] = '\0';
-  strcpy(res, c);
-  res[len] = '\0';
-  
-  return res;
+  //return deep copy
+  return copyString(str.c_str());
 }
 
 /////////////////////////////////
@@ -783,7 +777,6 @@ AbstractExpressionNode* evalExpression() {
   return evalAssignment();
 }
 
-
 AbstractStatementNode* addStatement() {
 
   Token* t = peek();
@@ -838,6 +831,8 @@ AbstractStatementNode* addStatement() {
 					cout << "ERROR: can't cast current type to an array" << endl;
 					return NULL;	
 				}
+
+				cout << "subtype fuckery " << toStringParseDataType(expression->subType) << endl;
 
 				if(!typecheckImplicitCastExpression(expression->subType, subtype)) {
 					cout << "ERROR: array's member type can't be implicitly casted!" << endl;
@@ -1193,12 +1188,7 @@ AbstractStatementNode* addStatement() {
 
 				//read in parameter name
 				const char* aName = consume()->lexeme;
-				uint32_t len = strlen(aName);
-				char* argName = new char[len+1];
-				argName[0] = '\0';
-				strcpy(argName, aName);
-				argName[len] = '\0';
-				argNames[argIndex] = argName;
+				argNames[argIndex] = copyString(aName);
 
 				argIndex++;
 				if(argIndex < argCount)
