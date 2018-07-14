@@ -137,7 +137,7 @@ class ArrayNode : public AbstractExpressionNode {
 		AbstractExpressionNode* length;
 		AbstractExpressionNode** values;
 
-		ArrayNode(ParseDataType subType, bool isInitialized, AbstractExpressionNode* length, AbstractExpressionNode** values);
+		ArrayNode(ParseDataType subType, bool isInitialized, AbstractExpressionNode* length, AbstractExpressionNode** values, uint32_t startLine, uint32_t endLine);
 		ParseData evaluate();
 		std::string toString();
 };

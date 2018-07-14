@@ -3,7 +3,7 @@
 #include <cstring>
 #include <string>
 #include "utils.h"
-#include "exceptions.h"
+#include "errors.h"
 #include "symboltable.h"
 #include "token.h"
 #include "typehandler.h"

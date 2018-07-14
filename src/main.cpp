@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cctype>
 
-#include "exceptions.h"
+#include "errors.h"
 #include "token.h"
 #include "lexer.h"
 #include "parser.h"
@@ -48,6 +48,10 @@ int main(int argc, char** argv) {
     return 1;
   }
   
+	vector<Token>::iterator it;
+	for(it = tokens.begin(); it != tokens.end(); it++) {
+		cout << toStringTokenType(it->type) << " " << it->line << endl;
+	}
 	
   //get list of statements from list of tokens (parse)
   vector<AbstractStatementNode*>* statements;

@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstring>
 #include "utils.h"
-#include "exceptions.h"
+#include "errors.h"
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
@@ -74,7 +74,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     if(peek()->type != RIGHT_PAREN) {
       //!!! parse syntax error
-      throw ParseSyntaxException(startGroupToken->line+1, codeLines->at(startGroupToken->line), "(", "The parenthesized expression is missing a ')'");
+      throw ParseSyntaxError(startGroupToken->line+1, codeLines->at(startGroupToken->line), "(", "The parenthesized expression is missing a ')'");
     } else {
       endGroupToken = consume(); //consume right parenthesis
     }
@@ -98,8 +98,9 @@ AbstractExpressionNode* evalLiteralGroup() {
 			} else if(peek()->type == RIGHT_BRACKET) {
 				//do nothing, deal with it outside the while loop
 			} else {
-				cout << "ERROR: expected , to separate array values or a terminating ']'" << endl;
-				return NULL;
+				//throw error if initializer list is not terminated
+				throw ParseSyntaxError(leftBracketToken->line+1, peek()->line+1, getCodeLineBlock(leftBracketToken->line, peek()->line), 
+																	"Expected ']' to terminate array initializer list");
 			}
 		}
 
@@ -109,6 +110,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 		AbstractExpressionNode** values = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * length);
 
 		//copy references out of list into array
+		//TODO: typehandling
 		for(uint32_t i = 0; i < length; i++) {
 			values[i] = initValues[i];
 		}
@@ -119,7 +121,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 		len.value.integer = length;
 
 		//TODO: find a better way to resolve array type
-		return new ArrayNode(values[0]->evalType, true, new LiteralNode(len, -1), values);
+		return new ArrayNode(values[0]->evalType, true, new LiteralNode(len, -1), values, leftBracketToken->line, rightBracketToken->line);
 
 	} else if(peek()->type == NEW) {
 
@@ -127,30 +129,39 @@ AbstractExpressionNode* evalLiteralGroup() {
 		Token* newToken = consume();
 
 		if(!isTypeTokenType(peek()->type)) {
-			cout << "ERROR: expect <type>[] format for array instantiation" << endl;
-			return NULL;
+			throw ParseSyntaxError(newToken->line+1, getCodeLineBlock(newToken->line, newToken->line), "Expected type specifier as part of array instantiation");
 		}
 
 		ParseDataType type = ARRAY_T;
-		ParseDataType subtype = typeTokenConversion(consume()->type);
+		Token* subtypeToken = consume();
+		ParseDataType subtype = typeTokenConversion(subtypeToken->type);
 
 		if(peek()->type != LEFT_BRACKET) {
-			cout << "ERROR: expecting '[' in array initialization" << endl;
-			return NULL;
+			throw ParseSyntaxError(newToken->line+1, subtypeToken->line+1, getCodeLineBlock(newToken->line, subtypeToken->line), "Expected '[' as part of array instantiation");
 		}
 
 		Token* leftBracketToken = consume();
 		AbstractExpressionNode* length = evalExpression();
 
+		//make sure length expression is an integer
+		if(!isIntParseDataType(length->evalType)) {
+
+			string message = "Expected integer/char type for array length specifier, not ";
+			message.append(toStringParseDataType(length->evalType));
+
+			throw StaticTypeError(leftBracketToken->line+1, length->endLine+1, getCodeLineBlock(leftBracketToken->line, length->endLine), 
+														copyString(message.c_str()));
+		}
+
+
 		if(peek()->type != RIGHT_BRACKET) {
-			cout << "ERROR: expecting ']' in array initialization" << endl;
-			return NULL;
+			throw ParseSyntaxError(newToken->line+1, length->endLine+1, getCodeLineBlock(newToken->line, length->endLine+1), "Expected ']' as part of array instantiation");
 		}
 
 		Token* rightBracketToken = consume();
 
 		//now return ArrayNode with appropriate information
-		return new ArrayNode(subtype, false, length, NULL);
+		return new ArrayNode(subtype, false, length, NULL, newToken->line, rightBracketToken->line);
 
   } else if(peek()->type == VARIABLE) {
 
@@ -159,7 +170,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 		//make sure variable is already declared
 		string variableName((char*) variable->lexeme);
 		if(false && !symbolTable->isDeclared(variableName)) {
-			throw StaticVariableScopeException(variable->line+1, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
+			throw StaticVariableScopeError(variable->line+1, variable->lexeme, getCodeLineBlock(variable->line, variable->line), false);
 		}
 
 		//get variable type
@@ -168,37 +179,61 @@ AbstractExpressionNode* evalLiteralGroup() {
 		if(peek()->type == LEFT_PAREN) {
 
 			//function call case
+			Token* leftParenToken = consume(); //consume (
 
 			//make sure this variable is of function type
 			if(varType != FUN_T) {
-				cout << "ERROR: can't call a variable that is not of function type" << endl;
-				return NULL;
+				throw StaticTypeError(variable->line+1, leftParenToken->line+1, getCodeLineBlock(variable->line, leftParenToken->line), "function call", varType);
 			}
-
-			Token* leftParenToken = consume(); //consume (
 			
 			//get function information
 			Function* function = (Function*) (symbolTable->get(variableName).value.allocated);
 			uint32_t numArgs = function->numArgs;
-			
+			ParseDataType* argTypes = function->argTypes;
+
 			//read in arguments
 			AbstractExpressionNode** arguments = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * numArgs);
+			Token* lastCommaToken;
+
 			for(uint32_t i = 0; i < numArgs; i++) {
 
+				//if next item is not an argument, throw error
+				if(peek()->type == END) {
+					uint32_t startLine = variable->line+1;
+					uint32_t endLine = (i > 0) ? arguments[i-1]->endLine+1 : leftParenToken->line+1;
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Too few arguments provided to this function call");
+				}
+
+				//get next argument
 				arguments[i] = evalExpression();
+
+				//make sure argument is of the right type
+				if(!typecheckImplicitCastExpression(arguments[i]->evalType, argTypes[i])) {
+
+					uint32_t startLine = variable->line+1;
+					uint32_t endLine = arguments[i]->endLine+1;
+
+					string message = "Cannot implicitly convert a ";
+					message.append(toStringParseDataType(arguments[i]->evalType));
+					message.append(" argument to ");
+					message.append(toStringParseDataType(argTypes[i]));
+					message.append(" type");
+
+					throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+				}
 
 				if(i < numArgs-1) {
 					if(peek()->type != COMMA) {
-						cout << "ERROR: expected , to separate function arguments" << endl;
-						return NULL;
+						throw ParseSyntaxError(variable->line+1, arguments[i]->endLine+1, getCodeLineBlock(variable->line, arguments[i]->endLine),
+																	"Expected comma to separate function arguments");
 					}
-					consume(); //consume ,
+					lastCommaToken = consume(); //consume ,
 				}
 			}
 
 			if(peek()->type != RIGHT_PAREN) {
-				cout << "ERROR: expected ')' to close function argument list" << endl;
-				return NULL;
+				throw ParseSyntaxError(variable->line+1, lastCommaToken->line+1, getCodeLineBlock(variable->line, lastCommaToken->line),
+															"Expected ')' to terminate argument list");
 			}
 			consume(); //consume )
 
@@ -230,7 +265,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
       
     //first write message
     const char* arrayAccessErrorMessage = "A value must be of array or string type to be indexed";
-    throw StaticTypeException(head->startLine+1, peek()->line+1, getCodeLineBlock(head->startLine, peek()->line), arrayAccessErrorMessage);
+    throw StaticTypeError(head->startLine+1, peek()->line+1, getCodeLineBlock(head->startLine, peek()->line), arrayAccessErrorMessage);
   }
   
   Token* leftBracketToken = consume(); //consume [
@@ -263,14 +298,13 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
       
       //make sure that the expression evaluates to an integer
       if(!typecheckMemberAccessExpression(end->evalType)) {
-        //!!!
-        throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);
+        throw StaticTypeError(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);
       }
 
       if(peek()->type != RIGHT_BRACKET) {
         
         //!!! If [ does not have a corresponding ], throw an error
-        throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
+        throw ParseSyntaxError(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
         
       } else {
   
@@ -286,8 +320,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
     
     //make sure that the expression evaluates to an integer
     if(!typecheckMemberAccessExpression(start->evalType)) {
-      //!!!
-      throw StaticTypeException(head->startLine+1, start->endLine+1, getCodeLineBlock(head->startLine, start->endLine), "array indexing", start->evalType);
+      throw StaticTypeError(head->startLine+1, start->endLine+1, getCodeLineBlock(head->startLine, start->endLine), "array indexing", start->evalType);
     }
 
     //accessing a slice with explicit start
@@ -312,14 +345,13 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
         
         //make sure that the expression evaluates to an integer
         if(!typecheckMemberAccessExpression(end->evalType)) {
-          //!!!
-          throw StaticTypeException(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);            
+          throw StaticTypeError(head->startLine+1, end->endLine+1, getCodeLineBlock(head->startLine, end->endLine), "array indexing", end->evalType);            
         }
           
         if(peek()->type != RIGHT_BRACKET) {
           
-          //!!! If [ does not have a corresponding ], throw an error
-          throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
+          //If [ does not have a corresponding ], throw an error
+          throw ParseSyntaxError(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
 
         } else {
           Token* rightBracketToken = consume(); //consume ]
@@ -333,7 +365,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
       if(peek()->type != RIGHT_BRACKET) {
         
         //!!! If [ does not have a corresponding ], throw an error
-        throw ParseSyntaxException(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
+        throw ParseSyntaxError(leftBracketToken->line+1, codeLines->at(leftBracketToken->line), "[", "Array access operation must end with ']'");
 
       } else {
         Token* rightBracketToken = consume(); //consume ]
@@ -356,26 +388,26 @@ AbstractExpressionNode* evalPostfixMemberAccess() {
 
     //make sure variable is declared
     if(!symbolTable->isDeclared(variableName)) {
-      throw StaticVariableScopeException(varNode->startLine+1, varNode->variable, getCodeLineBlock(varNode->startLine, varNode->startLine), false);   
+      throw StaticVariableScopeError(varNode->startLine+1, varNode->variable, getCodeLineBlock(varNode->startLine, varNode->startLine), false);   
     }
 
     //get variable type
     ParseDataType varType = varNode->evalType;
 
-    consume(); //consume first +
-    Token* secondPlus = consume();
+    Token* firstPlus = consume(); //consume first + or -
+    Token* secondPlus = consume(); //consume second + or -
 
     if(secondPlus->type == ADD) {
       //make sure type is correct
       if(!typecheckUnaryExpression(POSTFIX_INC_OP, varType)) {
-        throw StaticTypeException(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix increment", varType);
+        throw StaticTypeError(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix increment", varType);
       }
       return new UnaryOperatorNode(POSTFIX_INC_OP, varNode, symbolTable, secondPlus->line);
 
     } else {
       //make sure type is correct
       if(!typecheckUnaryExpression(POSTFIX_DEC_OP, varType)) {
-        throw StaticTypeException(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix decrement", varType);
+        throw StaticTypeError(varNode->startLine+1, secondPlus->line+1, getCodeLineBlock(varNode->startLine, secondPlus->line), "postfix decrement", varType);
       }
       return new UnaryOperatorNode(POSTFIX_DEC_OP, varNode, symbolTable, secondPlus->line); 
     }
@@ -404,14 +436,14 @@ AbstractExpressionNode* evalPrefixCastSignNot() {
   if(isPrefixStructure()) {
 
     Token* firstPlus = consume();
-    consume(); //consume second +
+    Token* secondPlus = consume(); //consume second +
 
     AbstractExpressionNode* head = evalPostfixMemberAccess();
     VariableNode* varNode = dynamic_cast<VariableNode*>(head);
 
     //if it's not a variable, throw a syntax error
     if(!varNode) {
-      throw ParseSyntaxException(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), "Prefix operator expects variable argument");
+      throw ParseSyntaxError(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), "Prefix operator expects variable argument");
     }
 
     ParseDataType type = varNode->evalType;
@@ -419,7 +451,7 @@ AbstractExpressionNode* evalPrefixCastSignNot() {
 
     //if it's not a number, throw a type error
     if(!typecheckUnaryExpression(op, type)) {
-      throw StaticTypeException(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), (op == PREFIX_INC_OP) ? "prefix increment" : "prefix decrement", type);
+      throw StaticTypeError(firstPlus->line+1, head->endLine+1, getCodeLineBlock(firstPlus->line, head->endLine), (op == PREFIX_INC_OP) ? "prefix increment" : "prefix decrement", type);
     }
 
     return new UnaryOperatorNode(op, varNode, symbolTable, firstPlus->line);
@@ -433,8 +465,8 @@ AbstractExpressionNode* evalPrefixCastSignNot() {
     if(typecheckUnaryExpression(op, next->evalType)) {
       return new UnaryOperatorNode(op, next, signNotToken->line);
     } else {
-      //!!!
-      throw StaticTypeException(signNotToken->line+1, next->endLine+1, getCodeLineBlock(signNotToken->line, next->endLine), toWordParseOperatorType(op), next->evalType);
+      //if type mismatch, throw error
+      throw StaticTypeError(signNotToken->line+1, next->endLine+1, getCodeLineBlock(signNotToken->line, next->endLine), toWordParseOperatorType(op), next->evalType);
     }
 
   } else if(isCastStructure()) {   
@@ -447,7 +479,7 @@ AbstractExpressionNode* evalPrefixCastSignNot() {
     if(typecheckExplicitCastExpression(next->evalType, finalType)) {
       return new CastNode(next, finalType, leftParenToken->line);
     } else {
-      throw StaticCastException(leftParenToken->line+1, next->endLine+1, getCodeLineBlock(leftParenToken->line, next->endLine), next->evalType, finalType, true);
+      throw StaticCastError(leftParenToken->line+1, next->endLine+1, getCodeLineBlock(leftParenToken->line, next->endLine), next->evalType, finalType, true);
     }
     
   } else {
@@ -471,7 +503,7 @@ AbstractExpressionNode* evalExponent() {
       head = new ArithmeticOperatorNode(EXPONENT_OP, head, next);
     } else {
       //!!!
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "exponentiation", head->evalType, next->evalType);
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "exponentiation", head->evalType, next->evalType);
     }   
 
   }
@@ -494,7 +526,7 @@ AbstractExpressionNode* evalMultiplyDivideMod() {
       head = new ArithmeticOperatorNode(op, head, next);
     } else {
       //!!!
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
     }
 
   }
@@ -516,7 +548,7 @@ AbstractExpressionNode* evalAddSubtract() {
     if(typecheckArithmeticExpression(op, head->evalType, next->evalType)) {
       head = new ArithmeticOperatorNode(op, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
     }
   }
   
@@ -536,7 +568,7 @@ AbstractExpressionNode* evalBitShift() {
     if(typecheckBitLogicalExpression(op, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(op, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);
     }
   }
   
@@ -557,7 +589,7 @@ AbstractExpressionNode* evalComparison() {
     if(typecheckComparisonExpression(op, head->evalType, next->evalType)) {
       head = new ComparisonOperatorNode(op, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType); 
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType); 
     }
   }
   
@@ -577,7 +609,7 @@ AbstractExpressionNode* evalEquality() {
     if(typecheckComparisonExpression(op, head->evalType, next->evalType)) {
       head = new ComparisonOperatorNode(op, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);  
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), toWordParseOperatorType(op), head->evalType, next->evalType);  
     }
   }
  
@@ -597,7 +629,7 @@ AbstractExpressionNode* evalBitAnd() {
     if(typecheckBitLogicalExpression(BIT_AND_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(BIT_AND_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise AND", head->evalType, next->evalType); 
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise AND", head->evalType, next->evalType); 
     }
   }
  
@@ -618,7 +650,7 @@ AbstractExpressionNode* evalBitXor() {
     if(typecheckBitLogicalExpression(BIT_XOR_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(BIT_XOR_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise XOR", head->evalType, next->evalType); 
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise XOR", head->evalType, next->evalType); 
     }
   }
  
@@ -638,7 +670,7 @@ AbstractExpressionNode* evalBitOr() {
     if(typecheckBitLogicalExpression(BIT_OR_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(BIT_OR_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise OR", head->evalType, next->evalType);
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "bitwise OR", head->evalType, next->evalType);
     }
   }
  
@@ -659,7 +691,7 @@ AbstractExpressionNode* evalLogicAnd() {
     if(typecheckBitLogicalExpression(AND_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(AND_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical AND", head->evalType, next->evalType);  
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical AND", head->evalType, next->evalType);  
     }
   }
  
@@ -680,7 +712,7 @@ AbstractExpressionNode* evalLogicXor() {
     if(typecheckBitLogicalExpression(XOR_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(XOR_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical XOR", head->evalType, next->evalType); 
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical XOR", head->evalType, next->evalType); 
     }
   }
  
@@ -700,7 +732,7 @@ AbstractExpressionNode* evalLogicOr() {
     if(typecheckBitLogicalExpression(OR_OP, head->evalType, next->evalType)) {
       head = new BitLogicalOperatorNode(OR_OP, head, next);
     } else {
-      throw StaticTypeException(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical OR", head->evalType, next->evalType);  
+      throw StaticTypeError(head->startLine+1, next->endLine+1, getCodeLineBlock(head->startLine, next->endLine), "logical OR", head->evalType, next->evalType);  
     }
   }
  
@@ -716,9 +748,9 @@ AbstractExpressionNode* evalAssignment() {
   
   if(var && isAssignmentOperatorTokenType(peek()->type)) {
   
-    //make sure variable is already declared in some scope
+    //make sure the variable is already declared in some scope
     if(!symbolTable->isDeclared(var->variable)) {
-      throw StaticVariableScopeException(var->startLine+1, var->variable, getCodeLineBlock(var->startLine, var->startLine), false);
+      throw StaticVariableScopeError(var->startLine+1, var->variable, getCodeLineBlock(var->startLine, var->startLine), false);
     }
     
     //get variable's type
@@ -726,6 +758,38 @@ AbstractExpressionNode* evalAssignment() {
     
     Token* assignmentToken = consume();
     AbstractExpressionNode* next = evalAssignment();
+		
+		//make sure the assignment operation is even valid
+		if(assignmentToken->type != EQ) {
+
+			ParseOperatorType opType;
+			switch(assignmentToken->type) {
+				case ADD_EQ: opType = ADD_OP; break;
+				case SUBTRACT_EQ: opType = SUBTRACT_OP; break;
+				case EXPONENT_EQ: opType = EXPONENT_OP; break;
+				case MULTIPLY_EQ: opType = MULTIPLY_OP; break;
+				case DIVIDE_EQ: opType = DIVIDE_OP; break;
+				case AND_EQ: opType = AND_OP; break;
+				case XOR_EQ: opType = XOR_OP; break;
+				case OR_EQ: opType = OR_OP; break;
+				default: opType = INVALID_OP;
+			}
+
+			if(isArithmeticParseOperatorType(opType)) {
+
+				if(!typecheckArithmeticExpression(opType, type, next->evalType)) {
+					throw StaticTypeError(var->startLine+1, next->endLine+1, getCodeLineBlock(var->startLine, next->endLine), 
+																toStringParseOperatorType(opType), type, next->evalType); 
+				}
+
+			} else {
+
+				if(!typecheckBitLogicalExpression(opType, type, next->evalType)) {
+					throw StaticTypeError(var->startLine+1, next->endLine+1, getCodeLineBlock(var->startLine, next->endLine), 
+																toStringParseOperatorType(opType), type, next->evalType); 
+				}
+			}
+		}
     
     switch(assignmentToken->type) {
       case EQ: break;
@@ -761,8 +825,7 @@ AbstractExpressionNode* evalAssignment() {
     
     //now make sure that implicit type cast is valid
     if(!typecheckImplicitCastExpression(next->evalType, type)) {
-      //!!!
-      throw StaticCastException(var->startLine+1, next->endLine+1, getCodeLineBlock(var->startLine, next->endLine), next->evalType, type, false);
+      throw StaticCastError(var->startLine+1, next->endLine+1, getCodeLineBlock(var->startLine, next->endLine), next->evalType, type, false);
     }
     
     return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
@@ -782,6 +845,9 @@ AbstractStatementNode* addStatement() {
   Token* t = peek();
   
   //first check for declaration and assignment
+	Token* leftBracket;
+	Token* rightBracket;
+
   if(isTypeTokenType(t->type)) {
    
     //variable declaration
@@ -790,19 +856,26 @@ AbstractStatementNode* addStatement() {
 		//only in the case of an array
 		ParseDataType subtype;
 
-    consume(); //consume type Token
+    Token* typeToken = consume(); //consume type Token
 
 		//check if it is an array type
 		if(peek()->type == LEFT_BRACKET) {
 
-			Token* leftBracket = consume();
+			leftBracket = consume();
 
 			if(peek()->type != RIGHT_BRACKET) {
-				cout << "ERROR: require ']' to declare array type" << endl;
-				return NULL;
+				Token* invalidToken = consume();
+
+				if(invalidToken->type == END) {
+					throw ParseSyntaxError(typeToken->line+1, invalidToken->line+1, getCodeLineBlock(typeToken->line, invalidToken->line),
+														"Expected ']' as part of array type declaration");
+				} else {
+					throw ParseSyntaxError(typeToken->line+1, invalidToken->line+1, getCodeLineBlock(typeToken->line, invalidToken->line),
+																invalidToken->lexeme, "Expected ']' as part of array type declaration");
+				}
 			}
 
-			Token* rightBracket = consume();
+			rightBracket = consume();
 
 			//update typing
 			subtype = type;
@@ -813,9 +886,18 @@ AbstractStatementNode* addStatement() {
     Token* variableToken = consume();
 		string variable((char*) variableToken->lexeme);
 
+		//make sure the token is an actual variable
+		if(variableToken->type != VARIABLE) {
+			if(variableToken->type == END) {
+				throw ParseSyntaxError(typeToken->line+1, getCodeLineBlock(typeToken->line, typeToken->line), "Expected variable name in declaration");
+			} else {
+				throw ParseSyntaxError(typeToken->line+1, variableToken->line+1, getCodeLineBlock(typeToken->line, variableToken->line), "Expected variable name in declaration");
+			}
+		}
+
     //make sure variable is not already declared
     if(symbolTable->isDeclaredInScope(variable)) {
-      throw StaticVariableScopeException(variableToken->line+1, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
+      throw StaticVariableScopeError(variableToken->line+1, variableToken->lexeme, getCodeLineBlock(variableToken->line, variableToken->line), true); 
     }
     
     //if being assigned an initial value
@@ -846,7 +928,7 @@ AbstractStatementNode* addStatement() {
 			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
         //!!!
-        throw StaticCastException(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
+        throw StaticCastError(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
       } else {
         return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
       }
@@ -866,7 +948,7 @@ AbstractStatementNode* addStatement() {
     
     //make sure variable is already declared in some scope
     if(!symbolTable->isDeclared(variable)) {
-      throw StaticVariableScopeException(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
+      throw StaticVariableScopeError(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
     //get variable type (and maybe array element subtype) from the symbol table
@@ -956,7 +1038,7 @@ AbstractStatementNode* addStatement() {
 
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
-      throw StaticCastException(varToken->line+1, expression->endLine+1, getCodeLineBlock(varToken->line, expression->endLine), expression->evalType, type, false);
+      throw StaticCastError(varToken->line+1, expression->endLine+1, getCodeLineBlock(varToken->line, expression->endLine), expression->evalType, type, false);
     } else {
       return new AssignmentStatementNode(variable, expression, symbolTable);
     }

@@ -4,7 +4,7 @@
 #include <cctype>
 #include <vector>
 
-#include "exceptions.h"
+#include "errors.h"
 #include "token.h"
 #include "lexer.h"
 
@@ -415,7 +415,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       //if closing quotation mark is not found, throw an error
       if(currentIndex == codeLength) {
         // !!!
-        throw LexerException(startLine+1, codeLines->at(startLine), lexeme, "String literal not terminated with \"");         
+        throw LexerError(startLine+1, codeLines->at(startLine), lexeme, "String literal not terminated with \"");         
       }
 
 
@@ -445,7 +445,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
               errorLex[i-index] = code[i];
             }
             errorLex[currentIndex-index+1] = '\0';   
-            throw LexerException(line+1, codeLines->at(line), errorLex, "Number literal can have at most 1 decimal point"); 
+            throw LexerError(line+1, codeLines->at(line), errorLex, "Number literal can have at most 1 decimal point"); 
             
           } else {
             decimalCount++;
@@ -483,7 +483,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
        strncpy(errorLexeme, code+index, currentIndex-index+1);
        errorLexeme[currentIndex-index+1] = '\0';
        
-       throw LexerException(line+1, codeLines->at(line), errorLexeme, "Number literal can only contain digits and <= 1 decimal point"); 
+       throw LexerError(line+1, codeLines->at(line), errorLexeme, "Number literal can only contain digits and <= 1 decimal point"); 
       }
 
       index = currentIndex;
@@ -502,7 +502,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         strncpy(errorLexeme, code+index, currentIndex-index+1);
         errorLexeme[currentIndex-index+1] = 0;
         
-        throw LexerException(line+1, codeLines->at(line), errorLexeme, "Identifier can only contain digits, letters, and underscores");
+        throw LexerError(line+1, codeLines->at(line), errorLexeme, "Identifier can only contain digits, letters, and underscores");
       } 
       
       char* lexeme = new char[currentIndex-index+1];
@@ -536,8 +536,9 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       index++;
     }
   }
-    
-  tokens.push_back(makeToken(END, line, "END"));
+  
+
+  tokens.push_back(makeToken(END, tokens[tokens.size()-1].line, "END"));
 
   return tokens;
 }

@@ -83,8 +83,10 @@ bool isUnsignedIntParseDataType(ParseDataType p);
 
 ParseDataType getLargerNumberParseDataType(ParseDataType p1, ParseDataType p2);
 
+bool isArithmeticParseOperatorType(ParseOperatorType p);
 bool isBitwiseParseOperatorType(ParseOperatorType p);
 bool isLogicalParseOperatorType(ParseOperatorType p);
+bool isBitLogicalParseOperatorType(ParseOperatorType p);
 
 
 ////////////////////////////////////

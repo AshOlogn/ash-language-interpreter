@@ -210,12 +210,14 @@ std::string ArrayAccessNode::toString() {
 ///////////////////////////////////
 
 //represents an array of primitive values
-ArrayNode::ArrayNode(ParseDataType sType, bool isInit, AbstractExpressionNode* len, AbstractExpressionNode** vals) {
+ArrayNode::ArrayNode(ParseDataType sType, bool isInit, AbstractExpressionNode* len, AbstractExpressionNode** vals, uint32_t startLine, uint32_t endLine) {
 	evalType = ARRAY_T;
 	subType = sType;
 	isInitialized = isInit;
 	length = len;
 	values = vals;
+	this->startLine = startLine;
+	this->endLine = endLine;
 }
 
 ParseData ArrayNode::evaluate() {

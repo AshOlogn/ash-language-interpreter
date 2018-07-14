@@ -4,11 +4,11 @@
 #include <exception>
 #include "utils.h"
 #include "parsetoken.h"
-#include "exceptions.h"
+#include "errors.h"
 
-const char* LexerException::what() const throw() {
+const char* LexerError::what() const throw() {
   
-  std::string str  = "LexerException on line ";
+  std::string str  = "LexerError on line ";
   str.append(std::to_string(lineNumber));
   str.append(":\n\t");
   str.append(context);
@@ -20,15 +20,15 @@ const char* LexerException::what() const throw() {
   return copyString(str.c_str());
 }
 
-const char* ParseSyntaxException::what() const throw() {
+const char* ParseSyntaxError::what() const throw() {
   
   std::string str = "";
   
   if(startLineNumber == endLineNumber) {
-    str.append("ParseSyntaxException error on line ");
+    str.append("ParseSyntaxError error on line ");
     str.append(std::to_string(startLineNumber));
   } else {
-    str.append("ParseSyntaxException error from line ");
+    str.append("ParseSyntaxError error from line ");
     str.append(std::to_string(startLineNumber));
     str.append(" to ");
     str.append(std::to_string(endLineNumber));
@@ -48,15 +48,15 @@ const char* ParseSyntaxException::what() const throw() {
   return copyString(str.c_str());
 }
 
-const char* StaticTypeException::what() const throw() {
+const char* StaticTypeError::what() const throw() {
 
   std::string str = "";
   
   if(startLineNumber == endLineNumber) {
-    str.append("StaticTypeException error on line ");
+    str.append("StaticTypeError error on line ");
     str.append(std::to_string(startLineNumber));
   } else {
-    str.append("StaticTypeException from line ");
+    str.append("StaticTypeError from line ");
     str.append(std::to_string(startLineNumber));
     str.append(" to line ");
     str.append(std::to_string(endLineNumber));
@@ -90,9 +90,9 @@ const char* StaticTypeException::what() const throw() {
 }
 
 
-const char* StaticVariableScopeException::what() const throw() {
+const char* StaticVariableScopeError::what() const throw() {
 
-  std::string str = "StaticVariableScopeException on line ";
+  std::string str = "StaticVariableScopeError on line ";
   str.append(std::to_string(lineNumber));
   str.append("\n");
   str.append(context);
@@ -111,15 +111,15 @@ const char* StaticVariableScopeException::what() const throw() {
   return copyString(str.c_str());
 }
 
-const char* StaticCastException::what() const throw() {
+const char* StaticCastError::what() const throw() {
 
   std::string str = "";
 
   if(startLineNumber == endLineNumber) {
-    str.append("StaticCastException on line ");
+    str.append("StaticCastError on line ");
     str.append(std::to_string(startLineNumber));
   } else {
-    str.append("StaticCastException from line ");
+    str.append("StaticCastError from line ");
     str.append(std::to_string(startLineNumber));
     str.append(" to line ");
     str.append(std::to_string(endLineNumber));

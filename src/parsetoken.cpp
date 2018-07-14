@@ -115,6 +115,10 @@ ParseDataType getLargerNumberParseDataType(ParseDataType p1, ParseDataType p2) {
 
 }
 
+bool isArithmeticParseOperatorType(ParseOperatorType p) {
+	return p == EXPONENT_OP || p == DIVIDE_OP || p == MULTIPLY_OP ||
+				 p == MOD_OP || p == ADD_OP || p == SUBTRACT_OP;
+}
 
 bool isBitwiseParseOperatorType(ParseOperatorType p) {
 
@@ -125,6 +129,10 @@ bool isBitwiseParseOperatorType(ParseOperatorType p) {
 bool isLogicalParseOperatorType(ParseOperatorType p) {
   
   return p == AND_OP || p == XOR_OP || p == OR_OP || p == NOT_OP;
+}
+
+bool isBitLogicalParseOperatorType(ParseOperatorType p) {
+	return isBitwiseParseOperatorType(p) || isLogicalParseOperatorType(p);
 }
 
 

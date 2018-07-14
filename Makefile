@@ -1,7 +1,7 @@
 # Makefile for compiling the interpreter and cleaning binaries 
 
 source = main.cpp \
-	exceptions.cpp \
+	errors.cpp \
 	token.cpp \
 	lexer.cpp \
 	parsetoken.cpp \
@@ -26,7 +26,7 @@ source = main.cpp \
 	parser.cpp
 	
 include = token.h \
-	exceptions.h \
+	errors.h \
 	lexer.h \
 	parsetoken.h \
 	parsenode.h \
