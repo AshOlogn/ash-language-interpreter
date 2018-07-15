@@ -903,22 +903,30 @@ AbstractStatementNode* addStatement() {
     //if being assigned an initial value
     if(peek()->type == EQ) {
       
-      consume(); //consume = Token
+      Token* equalToken = consume(); //consume = Token
       AbstractExpressionNode* expression = evalExpression();
 
       //check implicit casting validity
 			if(type == ARRAY_T) {
 
 				if(expression->evalType != ARRAY_T) {
-					cout << "ERROR: can't cast current type to an array" << endl;
-					return NULL;	
+					uint32_t startLine = typeToken->line+1;
+					uint32_t endLine = equalToken->line+1;
+					throw StaticCastError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), expression->evalType, ARRAY_T, false);
 				}
 
-				cout << "subtype fuckery " << toStringParseDataType(expression->subType) << endl;
-
+				//make sure array members can be implicitly cast to type of array being assigned to
 				if(!typecheckImplicitCastExpression(expression->subType, subtype)) {
-					cout << "ERROR: array's member type can't be implicitly casted!" << endl;
-					return NULL;
+
+					uint32_t startLine = typeToken->line+1;
+					uint32_t endLine = equalToken->line+1;
+
+					string message = "Cannot implicitly cast array members of type ";
+					message.append(toStringParseDataType(expression->subType));
+					message.append(" to type ");
+					message.append(toStringParseDataType(subtype));
+
+					throw StaticCastError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
 				}
 
 				//return 	NewAssignmentStatementNode with specified expression
@@ -927,7 +935,6 @@ AbstractStatementNode* addStatement() {
 
 			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
-        //!!!
         throw StaticCastError(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
       } else {
         return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
@@ -953,7 +960,7 @@ AbstractStatementNode* addStatement() {
     
     //get variable type (and maybe array element subtype) from the symbol table
 		ParseDataType type;
-		ParseDataType subtype;
+		ParseDataType subtype = INVALID_T;
 
     type = (symbolTable->get(variable)).type;
 		if(type == ARRAY_T) {
@@ -967,29 +974,46 @@ AbstractStatementNode* addStatement() {
 		AbstractExpressionNode* arrIndex;
 		if(peek()->type == LEFT_BRACKET) {
 
+			Token* leftBracketToken = consume();
+
+			//make sure it is an array
 			if(type != ARRAY_T) {
-				cout << "ERROR: retrieved variable is not string or array and cannot be indexed" << endl;
-				return NULL;
+				uint32_t startLine = varToken->line+1;
+				uint32_t endLine = leftBracketToken->line+1;
+				throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "array index assignment", type);
 			}
 
-			Token* leftBracketToken = consume();
 			arrIndex = evalExpression();
-			
+
+			//make sure array index is an integer
+			if(!typecheckMemberAccessExpression(arrIndex->evalType)) {
+				uint32_t startLine = varToken->line+1;
+				uint32_t endLine = arrIndex->endLine+1;
+				throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "array indexing", arrIndex->evalType); 
+			}
+
 			if(peek()->type != RIGHT_BRACKET) {
-				cout << "ERROR: require closing ']' in array index assignment syntax" << endl;
-				return NULL;
+				uint32_t startLine = varToken->line+1;
+				uint32_t endLine = arrIndex->endLine+1;
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Array indexing operation must end with ']'");
 			}
 
 			Token* rightBracketToken = consume();
 			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line), arrIndex, -1);
 		}
 
-    Token* assignmentToken;
-    if(!isAssignmentOperatorTokenType(peek()->type)) {
-      std::cout << "'=' must follow variable name when assigning value" << std::endl;
-      return NULL;
-    } else {
-      assignmentToken = consume(); //consume = 
+		//variable must be assigned (can't just be declared)
+    Token* assignmentToken = consume();
+    if(!isAssignmentOperatorTokenType(assignmentToken->type)) {
+
+      uint32_t startLine = varToken->line+1;
+			uint32_t endLine = (assignmentToken->type == END) ? arrIndex->endLine+1 : assignmentToken->line+1;
+
+			if(assignmentToken->type == END) {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '=' followed by assignment value");
+			} else {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), assignmentToken->lexeme, "Expected '=' followed by assignment value");
+			}
     }
     
     AbstractExpressionNode* expression = evalExpression();
@@ -1057,14 +1081,23 @@ AbstractStatementNode* addStatement() {
     }
     
     case LEFT_BRACE: {
-      consume();
+      
+			Token* leftBraceToken = consume();
       vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();
       
       //enter a new scope in symbol table (for static scope-checking)
       symbolTable->enterNewScope();
-      
+			AbstractStatementNode* currentStatement = NULL;
+
       while(peek()->type != RIGHT_BRACE) {
-        statements->push_back(addStatement());  
+
+				//make sure closing brace is found before code ends
+				if(peek()->type == END) {
+					//TODO
+				}
+
+				currentStatement = addStatement();
+        statements->push_back(currentStatement);  
       }
       
       consume(); //consume right brace

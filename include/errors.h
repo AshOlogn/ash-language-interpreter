@@ -41,7 +41,7 @@ class ParseSyntaxError : public std::exception {
     //multiple lines, lexeme specified
     ParseSyntaxError(uint32_t startLine, uint32_t endLine, const char* con, const char* lex, const char* mes) 
       : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, lexeme{lex}, message{mes} {}
-
+		
     //multiple lines, no lexeme specified
     ParseSyntaxError(uint32_t startLine, uint32_t endLine, const char* con, const char* mes) 
       : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, lexeme{NULL}, message{mes} {}
@@ -96,12 +96,16 @@ class StaticCastError : public std::exception {
     const ParseDataType originalType;
     const ParseDataType finalType;
     const char* context;
+		const char* message;
     const bool isExplicit;
     const uint32_t startLineNumber;
     const uint32_t endLineNumber;
     
     StaticCastError(uint32_t startLine, uint32_t endLine, const char* con, ParseDataType origType, ParseDataType finType, bool isExp)
-      : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, originalType{origType}, finalType{finType}, isExplicit{isExp} {} 
+      : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, message{NULL}, originalType{origType}, finalType{finType}, isExplicit{isExp} {} 
+
+		StaticCastError(uint32_t startLine, uint32_t endLine, const char* con, const char* msg)
+      : startLineNumber{startLine}, endLineNumber{endLine}, context{con}, message{msg}, originalType{INVALID_T}, finalType{INVALID_T}, isExplicit{false} {}
 
     const char* what() const throw();
 };

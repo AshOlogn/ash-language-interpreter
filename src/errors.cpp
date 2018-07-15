@@ -128,6 +128,11 @@ const char* StaticCastError::what() const throw() {
   str.append("\n");
   str.append(context);
 
+	if(message != NULL) {
+		str.append(message);
+		return copyString(str.c_str());
+	}
+
   if(isExplicit) {
     str.append("Cannot cast at all from type ");
   } else {
