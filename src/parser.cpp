@@ -1110,28 +1110,43 @@ AbstractStatementNode* addStatement() {
     
     case WHILE: {
     
-      consume(); //consume while Token
+      Token* whileToken = consume(); //consume while Token
       AbstractExpressionNode* condition = evalExpression();
       
+			//make sure the conditional expression is a boolean
       if(condition->evalType != BOOL_T) {
-        std::cout << "ERROR: expression must evaluate to a bool" << std::endl;
-        return NULL;
+
+				uint32_t startLine = whileToken->line+1;
+				uint32_t endLine = condition->endLine+1;
+
+				string message = "Expected bool expression for while condition, not a ";
+				message.append(toStringParseDataType(condition->evalType));
+				message.append(" one");
+
+        throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
       }
       
       AbstractStatementNode* body = addStatement();
-      
       return new WhileStatementNode(condition, body, symbolTable);
     }
     
     case FOR: {
       
-      consume(); //consume for Token
-      
-      if(peek()->type != LEFT_PAREN) {
-        std::cout << "ERROR: ( must follow 'for'" << std::endl;
-        return NULL;
-      } else {
-        consume();
+      Token* forToken = consume(); //consume for Token
+      Token* leftParenToken = consume();
+
+
+			//make sure the syntax is exactly correct
+      if(leftParenToken->type != LEFT_PAREN) {
+
+				uint32_t startLine = forToken->line+1;
+				uint32_t endLine = (leftParenToken->type == END) ? startLine : leftParenToken->line+1;
+
+				if(leftParenToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '(' following 'for' declaration");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftParenToken->lexeme, "Expected '(' following 'for' declaration");
+				}
       }
       
       AbstractStatementNode* initialization = addStatement();
@@ -1176,12 +1191,21 @@ AbstractStatementNode* addStatement() {
       vector<AbstractStatementNode*>* stat = new vector<AbstractStatementNode*>();
       
       //consume the IF token and add first condition-statement pair
-      consume();
+      Token* ifToken = consume();
       AbstractExpressionNode* e = evalExpression();
       
+			//make sure the condition is a boolean
       if(e->evalType != BOOL_T) {
-        cout << "Conditional must take a boolean expression" << endl;
-        return NULL;
+        
+				uint32_t startLine = ifToken->line+1;
+				uint32_t endLine = e->endLine+1;
+
+				string message = "'if' condition requires bool expression, not a ";
+				message.append(toStringParseDataType(e->evalType));
+				message.append(" one");
+
+				throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+
       } else {
         cond->push_back(e);
         stat->push_back(addStatement());
@@ -1193,12 +1217,21 @@ AbstractStatementNode* addStatement() {
         if(peek()->type == ELIF) {
           
           //consume ELIF token and add condition-statement pair
-          consume();
+          Token* elifToken = consume();
           AbstractExpressionNode* exp = evalExpression();
           
+					//make sure the condition is a boolean
           if(exp->evalType != BOOL_T) {
-            cout << "Conditional must take a boolean expression" << endl;
-            return NULL;
+
+						uint32_t startLine = elifToken->line+1;
+						uint32_t endLine = exp->endLine+1;
+
+						string message = "'elif' condition requires a bool expression, not a ";
+						message.append(toStringParseDataType(exp->evalType));
+						message.append(" one");
+
+            throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+
           } else {
             cond->push_back(exp);
             stat->push_back(addStatement());
@@ -1230,15 +1263,22 @@ AbstractStatementNode* addStatement() {
 
 		case FUN: {
 
-			consume(); //consume the FUN token
+			Token* funToken = consume(); //consume the FUN token
+			Token* varToken = consume(); //function name
 
 			//next token should be a variable, the function name
-			if(peek()->type != VARIABLE) {
-				cout << "ERROR: expected function name after 'fun' keyword" << endl;
-				return NULL;
+			if(varToken->type != VARIABLE) {
+
+				uint32_t startLine = funToken->line+1;
+				uint32_t endLine = (varToken->type == END) ? startLine : varToken->line+1;
+
+				if(varToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "expected function name after 'fun' declaration");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), varToken->lexeme, "expected function name after 'fun' declaration");
+				} 
 			}
 
-			Token* varToken = consume(); //function name
 			string functionName(varToken->lexeme);
 
 			//now create a Function struct
@@ -1251,12 +1291,20 @@ AbstractStatementNode* addStatement() {
 			returnValue.push_back(function->returnValue);
 
 			//now read in arguments enclosed in parentheses
-			if(peek()->type != LEFT_PAREN) {
-				cout << "ERROR: expected parentheses containing function arguments" << endl;
-				return NULL;
+			Token* leftParenToken = consume(); //consume (
+
+			//if the next token is not a parenthesis, throw an error
+			if(leftParenToken->type != LEFT_PAREN) {
+
+				uint32_t startLine = funToken->line+1;
+				uint32_t endLine = (leftParenToken->type == END) ? varToken->line+1 : leftParenToken->line+1;
+
+				if(leftParenToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '(' to begin function parameter list"); 
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftParenToken->lexeme, "Expected '(' to begin function parameter list");
+				}
 			}
-			
-			consume(); //consume (
 			
 			//first scan to figure out how many arguments must be allocated in Function
 			uint32_t currentIndex = 0;
