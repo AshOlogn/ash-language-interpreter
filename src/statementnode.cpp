@@ -11,6 +11,8 @@
 ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
   expression = exp;
   symbolTable = table;
+	startLine = exp->startLine;
+	endLine = exp->endLine;
 }
 
 void ExpressionStatementNode::execute() {
@@ -18,9 +20,11 @@ void ExpressionStatementNode::execute() {
 }
 
 //represents print statement (no new line character)
-PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
+PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* table, uint32_t startLine) {
   expression = exp;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = exp->endLine;
 }
 
 void PrintStatementNode::execute() {
@@ -28,9 +32,11 @@ void PrintStatementNode::execute() {
 }
 
 //represents print statement (yes new line character)
-PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* table) {
+PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* table, uint32_t startLine) {
   expression = exp;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = exp->endLine;
 }
 
 void PrintLineStatementNode::execute() {
@@ -39,9 +45,11 @@ void PrintLineStatementNode::execute() {
 
 
 //represents a group of statements in braces
-GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* table) {
+GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* table, uint32_t startLine, uint32_t endLine) {
   statements = s;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = endLine;
 }
 
 void GroupedStatementNode::execute() {
@@ -50,10 +58,12 @@ void GroupedStatementNode::execute() {
 
 
 //represents if-elif-else structure
-ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* table) {
+ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* table, uint32_t startLine, uint32_t endLine) {
   conditions = cond;
   statements = stat;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = endLine;
 }
 
 void ConditionalStatementNode::execute() {
@@ -61,10 +71,12 @@ void ConditionalStatementNode::execute() {
 }
 
 //represents while loop
-WhileStatementNode::WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* table) {
+WhileStatementNode::WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* table, uint32_t startLine) {
   condition = cond;
   body = bod;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = bod->endLine;
 }
 
 void WhileStatementNode::execute() {
@@ -81,12 +93,14 @@ void WhileStatementNode::execute() {
 }
 
 //represents for loop
-ForStatementNode::ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* table) {
+ForStatementNode::ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* table, uint32_t startLine) {
   initialization = init;
   update = upd;
   body = bod;
   condition = cond;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = bod->endLine;
 }
 
 void ForStatementNode::execute() {
@@ -110,12 +124,14 @@ void ForStatementNode::execute() {
 }
 
 //represents declaration (and maybe assignment) of a new variable
-NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* table, uint32_t startLine) {
   
 	variable = var;
 	type = typ;
 	value = val;
 	symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = val->endLine;
   
   //add variable to table with correctly-typed dummy value    
   ParseData d;
@@ -131,11 +147,13 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDat
   symbolTable->declare(variable, d);
 }
 
-NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* table) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* table, uint32_t startLine, uint32_t endLine) {
 	variable = var;
 	type = typ;
   value = NULL;
 	symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = endLine;
   
   //add variable to table with correctly-typed dummy value    
   ParseData d;
@@ -148,10 +166,12 @@ void NewAssignmentStatementNode::execute() {
 }
 
 //represents existing variable assignment
-AssignmentStatementNode::AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* table) {
+AssignmentStatementNode::AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* table, uint32_t startLine) {
   variable = var;
   value = val;
   symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = val->endLine;
 }
 
 void AssignmentStatementNode::execute() {
@@ -160,11 +180,13 @@ void AssignmentStatementNode::execute() {
 
 
 //represents array index assignment, like arr[i] = 5
-ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* table) {
+ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* table, uint32_t startLine) {
 	variable = var;
 	index = ind;
 	value = val;
 	symbolTable = table;
+	this->startLine = startLine;
+	this->endLine = val->endLine;
 }
 
 void ArrayAssignmentStatementNode::execute() {
@@ -172,10 +194,12 @@ void ArrayAssignmentStatementNode::execute() {
 }
 
 //represents return statement in a function
-ReturnStatementNode::ReturnStatementNode(AbstractExpressionNode* exp, bool* retFlag, ParseData* retVal) {
+ReturnStatementNode::ReturnStatementNode(AbstractExpressionNode* exp, bool* retFlag, ParseData* retVal, uint32_t startLine) {
 	expression = exp;
 	returnFlag = retFlag;
 	returnValue = retVal;
+	this->startLine = startLine;
+	this->endLine = exp->endLine;
 }
 
 void ReturnStatementNode::execute() {

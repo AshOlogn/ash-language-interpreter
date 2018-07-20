@@ -930,19 +930,19 @@ AbstractStatementNode* addStatement() {
 				}
 
 				//return 	NewAssignmentStatementNode with specified expression
-				return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
+				return new NewAssignmentStatementNode(variable, type, expression, symbolTable, typeToken->line+1);
 			}
 
 			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
         throw StaticCastError(variableToken->line+1, expression->endLine+1, getCodeLineBlock(variableToken->line, expression->endLine), expression->evalType, type, false); 
       } else {
-        return new NewAssignmentStatementNode(variable, type, expression, symbolTable);
+        return new NewAssignmentStatementNode(variable, type, expression, symbolTable, typeToken->line+1);
       }
       
     } else {  
       //no initial value (IMPOSSIBLE for array for now)
-      return new NewAssignmentStatementNode(variable, type, symbolTable);
+      return new NewAssignmentStatementNode(variable, type, symbolTable, typeToken->line+1, variableToken->line+1);
     }
     
   } else if(t->type == VARIABLE) {
@@ -999,7 +999,7 @@ AbstractStatementNode* addStatement() {
 			}
 
 			Token* rightBracketToken = consume();
-			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line), arrIndex, -1);
+			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line), arrIndex, rightBracketToken->line+1);
 		}
 
 		//variable must be assigned (can't just be declared)
@@ -1057,14 +1057,14 @@ AbstractStatementNode* addStatement() {
     
 		//if array assignment, just deal with it here for now
 		if(type == ARRAY_T) {
-			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable);
+			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, );
 		}
 
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
       throw StaticCastError(varToken->line+1, expression->endLine+1, getCodeLineBlock(varToken->line, expression->endLine), expression->evalType, type, false);
     } else {
-      return new AssignmentStatementNode(variable, expression, symbolTable);
+      return new AssignmentStatementNode(variable, expression, symbolTable, varToken->line+1);
     }
   }
 	
@@ -1072,12 +1072,12 @@ AbstractStatementNode* addStatement() {
     
     case PRINTLN: {
       consume();
-      return new PrintLineStatementNode(evalExpression(), symbolTable);
+      return new PrintLineStatementNode(evalExpression(), symbolTable, t->line+1);
     }
     
     case PRINT: {  
       consume();
-      return new PrintStatementNode(evalExpression(), symbolTable);
+      return new PrintStatementNode(evalExpression(), symbolTable, t->line+1);
     }
     
     case LEFT_BRACE: {
@@ -1089,6 +1089,7 @@ AbstractStatementNode* addStatement() {
       symbolTable->enterNewScope();
 			AbstractStatementNode* currentStatement = NULL;
 
+			uint32_t currentEndLine = leftBraceToken->line+1;
       while(peek()->type != RIGHT_BRACE) {
 
 				//make sure closing brace is found before code ends
@@ -1097,15 +1098,16 @@ AbstractStatementNode* addStatement() {
 				}
 
 				currentStatement = addStatement();
+				currentEndLine = currentStatement->endLine;
         statements->push_back(currentStatement);  
       }
       
-      consume(); //consume right brace
+      Token* rightBraceToken = consume(); //consume right brace
       
       //leave scope
       symbolTable->leaveScope();
       
-      return new GroupedStatementNode(statements, symbolTable);
+      return new GroupedStatementNode(statements, symbolTable, leftBraceToken->line+1, rightBraceToken->line+1);
     }
     
     case WHILE: {
@@ -1135,7 +1137,6 @@ AbstractStatementNode* addStatement() {
       Token* forToken = consume(); //consume for Token
       Token* leftParenToken = consume();
 
-
 			//make sure the syntax is exactly correct
       if(leftParenToken->type != LEFT_PAREN) {
 
@@ -1159,21 +1160,33 @@ AbstractStatementNode* addStatement() {
       }
       
       AbstractExpressionNode* condition = evalExpression();
-      
       if(condition->evalType != BOOL_T) {
-        std::cout << "ERROR: expression must evaluate to a bool" << std::endl;
-        return NULL;
+				
+        uint32_t startLine = forToken->line+1;
+				uint32_t endLine = condition->endLine+1;
+
+				string message = "Expected bool expression for 'for' termination condition, not a ";
+				message.append(toStringParseDataType(condition->evalType));
+				message.append(" one");
+
+				throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
       }
       
-      if(peek()->type != SEMICOLON) {
-        std::cout << "ERROR: ; expected in 'for' construct" << std::endl;
-        return NULL;
-      } else {
-        consume();
+			//syntax error if ; not found
+			Token* semicolonToken = consume();
+      if(semicolonToken->type != SEMICOLON) {
+
+				uint32_t startLine = forToken->line+1;
+				uint32_t endLine = (semicolonToken->type == END) ? condition->endLine+1 : semicolonToken->line+1;
+
+				if(semicolonToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected ; after termination condition in 'for' loop");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), semicolonToken->lexeme, "Expected ; after termination condition in 'for' loop");
+				}
       }
       
       AbstractStatementNode* update = addStatement();
-      
       if(peek()->type != RIGHT_PAREN) {
         std::cout << "ERROR: ) must follow here in 'for' construct" << std::endl;
         return NULL;
@@ -1273,9 +1286,9 @@ AbstractStatementNode* addStatement() {
 				uint32_t endLine = (varToken->type == END) ? startLine : varToken->line+1;
 
 				if(varToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "expected function name after 'fun' declaration");
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function name after 'fun' declaration");
 				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), varToken->lexeme, "expected function name after 'fun' declaration");
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), varToken->lexeme, "Expected function name after 'fun' declaration");
 				} 
 			}
 
@@ -1310,29 +1323,57 @@ AbstractStatementNode* addStatement() {
 			uint32_t currentIndex = 0;
 			uint32_t argCount = 0;
 
+			uint32_t currentErrorLine = leftParenToken->line+1;
 			while(peekAhead(currentIndex)->type != RIGHT_PAREN) {
 
 				//make sure you have a type then variable
 				if(!isTypeTokenType(peekAhead(currentIndex)->type)) {
-					cout << "ERROR: expected argument type" << endl;
-					return NULL;	
+
+					Token* tempTypeToken = peekAhead(currentIndex);
+					uint32_t startLine = funToken->line+1;	
+					uint32_t endLine = (tempTypeToken->type == END) ? currentErrorLine : tempTypeToken->line+1;
+
+					if(tempTypeToken->type == END) {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter type");
+					} else {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempTypeToken->lexeme, "Expected function parameter type");
+					}
 				}
+				currentErrorLine = peekAhead(currentIndex)->line+1;
 				currentIndex++;
 
+				//make sure parameter name follows type
 				if(peekAhead(currentIndex)->type != VARIABLE) {
-					cout << "ERROR: expected argument variable name" << endl;
-					return NULL;
-				}
-				currentIndex++;
 
+					Token* tempVariableToken = peekAhead(currentIndex);
+					uint32_t startLine = funToken->line+1;
+					uint32_t endLine = (tempVariableToken->type == END) ? currentErrorLine : tempVariableToken->line+1;
+
+					if(tempVariableToken->type == END) {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter name");
+					} else {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempVariableToken->lexeme, "Expected function parameter name");
+					}
+				}
+				currentErrorLine = peekAhead(currentIndex)->line+1;
+				currentIndex++;
 				argCount++;
 
 				//if next token is not closing parenthesis, it must be a comma
-				TokenType nextToken = peekAhead(currentIndex)->type;
-				if(nextToken != RIGHT_PAREN && nextToken != COMMA) {
-					cout << "ERROR: expected comma separating arguments or closing parenthesis" << endl;
-					return NULL;
-				} else if(nextToken == COMMA) {
+				Token* nextToken = peekAhead(currentIndex);				
+				if(nextToken->type != RIGHT_PAREN && nextToken->type != COMMA) {
+
+					uint32_t startLine = funToken->line+1;
+					uint32_t endLine = (nextToken->type == END) ? currentErrorLine : nextToken->line+1;
+
+					if(nextToken->type == END) {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected ',' separating arguments or ')' terminating argument list");
+					} else {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), nextToken->lexeme, "Expected ',' separating arguments or ')' terminating argument list"); 
+					} 
+
+				} else if(nextToken->type == COMMA) {
+					currentErrorLine = nextToken->line+1;
 					currentIndex++; //"consume" COMMA token
 				}
 			}
@@ -1357,19 +1398,40 @@ AbstractStatementNode* addStatement() {
 				if(argIndex < argCount)
 					consume(); //consume ,
 			}
-			consume(); //consume ')' token
+			leftParenToken = consume(); //consume ')' token
 
 			function->argTypes = argTypes;
 			function->argNames = argNames;
 
 			//now get the return type
-			if(peek()->type != RIGHTARROW) {
-				cout << "ERROR: expected -> followed by a return type" << endl;
-				return NULL;
-			}
-			consume(); //consume ->
+			Token* rightArrowToken = consume(); //consume ->
+			if(rightArrowToken->type != RIGHTARROW) {
 
-			function->returnType = typeTokenConversion(consume()->type);
+				uint32_t startLine = funToken->line+1;
+				uint32_t endLine = (rightArrowToken->line == END) ? leftParenToken->line+1 : rightArrowToken->line+1;
+
+				if(rightArrowToken->line == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected -> followed by return type");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), rightArrowToken->lexeme, "Expected -> followed by return type");
+				}
+			}
+
+			//make sure following token is a return type
+			Token* returnTypeToken = consume();
+			if(!isTypeTokenType(returnTypeToken->type)) {
+
+				uint32_t startLine = funToken->line+1;
+				uint32_t endLine = (returnTypeToken->type == END) ? rightArrowToken->line+1 : returnTypeToken->line+1;
+
+				if(returnTypeToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function return type"); 
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), returnTypeToken->lexeme, "Expected function return type"); 
+				}
+			}
+
+			function->returnType = typeTokenConversion(returnTypeToken->type);
 
 			//just declare function up front with dummy data and Function public interface data
 			//(to allow for recursive definitions)
@@ -1391,11 +1453,20 @@ AbstractStatementNode* addStatement() {
 			}
 			
 			//now store AbstractStatementNode* vector representing function body
-			if(peek()->type != LEFT_BRACE) {
-				cout << "ERROR: expected braced function body" << endl;
-				return NULL;
+
+			//make sure the body is braced
+			Token* leftBraceToken = consume(); //consume {
+			if(leftBraceToken != LEFT_BRACE) {
+
+				uint32_t startLine = funToken->line+1;
+				uint32_t endLine = (leftBraceToken->type == END) ? returnTypeToken->line+1 : leftBraceToken->line+1;
+
+				if(leftBraceToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '{' followed by function body");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftBraceToken->lexeme, "Expected '{' followed by function body");
+				}
 			}
-			consume(); //consume {
 
 			//represents statements in body
       vector<AbstractStatementNode*>* body = new vector<AbstractStatementNode*>();

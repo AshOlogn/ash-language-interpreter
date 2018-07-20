@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdint>
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "symboltable.h"
@@ -20,6 +21,8 @@ class AbstractExpressionNode;
 class AbstractStatementNode {
   
   public:
+		uint32_t startLine;
+		uint32_t endLine;
     SymbolTable* symbolTable;
     virtual void execute() = 0;
   
@@ -43,7 +46,7 @@ class PrintStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
+    PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -52,7 +55,7 @@ class PrintLineStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
+    PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -62,8 +65,8 @@ class GroupedStatementNode : public AbstractStatementNode {
 
   public:
     std::vector<AbstractStatementNode*>* statements;
-    
-    GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable);
+
+    GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
     void execute();
   
 };
@@ -75,7 +78,7 @@ class ConditionalStatementNode : public AbstractStatementNode {
     std::vector<AbstractExpressionNode*>* conditions;
     std::vector<AbstractStatementNode*>* statements;
     
-    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable);
+    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
     void execute();
 };
 
@@ -88,7 +91,7 @@ class WhileStatementNode: public AbstractStatementNode {
     AbstractStatementNode* body;
     SymbolTable* symbolTable;
     
-    WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable);
+    WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -102,7 +105,7 @@ class ForStatementNode: public AbstractStatementNode {
     AbstractExpressionNode* condition;
     SymbolTable* symbolTable;
     
-    ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable);
+    ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -114,8 +117,8 @@ class NewAssignmentStatementNode : public AbstractStatementNode {
 		ParseDataType type;
 		AbstractExpressionNode* value;
 		
-		NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable);
-		NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
 		void execute();
 };
 
@@ -127,7 +130,7 @@ class AssignmentStatementNode : public AbstractStatementNode {
     std::string variable;
     AbstractExpressionNode* value;
     
-    AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable);
+    AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -139,7 +142,7 @@ class ArrayAssignmentStatementNode : public AbstractStatementNode {
 		AbstractExpressionNode* index;
 		AbstractExpressionNode* value;
 
-		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable);
+		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t startLine);
 		void execute();
 };
 
@@ -151,7 +154,7 @@ class ReturnStatementNode : public AbstractStatementNode {
 		ParseData* returnValue;
 		AbstractExpressionNode* expression;
 
-		ReturnStatementNode(AbstractExpressionNode* expression, bool* returnFlag, ParseData* returnValue);
+		ReturnStatementNode(AbstractExpressionNode* expression, bool* returnFlag, ParseData* returnValue, uint32_t startLine);
 		void execute();
 };
 
@@ -166,7 +169,5 @@ class FunctionStatementNode : public AbstractStatementNode {
 		FunctionStatementNode(std::string functionName, SymbolTable* symbolTable);
 		void execute();
 };
-
-
 
 #endif

@@ -166,9 +166,9 @@ ParseData CastNode::evaluate() {
 ///////////////////////////////////
 
 ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, uint32_t endLin) {
-  array = arr; start = s; endLine = endLin; isSlice = false;
-  startLine = arr->startLine;
-  endLine = endLin;
+	array = arr; start = s; endLine = endLin; isSlice = false;
+	startLine = arr->startLine;
+	endLine = endLin;
 	evalType = arr->subType;
 	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
@@ -328,4 +328,3 @@ std::string GroupedExpressionNode::toString() {
   str.append(")");
   return str;
 }
-
