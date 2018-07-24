@@ -48,6 +48,7 @@ include = token.h \
 	executor.h \
 	function.h \
 	array.h \
+	class.h \
 	utils.h \
 	parser.h
 

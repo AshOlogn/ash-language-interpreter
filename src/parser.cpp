@@ -12,6 +12,7 @@
 #include "parser.h"
 #include "function.h"
 #include "array.h"
+#include "class.h"
 
 using namespace std;
 
@@ -1547,6 +1548,94 @@ AbstractStatementNode* addStatement() {
 
 			//now return a FunctionStatementNode
 			return new FunctionStatementNode(functionName, function, symbolTable);
+		}
+
+		//new class definition
+		case CLASS: {
+
+			Token* classToken = consume();
+
+			//the next token should be class name
+			Token* classNameToken = consume();
+
+			//if it's not, throw an error
+			if(classNameToken->type != VARIABLE) {
+
+				uint32_t startLine = classToken->line+1;
+				uint32_t endLine = (classNameToken->type == END) ? classToken->line+1 : classNameToken->line+1;
+
+				if(classNameToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected class name here");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), classNameToken->lexeme, "Expected class name here");
+				}
+			}
+
+			//make sure this variable has not been used yet
+			if(!symbolTable->isDeclared(string(classNameToken->lexeme))) {
+				//throw error
+			}
+
+			//now read in instance fields
+			Token* leftBraceToken = consume();
+
+			//if not '{', throw an error						
+			if(leftBraceToken->type != LEFT_BRACE) {
+
+				uint32_t startLine = classToken->line+1;
+				uint32_t endLine = (leftBraceToken->type == END) ? classNameToken->line+1 : leftBraceToken->line+1;
+
+				if(leftBraceToken->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '{' followed by instance fields and methods");
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftBraceToken->lexeme, "Expected '{' followed by instance fields and methods");
+				}
+			}
+
+			//now read in instance fields and methods
+
+			//first create a new symbol table for class body, global one is stored as temp
+			SymbolTable* standbyTable = symbolTable;
+			symbolTable = new SymbolTable();
+
+			//now add statements (variable declarations and functions)
+			vector<AbstractStatementNode*>* classBody = new vector<AbstractStatementNode*>();
+			uint32_t currentEndLine = classToken->line+1;
+
+			while(peek()->type != RIGHT_BRACE) {
+				
+				//if reached end of code without '}', throw error
+				if(peek()->type == END) {
+
+					uint32_t startLine = classToken->line+1;
+					uint32_t endLine = currentEndLine;
+
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '}' to close class body");
+				}
+
+				AbstractStatementNode* classStatement = addStatement();
+
+				//make sure it is a variable declaration or function
+				NewAssignmentStatementNode* classInstanceField = dynamic_cast<NewAssignmentStatementNode*>(classStatement);
+				FunctionStatementNode* classMethod = dynamic_cast<FunctionStatementNode*>(classStatement);
+
+				//if neither, throw an error
+				if(classInstanceField == NULL && classMethod == NULL) {
+
+					uint32_t startLine = classToken->line+1;
+					uint32_t endLine = classStatement->endLine;
+
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Only instance variable and method declarations allowed inside class body");
+				}
+
+				//add statement to body and update
+				classBody->push_back(classStatement);
+				currentEndLine = classStatement->endLine;
+			}
+
+			//now create Class struct and store it
+			Class classStruct;
+
 		}
     
     default: return new ExpressionStatementNode(evalExpression(), symbolTable);
