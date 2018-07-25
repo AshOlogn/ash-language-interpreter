@@ -1573,8 +1573,43 @@ AbstractStatementNode* addStatement() {
 
 			//make sure this variable has not been used yet
 			if(!symbolTable->isDeclared(string(classNameToken->lexeme))) {
-				//throw error
+				//TODO throw error
 			}
+
+			
+			//if it has a superclass, record it (extends followed by superclass name)
+			Token* superClassNameToken = NULL;
+			char* superClassName = NULL;
+
+			if(peek()->type == EXTENDS) {
+
+				Token* extendsToken = consume();
+
+				//next token must be a superclass name
+				superClassNameToken = consume();
+
+				//throw error if it's not
+				if(superClassNameToken->type != VARIABLE) {
+
+					uint32_t startLine = classNameToken->line+1;
+					uint32_t endLine = (superClassNameToken->type == END) ? extendsToken->line+1 : superClassNameToken->line+1;
+					
+					if(superClassNameToken->type == END) {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected superclass name after 'extends' keyword");
+					} else {
+						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), superClassNameToken->lexeme, "Expected superclass name after 'extends' keyword");
+					}
+				}
+
+				//make sure the superclass is declared
+				if(!symbolTable->isDeclared(superClassNameToken->lexeme)) {
+					//TODO throw error
+				}
+
+				//record superclass name
+				superClassName = copyString(superClassNameToken->lexeme);
+			}
+
 
 			//now read in instance fields
 			Token* leftBraceToken = consume();
@@ -1600,7 +1635,7 @@ AbstractStatementNode* addStatement() {
 
 			//now add statements (variable declarations and functions)
 			vector<AbstractStatementNode*>* classBody = new vector<AbstractStatementNode*>();
-			uint32_t currentEndLine = classToken->line+1;
+			uint32_t currentEndLine = leftBraceToken->line+1;
 
 			while(peek()->type != RIGHT_BRACE) {
 				
@@ -1633,8 +1668,18 @@ AbstractStatementNode* addStatement() {
 				currentEndLine = classStatement->endLine;
 			}
 
-			//now create Class struct and store it
-			Class classStruct;
+			//now create Class struct and store class information
+			Class* classStruct = (Class*) malloc(sizeof(Class));
+			classStruct->superClass = (superClassName == NULL) ? copyString("Object") : copyString(superClassName); 
+			classStruct->body = classBody;
+			classStruct->symbolTable = symbolTable; //the current symbol table is the class body's one
+
+			//now reset symbol table to global one
+			symbolTable = standbyTable;
+
+			//return class declaration statement
+
+
 
 		}
     

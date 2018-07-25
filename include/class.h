@@ -10,7 +10,7 @@ class AbstractStatementNode;
 //represents class in this  language
 struct Class {
 	//superclass in inheritance hierarchy
-	Class* superClass;
+	char* superClass;
 
 	//statements declaring instance fields and methods
 	std::vector<AbstractStatementNode*>* body;
