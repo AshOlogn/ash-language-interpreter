@@ -16,6 +16,7 @@ enum ParseDataType {
   CHAR_T, BOOL_T, DOUBLE_T, STRING_T,
 	ARRAY_T,
 	FUN_T,
+	CLASS_T,
 	VOID_T,
   CUSTOM_T,
   INVALID_T

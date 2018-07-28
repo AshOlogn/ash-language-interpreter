@@ -27,4 +27,6 @@ void executeFunctionStatement(FunctionStatementNode* node);
 
 void executeReturnStatement(ReturnStatementNode* node);
 
+void executeClassStatement(ClassStatementNode* node);
+
 #endif

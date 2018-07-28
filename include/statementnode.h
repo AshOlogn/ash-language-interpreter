@@ -8,6 +8,7 @@
 #include "parsenode.h"
 #include "symboltable.h"
 #include "function.h"
+#include "class.h"
 
 //forward declarations to break cyclic dependencies with function.h and parsenode.h
 struct Function;
@@ -24,6 +25,7 @@ class AbstractStatementNode {
 		uint32_t startLine;
 		uint32_t endLine;
     SymbolTable* symbolTable;
+		SymbolTable* classSymbolTable;
     virtual void execute() = 0;
   
 };
@@ -37,7 +39,7 @@ class ExpressionStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable);
+    ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
     void execute();
 };
 
@@ -46,7 +48,7 @@ class PrintStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine);
+    PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -55,7 +57,7 @@ class PrintLineStatementNode : public AbstractStatementNode {
 
   public:
     AbstractExpressionNode* expression;
-    PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine);
+    PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -66,7 +68,7 @@ class GroupedStatementNode : public AbstractStatementNode {
   public:
     std::vector<AbstractStatementNode*>* statements;
 
-    GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
+    GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine);
     void execute();
   
 };
@@ -78,7 +80,7 @@ class ConditionalStatementNode : public AbstractStatementNode {
     std::vector<AbstractExpressionNode*>* conditions;
     std::vector<AbstractStatementNode*>* statements;
     
-    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
+    ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine);
     void execute();
 };
 
@@ -91,7 +93,7 @@ class WhileStatementNode: public AbstractStatementNode {
     AbstractStatementNode* body;
     SymbolTable* symbolTable;
     
-    WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable, uint32_t startLine);
+    WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -105,7 +107,7 @@ class ForStatementNode: public AbstractStatementNode {
     AbstractExpressionNode* condition;
     SymbolTable* symbolTable;
     
-    ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable, uint32_t startLine);
+    ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -117,8 +119,8 @@ class NewAssignmentStatementNode : public AbstractStatementNode {
 		ParseDataType type;
 		AbstractExpressionNode* value;
 		
-		NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine);
-		NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
+		NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine);
 		void execute();
 };
 
@@ -130,7 +132,7 @@ class AssignmentStatementNode : public AbstractStatementNode {
     std::string variable;
     AbstractExpressionNode* value;
     
-    AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine);
+    AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
     void execute();
 };
 
@@ -142,7 +144,7 @@ class ArrayAssignmentStatementNode : public AbstractStatementNode {
 		AbstractExpressionNode* index;
 		AbstractExpressionNode* value;
 
-		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t startLine);
+		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine);
 		void execute();
 };
 
@@ -165,8 +167,20 @@ class FunctionStatementNode : public AbstractStatementNode {
 		Function* function;
 		std::string functionName;
 
-		FunctionStatementNode(std::string functionName, Function* function, SymbolTable* symbolTable);
-		FunctionStatementNode(std::string functionName, SymbolTable* symbolTable);
+		FunctionStatementNode(std::string functionName, Function* function, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
+		FunctionStatementNode(std::string functionName, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
+		void execute();
+};
+
+//represents class declaration and definition
+class ClassStatementNode : public AbstractStatementNode {
+
+	public:
+		Class* classDec;
+		std::string className;
+
+		ClassStatementNode(std::string functionName, Class* classDec, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
+		ClassStatementNode(std::string functionName, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
 		void execute();
 };
 

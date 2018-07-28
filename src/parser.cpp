@@ -19,13 +19,18 @@ using namespace std;
 static uint32_t tokenIndex;
 static vector<Token>* tokens;
 static SymbolTable* symbolTable;
+static SymbolTable* classSymbolTable;
 static vector<char*>* codeLines;
 
+//used by return statements to place value in correct memory location
 static vector<bool*> returnFlag;
 static vector<ParseData*> returnValue;
 
+//some state variables
+static bool insideClassDefinition;
+
 /////////////////////////////////
-//////    Access Tokens     /////
+//////   Utility Functions  /////
 /////////////////////////////////
 
 //return current Token and advance
@@ -958,19 +963,19 @@ AbstractStatementNode* addStatement() {
 				}
 
 				//return 	NewAssignmentStatementNode with specified expression
-				return new NewAssignmentStatementNode(variable, type, expression, symbolTable, typeToken->line+1);
+				return new NewAssignmentStatementNode(variable, type, expression, symbolTable, classSymbolTable, typeToken->line+1);
 			}
 
 			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
         throw StaticCastError(variableToken->line+1, expression->endLine, getCodeLineBlock(variableToken->line, expression->endLine-1), expression->evalType, type, false); 
       } else {
-        return new NewAssignmentStatementNode(variable, type, expression, symbolTable, typeToken->line+1);
+        return new NewAssignmentStatementNode(variable, type, expression, symbolTable, classSymbolTable, typeToken->line+1);
       }
       
     } else {  
       //no initial value (IMPOSSIBLE for array for now)
-      return new NewAssignmentStatementNode(variable, type, symbolTable, typeToken->line+1, variableToken->line+1);
+      return new NewAssignmentStatementNode(variable, type, symbolTable, classSymbolTable, typeToken->line+1, variableToken->line+1);
     }
     
   } else if(t->type == VARIABLE) {
@@ -1085,14 +1090,14 @@ AbstractStatementNode* addStatement() {
     
 		//if array assignment, just deal with it here for now
 		if(type == ARRAY_T) {
-			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, varToken->line+1);
+			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, classSymbolTable, varToken->line+1);
 		}
 
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
       throw StaticCastError(varToken->line+1, expression->endLine, getCodeLineBlock(varToken->line, expression->endLine-1), expression->evalType, type, false);
     } else {
-      return new AssignmentStatementNode(variable, expression, symbolTable, varToken->line+1);
+      return new AssignmentStatementNode(variable, expression, symbolTable, classSymbolTable, varToken->line+1);
     }
   }
 	
@@ -1100,12 +1105,12 @@ AbstractStatementNode* addStatement() {
     
     case PRINTLN: {
       consume();
-      return new PrintLineStatementNode(evalExpression(), symbolTable, t->line+1);
+      return new PrintLineStatementNode(evalExpression(), symbolTable, classSymbolTable, t->line+1);
     }
     
     case PRINT: {  
       consume();
-      return new PrintStatementNode(evalExpression(), symbolTable, t->line+1);
+      return new PrintStatementNode(evalExpression(), symbolTable, classSymbolTable, t->line+1);
     }
     
     case LEFT_BRACE: {
@@ -1113,8 +1118,9 @@ AbstractStatementNode* addStatement() {
 			Token* leftBraceToken = consume();
       vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();
       
-      //enter a new scope in symbol table (for static scope-checking)
+      //enter a new scope in both symbol tables (for static scope-checking)
       symbolTable->enterNewScope();
+			classSymbolTable->enterNewScope();
 			AbstractStatementNode* currentStatement = NULL;
 
 			uint32_t currentEndLine = leftBraceToken->line+1;
@@ -1137,8 +1143,9 @@ AbstractStatementNode* addStatement() {
       
       //leave scope
       symbolTable->leaveScope();
-      
-      return new GroupedStatementNode(statements, symbolTable, leftBraceToken->line+1, rightBraceToken->line+1);
+			classSymbolTable->leaveScope();
+
+      return new GroupedStatementNode(statements, symbolTable, classSymbolTable, leftBraceToken->line+1, rightBraceToken->line+1);
     }
     
     case WHILE: {
@@ -1160,7 +1167,7 @@ AbstractStatementNode* addStatement() {
       }
       
       AbstractStatementNode* body = addStatement();
-      return new WhileStatementNode(condition, body, symbolTable, whileToken->line+1);
+      return new WhileStatementNode(condition, body, symbolTable, classSymbolTable, whileToken->line+1);
     }
     
     case FOR: {
@@ -1241,7 +1248,7 @@ AbstractStatementNode* addStatement() {
       }
       
       AbstractStatementNode* body = addStatement();
-      return new ForStatementNode(initialization, update, body, condition, symbolTable, forToken->line+1);
+      return new ForStatementNode(initialization, update, body, condition, symbolTable, classSymbolTable, forToken->line+1);
     }
     
     case IF: {
@@ -1315,11 +1322,11 @@ AbstractStatementNode* addStatement() {
 					currentEndLine = currStatement->endLine;
           stat->push_back(currStatement);
           
-          return new ConditionalStatementNode(cond, stat, symbolTable, ifToken->line+1, currentEndLine);
+          return new ConditionalStatementNode(cond, stat, symbolTable, classSymbolTable, ifToken->line+1, currentEndLine);
         }  
       }
       
-      return new ConditionalStatementNode(cond, stat, symbolTable, ifToken->line+1, currentEndLine);
+      return new ConditionalStatementNode(cond, stat, symbolTable, classSymbolTable, ifToken->line+1, currentEndLine);
     }
 
 		case RETURN: {
@@ -1503,14 +1510,15 @@ AbstractStatementNode* addStatement() {
 
 
 			//now declare the variables just for scope-checking purposes
-			//and enter a new scope for function body
+			//and enter a new scope (in both tables) for function body
       symbolTable->enterNewScope();
+			classSymbolTable->enterNewScope();
 			NewAssignmentStatementNode* dummy;
 
 			for(uint32_t i = 0; i < argCount; i++) {
 				//this construction declares variable as well
 				string argName(argNames[i]);
-				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, typeLines[i], varLines[i]);
+				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, classSymbolTable, typeLines[i], varLines[i]);
 			}
 			
 			//now store AbstractStatementNode* vector representing function body
@@ -1539,6 +1547,7 @@ AbstractStatementNode* addStatement() {
       
       //leave scope
       symbolTable->leaveScope();
+			classSymbolTable->leaveScope();
 			
 			function->body = body;
 
@@ -1547,13 +1556,18 @@ AbstractStatementNode* addStatement() {
 			returnValue.pop_back();
 
 			//now return a FunctionStatementNode
-			return new FunctionStatementNode(functionName, function, symbolTable);
+			return new FunctionStatementNode(functionName, function, symbolTable, classSymbolTable);
 		}
 
 		//new class definition
 		case CLASS: {
-
+			
 			Token* classToken = consume();
+
+			//if we are already in a class declaration, this is invalid
+			if(insideClassDefinition) {
+				throw ParseSyntaxError(classToken->line+1, getCodeLineBlock(classToken->line, classToken->line), copyString("class"), "A class cannot be declared inside another class declaration");
+			}	
 
 			//the next token should be class name
 			Token* classNameToken = consume();
@@ -1571,12 +1585,11 @@ AbstractStatementNode* addStatement() {
 				}
 			}
 
-			//make sure this variable has not been used yet
-			if(!symbolTable->isDeclared(string(classNameToken->lexeme))) {
+			//make sure this variable has not been used yet (in either table)
+			if(symbolTable->isDeclared(string(classNameToken->lexeme)) || classSymbolTable->isDeclared(string(classNameToken->lexeme))) {
 				//TODO throw error
 			}
 
-			
 			//if it has a superclass, record it (extends followed by superclass name)
 			Token* superClassNameToken = NULL;
 			char* superClassName = NULL;
@@ -1602,7 +1615,7 @@ AbstractStatementNode* addStatement() {
 				}
 
 				//make sure the superclass is declared
-				if(!symbolTable->isDeclared(superClassNameToken->lexeme)) {
+				if(!classSymbolTable->isDeclared(superClassNameToken->lexeme)) {
 					//TODO throw error
 				}
 
@@ -1627,7 +1640,8 @@ AbstractStatementNode* addStatement() {
 				}
 			}
 
-			//now read in instance fields and methods
+			//now read in instance fields and methods (the class definition)
+			insideClassDefinition = true;
 
 			//first create a new symbol table for class body, global one is stored as temp
 			SymbolTable* standbyTable = symbolTable;
@@ -1668,22 +1682,31 @@ AbstractStatementNode* addStatement() {
 				currentEndLine = classStatement->endLine;
 			}
 
+			//consume '}' to end class definition
+			Token* rightBraceToken = consume();
+			insideClassDefinition = false;
+
 			//now create Class struct and store class information
 			Class* classStruct = (Class*) malloc(sizeof(Class));
 			classStruct->superClass = (superClassName == NULL) ? copyString("Object") : copyString(superClassName); 
 			classStruct->body = classBody;
-			classStruct->symbolTable = symbolTable; //the current symbol table is the class body's one
+			classStruct->symbolTable = symbolTable;
+			classStruct->classSymbolTable = classSymbolTable;
+
+			//insert this class into class symbol table
+			ParseData classData;
+			classData.type = CLASS_T;
+			classData.value.allocated = classStruct;
+			classSymbolTable->declare(string(classNameToken->lexeme), classData);
 
 			//now reset symbol table to global one
 			symbolTable = standbyTable;
-
+			
 			//return class declaration statement
-
-
-
+			return new ClassStatementNode(string(classNameToken->lexeme), classStruct, symbolTable, classSymbolTable);	
 		}
     
-    default: return new ExpressionStatementNode(evalExpression(), symbolTable);
+    default: return new ExpressionStatementNode(evalExpression(), symbolTable, classSymbolTable);
   }
   
 }
@@ -1697,8 +1720,10 @@ vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef, vector<char*>* so
   tokenIndex = 0;
   tokens = tokenRef;
   symbolTable = new SymbolTable();
+	classSymbolTable = new SymbolTable();
 	returnFlag = vector<bool*>();
 	returnValue = vector<ParseData*>();
+	insideClassDefinition = false;
   
   //create empty statement vector
   vector<AbstractStatementNode*>* statements = new vector<AbstractStatementNode*>();

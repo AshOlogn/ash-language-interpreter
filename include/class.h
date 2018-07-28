@@ -17,6 +17,9 @@ struct Class {
 
 	//symbol table containing all instance fields and methods
 	SymbolTable* symbolTable;
+
+	//symbol table containing all class information in this program
+	SymbolTable* classSymbolTable;
 };
 
 #endif
