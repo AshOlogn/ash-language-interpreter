@@ -873,6 +873,7 @@ AbstractExpressionNode* evalExpression() {
   return evalAssignment();
 }
 
+
 AbstractStatementNode* addStatement() {
 
   Token* t = peek();
@@ -1623,7 +1624,6 @@ AbstractStatementNode* addStatement() {
 				superClassName = copyString(superClassNameToken->lexeme);
 			}
 
-
 			//now read in instance fields
 			Token* leftBraceToken = consume();
 
@@ -1647,8 +1647,11 @@ AbstractStatementNode* addStatement() {
 			SymbolTable* standbyTable = symbolTable;
 			symbolTable = new SymbolTable();
 
-			//now add statements (variable declarations and functions)
-			vector<AbstractStatementNode*>* classBody = new vector<AbstractStatementNode*>();
+			//now read in instance fields and methods
+			vector<void*>* instanceTypes = new vector<void*>();
+			vector<char*>* instanceNames = new vector<char*>();
+			vector<FunctionStatementNode*>* methods = NULL;
+
 			uint32_t currentEndLine = leftBraceToken->line+1;
 
 			while(peek()->type != RIGHT_BRACE) {
@@ -1677,8 +1680,17 @@ AbstractStatementNode* addStatement() {
 					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Only instance variable and method declarations allowed inside class body");
 				}
 
+				//currently only instance fields are supported, not methods
+				if(classInstanceField != NULL) {
+
+					ParseDataType* typeRef = (ParseDataType*) malloc(sizeof(ParseDataType));	
+					*typeRef = classInstanceField->type;
+					instanceTypes->push_back(typeRef);
+
+					instanceNames->push_back(copyString(classInstanceField->variable.c_str()));
+				}
+
 				//add statement to body and update
-				classBody->push_back(classStatement);
 				currentEndLine = classStatement->endLine;
 			}
 
@@ -1689,9 +1701,9 @@ AbstractStatementNode* addStatement() {
 			//now create Class struct and store class information
 			Class* classStruct = (Class*) malloc(sizeof(Class));
 			classStruct->superClass = (superClassName == NULL) ? copyString("Object") : copyString(superClassName); 
-			classStruct->body = classBody;
-			classStruct->symbolTable = symbolTable;
-			classStruct->classSymbolTable = classSymbolTable;
+			classStruct->instanceTypes = instanceTypes;
+			classStruct->instanceNames = instanceNames;
+			classStruct->methods = NULL;
 
 			//insert this class into class symbol table
 			ParseData classData;
