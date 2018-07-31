@@ -8,7 +8,6 @@
 #include "parsenode.h"
 #include "symboltable.h"
 #include "function.h"
-#include "class.h"
 
 //forward declarations to break cyclic dependencies with function.h and parsenode.h
 struct Function;
@@ -169,18 +168,6 @@ class FunctionStatementNode : public AbstractStatementNode {
 
 		FunctionStatementNode(std::string functionName, Function* function, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
 		FunctionStatementNode(std::string functionName, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
-		void execute();
-};
-
-//represents class declaration and definition
-class ClassStatementNode : public AbstractStatementNode {
-
-	public:
-		Class* classDec;
-		std::string className;
-
-		ClassStatementNode(std::string functionName, Class* classDec, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
-		ClassStatementNode(std::string functionName, SymbolTable* symbolTable, SymbolTable* classSymbolTable);
 		void execute();
 };
 

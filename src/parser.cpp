@@ -12,7 +12,6 @@
 #include "parser.h"
 #include "function.h"
 #include "array.h"
-#include "class.h"
 
 using namespace std;
 
@@ -87,7 +86,6 @@ AbstractExpressionNode* evalLiteralGroup() {
 
     return new GroupedExpressionNode(next, startGroupToken->line+1, endGroupToken->line+1);
 
-
 	} else if(peek()->type == LEFT_BRACKET) {
 
 		//initialized array
@@ -129,10 +127,12 @@ AbstractExpressionNode* evalLiteralGroup() {
 		uint32_t length = (uint32_t) initValues.size();
 		AbstractExpressionNode** values = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * length);
 
-		//copy references out of list into array
-		//TODO: typehandling
+		//determine overall type of initialized array
+		ParseDataType arrayType = arrayListType(&initValues);
+
+		//copy references out of list into array, casting to overall type
 		for(uint32_t i = 0; i < length; i++) {
-			values[i] = initValues[i];
+			values[i] = new CastNode(initValues[i], arrayType, initValues[i]->startLine);
 		}
 
 		//convert fixed length into a LiteralNode
@@ -140,8 +140,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 		len.type = UINT32_T;
 		len.value.integer = length;
 
-		//TODO: find a better way to resolve array type
-		return new ArrayNode(values[0]->evalType, true, new LiteralNode(len, -1), values, leftBracketToken->line+1, rightBracketToken->line+1);
+		return new ArrayNode(arrayType, true, new LiteralNode(len, -1), values, leftBracketToken->line+1, rightBracketToken->line+1);
 
 	} else if(peek()->type == NEW) {
 
@@ -874,6 +873,20 @@ AbstractExpressionNode* evalExpression() {
 }
 
 
+bool isType(Token* potentialType, SymbolTable* classSymbolTable) {
+
+	//check if a primitive type
+	if(isTypeTokenType(potentialType->type))
+		return true;
+
+	//check if it's a declared class
+	if(potentialType->type == VARIABLE) {
+		return classSymbolTable->isDeclared(copyString(potentialType->lexeme));
+	}
+
+	return false;
+}
+
 AbstractStatementNode* addStatement() {
 
   Token* t = peek();
@@ -882,7 +895,7 @@ AbstractStatementNode* addStatement() {
 	Token* leftBracket;
 	Token* rightBracket;
 
-  if(isTypeTokenType(t->type)) {
+  if(isType(t, classSymbolTable)) {
    
     //variable declaration
     ParseDataType type = typeTokenConversion(t->type);
@@ -1560,164 +1573,6 @@ AbstractStatementNode* addStatement() {
 			return new FunctionStatementNode(functionName, function, symbolTable, classSymbolTable);
 		}
 
-		//new class definition
-		case CLASS: {
-			
-			Token* classToken = consume();
-
-			//if we are already in a class declaration, this is invalid
-			if(insideClassDefinition) {
-				throw ParseSyntaxError(classToken->line+1, getCodeLineBlock(classToken->line, classToken->line), copyString("class"), "A class cannot be declared inside another class declaration");
-			}	
-
-			//the next token should be class name
-			Token* classNameToken = consume();
-
-			//if it's not, throw an error
-			if(classNameToken->type != VARIABLE) {
-
-				uint32_t startLine = classToken->line+1;
-				uint32_t endLine = (classNameToken->type == END) ? classToken->line+1 : classNameToken->line+1;
-
-				if(classNameToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected class name here");
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), classNameToken->lexeme, "Expected class name here");
-				}
-			}
-
-			//make sure this variable has not been used yet (in either table)
-			if(symbolTable->isDeclared(string(classNameToken->lexeme)) || classSymbolTable->isDeclared(string(classNameToken->lexeme))) {
-				//TODO throw error
-			}
-
-			//if it has a superclass, record it (extends followed by superclass name)
-			Token* superClassNameToken = NULL;
-			char* superClassName = NULL;
-
-			if(peek()->type == EXTENDS) {
-
-				Token* extendsToken = consume();
-
-				//next token must be a superclass name
-				superClassNameToken = consume();
-
-				//throw error if it's not
-				if(superClassNameToken->type != VARIABLE) {
-
-					uint32_t startLine = classNameToken->line+1;
-					uint32_t endLine = (superClassNameToken->type == END) ? extendsToken->line+1 : superClassNameToken->line+1;
-					
-					if(superClassNameToken->type == END) {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected superclass name after 'extends' keyword");
-					} else {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), superClassNameToken->lexeme, "Expected superclass name after 'extends' keyword");
-					}
-				}
-
-				//make sure the superclass is declared
-				if(!classSymbolTable->isDeclared(superClassNameToken->lexeme)) {
-					//TODO throw error
-				}
-
-				//record superclass name
-				superClassName = copyString(superClassNameToken->lexeme);
-			}
-
-			//now read in instance fields
-			Token* leftBraceToken = consume();
-
-			//if not '{', throw an error						
-			if(leftBraceToken->type != LEFT_BRACE) {
-
-				uint32_t startLine = classToken->line+1;
-				uint32_t endLine = (leftBraceToken->type == END) ? classNameToken->line+1 : leftBraceToken->line+1;
-
-				if(leftBraceToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '{' followed by instance fields and methods");
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftBraceToken->lexeme, "Expected '{' followed by instance fields and methods");
-				}
-			}
-
-			//now read in instance fields and methods (the class definition)
-			insideClassDefinition = true;
-
-			//first create a new symbol table for class body, global one is stored as temp
-			SymbolTable* standbyTable = symbolTable;
-			symbolTable = new SymbolTable();
-
-			//now read in instance fields and methods
-			vector<void*>* instanceTypes = new vector<void*>();
-			vector<char*>* instanceNames = new vector<char*>();
-			vector<FunctionStatementNode*>* methods = NULL;
-
-			uint32_t currentEndLine = leftBraceToken->line+1;
-
-			while(peek()->type != RIGHT_BRACE) {
-				
-				//if reached end of code without '}', throw error
-				if(peek()->type == END) {
-
-					uint32_t startLine = classToken->line+1;
-					uint32_t endLine = currentEndLine;
-
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '}' to close class body");
-				}
-
-				AbstractStatementNode* classStatement = addStatement();
-
-				//make sure it is a variable declaration or function
-				NewAssignmentStatementNode* classInstanceField = dynamic_cast<NewAssignmentStatementNode*>(classStatement);
-				FunctionStatementNode* classMethod = dynamic_cast<FunctionStatementNode*>(classStatement);
-
-				//if neither, throw an error
-				if(classInstanceField == NULL && classMethod == NULL) {
-
-					uint32_t startLine = classToken->line+1;
-					uint32_t endLine = classStatement->endLine;
-
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Only instance variable and method declarations allowed inside class body");
-				}
-
-				//currently only instance fields are supported, not methods
-				if(classInstanceField != NULL) {
-
-					ParseDataType* typeRef = (ParseDataType*) malloc(sizeof(ParseDataType));	
-					*typeRef = classInstanceField->type;
-					instanceTypes->push_back(typeRef);
-
-					instanceNames->push_back(copyString(classInstanceField->variable.c_str()));
-				}
-
-				//add statement to body and update
-				currentEndLine = classStatement->endLine;
-			}
-
-			//consume '}' to end class definition
-			Token* rightBraceToken = consume();
-			insideClassDefinition = false;
-
-			//now create Class struct and store class information
-			Class* classStruct = (Class*) malloc(sizeof(Class));
-			classStruct->superClass = (superClassName == NULL) ? copyString("Object") : copyString(superClassName); 
-			classStruct->instanceTypes = instanceTypes;
-			classStruct->instanceNames = instanceNames;
-			classStruct->methods = NULL;
-
-			//insert this class into class symbol table
-			ParseData classData;
-			classData.type = CLASS_T;
-			classData.value.allocated = classStruct;
-			classSymbolTable->declare(string(classNameToken->lexeme), classData);
-
-			//now reset symbol table to global one
-			symbolTable = standbyTable;
-			
-			//return class declaration statement
-			return new ClassStatementNode(string(classNameToken->lexeme), classStruct, symbolTable, classSymbolTable);	
-		}
-    
     default: return new ExpressionStatementNode(evalExpression(), symbolTable, classSymbolTable);
   }
   

@@ -6,7 +6,6 @@
 #include "symboltable.h"
 #include "executor.h"
 #include "array.h"
-#include "class.h"
 
 //represents a single-expression statement
 ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
@@ -246,27 +245,4 @@ void FunctionStatementNode::execute() {
 	executeFunctionStatement(this);
 }
 
-
-//represents class declaration and definition
-ClassStatementNode::ClassStatementNode(std::string cName, Class* classDec, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
-	className = cName;
-	this->classDec = classDec;
-	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
-
-	//already declared
-}
-
-ClassStatementNode::ClassStatementNode(std::string cName, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
-	className = cName;
-	this->classDec = NULL;
-	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
-
-	//already declared
-}
-
-void ClassStatementNode::execute() {
-	executeClassStatement(this);
-}
 

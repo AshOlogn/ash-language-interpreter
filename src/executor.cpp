@@ -11,7 +11,6 @@
 #include "executor.h"
 #include "casteval.h"
 #include "array.h"
-#include "class.h"
 
 void executeExpressionStatement(ExpressionStatementNode* node) {
   node->expression->evaluate();
@@ -136,17 +135,3 @@ void executeReturnStatement(ReturnStatementNode* node) {
 	*returnValue = node->expression->evaluate();
 	*returnFlag = true;
 }
-
-void executeClassStatement(ClassStatementNode* node) {
-
-	SymbolTable* classSymbolTable = node->classSymbolTable;
-	std::string className = node->className;
-	Class* classDec = node->classDec;
-
-	ParseData d;
-	d.type = CLASS_T;
-	d.value.allocated = (void*) classDec;
-
-	classSymbolTable->declare(className, d);
-}
-

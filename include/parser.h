@@ -4,6 +4,9 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 #include "statementnode.h"
+#include "symboltable.h"
+
+class SymbolTable;
 
 /////////////////////////////////
 //////     Return Tree     //////
@@ -37,6 +40,7 @@ char* getCodeLineBlock(uint32_t start, uint32_t end);
 //////       Helpers        /////
 /////////////////////////////////
 
+bool isType(Token* potentialType, SymbolTable* symbolTable);
 
 /////////////////////////////////
 //////    Subroutines     ///////

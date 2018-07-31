@@ -1,5 +1,0 @@
-fun foo(int32 x, int32 y) -> int32 {
-  return x
-}
-
-println foo(5,6)

@@ -23,6 +23,7 @@ source = main.cpp \
 	symboltable.cpp \
 	executor.cpp \
 	utils.cpp \
+	array.cpp \
 	parser.cpp
 	
 include = token.h \
@@ -48,7 +49,6 @@ include = token.h \
 	executor.h \
 	function.h \
 	array.h \
-	class.h \
 	utils.h \
 	parser.h
 
