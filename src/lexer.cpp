@@ -123,6 +123,83 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         index++; break;
       }
 
+			//single char literal
+			case '\'': {
+
+				uint32_t currentIndex = index+1;
+				char charVal = code[currentIndex];
+				char literalValue = 0;
+
+				if(charVal == '\\') {
+
+					//escaped sequences
+					currentIndex++;
+					charVal = code[currentIndex];
+
+					switch(charVal) {
+						case 'a': literalValue = '\a'; break;
+						case 'b': literalValue = '\b'; break;
+						case 'f': literalValue = '\f'; break;
+						case 'n': literalValue = '\n'; break;
+						case 'r': literalValue = '\r'; break;
+						case 't': literalValue = '\t'; break;
+						case 'v': literalValue = '\v'; break;
+						case '\'': literalValue = '\''; break;
+						case '\"': literalValue = '\"'; break;
+						case '?': literalValue = '?'; break;
+						case '\\': literalValue = '\\'; break;
+						default: {
+							char* lexeme = new char[2];
+							lexeme[0] = charVal;
+							lexeme[1] = 0;
+							throw LexerError(line+1, codeLines->at(line), lexeme, "Invalid escaped character");
+						}
+					}
+
+					currentIndex++;
+					
+					//make sure literal is terminated
+					if(code[currentIndex] != '\'') {
+						char* lexeme = new char[2];
+						lexeme[0] = code[currentIndex];
+						lexeme[1] = 0;
+						throw LexerError(line+1, codeLines->at(line), lexeme, "Expected ' to terminate character literal");
+					} else {
+						//consume second '
+						currentIndex++;
+					}
+
+				} else if(charVal == '\'') {
+
+					literalValue = '\0';
+					currentIndex++;
+
+				} else {
+
+					literalValue = charVal;
+					currentIndex++;
+
+					//make sure literal is terminated
+					if(code[currentIndex] != '\'') {
+						char* lexeme = new char[2];
+						lexeme[0] = code[currentIndex];
+						lexeme[1] = 0;
+						throw LexerError(line+1, codeLines->at(line), lexeme, "Expected ' to terminate character literal");
+					} else {
+						//consume second '
+						currentIndex++;
+					}
+				}
+
+				//append to list of Tokens
+				char lexeme[2] = {literalValue, 0};
+				Data d; d.integer = (uint8_t) literalValue;
+				tokens.push_back(makeToken(CHAR, line, lexeme, d));
+				index = currentIndex;
+
+				break;
+			}
+
       //more complex fixed-length tokens
       case '+': {
   
@@ -390,7 +467,7 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       } 
     }
 
-    //if it's in quotes, it's a String
+    //if it's in double quotes, it's a String
     if(code[index] == '"') {
 
       uint32_t currentIndex = index+1;
@@ -414,10 +491,8 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
       
       //if closing quotation mark is not found, throw an error
       if(currentIndex == codeLength) {
-        // !!!
         throw LexerError(startLine+1, codeLines->at(startLine), lexeme, "String literal not terminated with \"");         
       }
-
 
       Data tokenVal;
       char* c = new char[currentIndex-index];
