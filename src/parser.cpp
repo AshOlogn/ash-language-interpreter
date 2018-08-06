@@ -18,7 +18,6 @@ using namespace std;
 static uint32_t tokenIndex;
 static vector<Token>* tokens;
 static SymbolTable* symbolTable;
-static SymbolTable* classSymbolTable;
 static vector<char*>* codeLines;
 
 //used by return statements to place value in correct memory location
@@ -209,6 +208,7 @@ AbstractExpressionNode* evalLiteralGroup() {
 			Function* function = (Function*) (symbolTable->get(variableName).value.allocated);
 			uint32_t numArgs = function->numArgs;
 			ParseDataType* argTypes = function->argTypes;
+			ParseDataType* argSubTypes = function->argSubTypes;
 
 			//read in arguments
 			AbstractExpressionNode** arguments = (AbstractExpressionNode**) malloc(sizeof(AbstractExpressionNode*) * numArgs);
@@ -227,18 +227,39 @@ AbstractExpressionNode* evalLiteralGroup() {
 				arguments[i] = evalExpression();
 
 				//make sure argument is of the right type
-				if(!typecheckImplicitCastExpression(arguments[i]->evalType, argTypes[i])) {
+				if(argTypes[i] == ARRAY_T && arguments[i]->evalType == ARRAY_T) {
 
-					uint32_t startLine = variable->line+1;
-					uint32_t endLine = arguments[i]->endLine+1;
+					//both args are arrays, so check member types
+					if(!typecheckImplicitCastExpression(arguments[i]->subType, argSubTypes[i])) {
+						
+						uint32_t startLine = variable->line+1;
+						uint32_t endLine = arguments[i]->endLine+1;
 
-					string message = "Cannot implicitly convert a ";
-					message.append(toStringParseDataType(arguments[i]->evalType));
-					message.append(" argument to ");
-					message.append(toStringParseDataType(argTypes[i]));
-					message.append(" type");
+						string message = "Cannot implicitly convert a ";
+						message.append(toStringParseDataType(arguments[i]->subType));
+						message.append(" array argument to ");
+						message.append(toStringParseDataType(argSubTypes[i]));
+						message.append(" array type");
 
-					throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+						throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+					}
+
+				} else {
+
+					//regular type check
+					if(!typecheckImplicitCastExpression(arguments[i]->evalType, argTypes[i])) {
+
+						uint32_t startLine = variable->line+1;
+						uint32_t endLine = arguments[i]->endLine+1;
+
+						string message = "Cannot implicitly convert a ";
+						message.append(toStringParseDataType(arguments[i]->evalType));
+						message.append(" argument to ");
+						message.append(toStringParseDataType(argTypes[i]));
+						message.append(" type");
+
+						throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), copyString(message.c_str()));
+					}
 				}
 
 				if(i < numArgs-1) {
@@ -777,16 +798,17 @@ AbstractExpressionNode* evalAssignment() {
   
   AbstractExpressionNode* head = evalLogicOr();
   VariableNode* var = dynamic_cast<VariableNode*>(head);
+	ArrayAccessNode* arrVar = dynamic_cast<ArrayAccessNode*>(head);
   
-  if(var && isAssignmentOperatorTokenType(peek()->type)) {
+  if((var || arrVar) && isAssignmentOperatorTokenType(peek()->type)) {
   
-    //make sure the variable is already declared in some scope
-    if(!symbolTable->isDeclared(var->variable)) {
+    //if just variable, make sure it is already declared in some scope
+		if(var && !symbolTable->isDeclared(var->variable)) {
       throw StaticVariableScopeError(var->startLine, var->variable, getCodeLineBlock(var->startLine-1, var->startLine-1), false);
-    }
+		}
     
     //get variable's type
-    ParseDataType type = var->evalType;
+    ParseDataType type = head->evalType;
     
     Token* assignmentToken = consume();
     AbstractExpressionNode* next = evalAssignment();
@@ -810,14 +832,16 @@ AbstractExpressionNode* evalAssignment() {
 			if(isArithmeticParseOperatorType(opType)) {
 
 				if(!typecheckArithmeticExpression(opType, type, next->evalType)) {
-					throw StaticTypeError(var->startLine, next->endLine, getCodeLineBlock(var->startLine-1, next->endLine-1), 
+					uint32_t startLine = head->startLine;
+					throw StaticTypeError(startLine, next->endLine, getCodeLineBlock(startLine-1, next->endLine-1), 
 																toStringParseOperatorType(opType), type, next->evalType); 
 				}
 
 			} else {
 
 				if(!typecheckBitLogicalExpression(opType, type, next->evalType)) {
-					throw StaticTypeError(var->startLine, next->endLine, getCodeLineBlock(var->startLine-1, next->endLine-1), 
+					uint32_t startLine = head->startLine;
+					throw StaticTypeError(startLine, next->endLine, getCodeLineBlock(startLine-1, next->endLine-1), 
 																toStringParseOperatorType(opType), type, next->evalType); 
 				}
 			}
@@ -825,42 +849,46 @@ AbstractExpressionNode* evalAssignment() {
     
     switch(assignmentToken->type) {
       case EQ: break;
-      case ADD_EQ: next = new ArithmeticOperatorNode(ADD_OP, var, next); break; 
-      case SUBTRACT_EQ: next = new ArithmeticOperatorNode(SUBTRACT_OP, var, next); break;
-      case EXPONENT_EQ: next = new ArithmeticOperatorNode(EXPONENT_OP, var, next); break;
-      case MULTIPLY_EQ: next = new ArithmeticOperatorNode(MULTIPLY_OP, var, next); break;
-      case DIVIDE_EQ: next = new ArithmeticOperatorNode(DIVIDE_OP, var, next); break;
+      case ADD_EQ: next = new ArithmeticOperatorNode(ADD_OP, head, next); break; 
+      case SUBTRACT_EQ: next = new ArithmeticOperatorNode(SUBTRACT_OP, head, next); break;
+      case EXPONENT_EQ: next = new ArithmeticOperatorNode(EXPONENT_OP, head, next); break;
+      case MULTIPLY_EQ: next = new ArithmeticOperatorNode(MULTIPLY_OP, head, next); break;
+      case DIVIDE_EQ: next = new ArithmeticOperatorNode(DIVIDE_OP, head, next); break;
       case AND_EQ: {
         if(type == BOOL_T)
-          next = new BitLogicalOperatorNode(AND_OP, var, next);
+          next = new BitLogicalOperatorNode(AND_OP, head, next);
         else 
-          next = new BitLogicalOperatorNode(BIT_AND_OP, var, next);
+          next = new BitLogicalOperatorNode(BIT_AND_OP, head, next);
         break;
       }
       
       case XOR_EQ: {
         if(type == BOOL_T)
-          next = new BitLogicalOperatorNode(XOR_OP, var, next);
+          next = new BitLogicalOperatorNode(XOR_OP, head, next);
         else 
-          next = new BitLogicalOperatorNode(BIT_XOR_OP, var, next);
+          next = new BitLogicalOperatorNode(BIT_XOR_OP, head, next);
         break;
       }
       
       case OR_EQ: {
         if(type == BOOL_T)
-          next = new BitLogicalOperatorNode(OR_OP, var, next);
+          next = new BitLogicalOperatorNode(OR_OP, head, next);
         else 
-          next = new BitLogicalOperatorNode(BIT_OR_OP, var, next);
+          next = new BitLogicalOperatorNode(BIT_OR_OP, head, next);
         break;
       }
     }
     
     //now make sure that implicit type cast is valid
     if(!typecheckImplicitCastExpression(next->evalType, type)) {
-      throw StaticCastError(var->startLine, next->endLine, getCodeLineBlock(var->startLine-1, next->endLine-1), next->evalType, type, false);
+      throw StaticCastError(head->startLine, next->endLine, getCodeLineBlock(head->startLine-1, next->endLine-1), next->evalType, type, false);
     }
     
-    return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
+		if(var) {
+			return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
+		} else {
+			return new ArrayAssignmentExpressionNode(arrVar->array, arrVar->start, next, symbolTable);
+		}
     
   } else {
     return head;
@@ -873,20 +901,6 @@ AbstractExpressionNode* evalExpression() {
 }
 
 
-bool isType(Token* potentialType, SymbolTable* classSymbolTable) {
-
-	//check if a primitive type
-	if(isTypeTokenType(potentialType->type))
-		return true;
-
-	//check if it's a declared class
-	if(potentialType->type == VARIABLE) {
-		return classSymbolTable->isDeclared(copyString(potentialType->lexeme));
-	}
-
-	return false;
-}
-
 AbstractStatementNode* addStatement() {
 
   Token* t = peek();
@@ -895,7 +909,7 @@ AbstractStatementNode* addStatement() {
 	Token* leftBracket;
 	Token* rightBracket;
 
-  if(isType(t, classSymbolTable)) {
+  if(isTypeTokenType(t->type)) {
    
     //variable declaration
     ParseDataType type = typeTokenConversion(t->type);
@@ -977,19 +991,24 @@ AbstractStatementNode* addStatement() {
 				}
 
 				//return 	NewAssignmentStatementNode with specified expression
-				return new NewAssignmentStatementNode(variable, type, expression, symbolTable, classSymbolTable, typeToken->line+1);
+				return new NewAssignmentStatementNode(variable, type, subtype, expression, symbolTable, typeToken->line+1);
 			}
 
 			//non-array case
       if(!typecheckImplicitCastExpression(expression->evalType, type)) {
         throw StaticCastError(variableToken->line+1, expression->endLine, getCodeLineBlock(variableToken->line, expression->endLine-1), expression->evalType, type, false); 
       } else {
-        return new NewAssignmentStatementNode(variable, type, expression, symbolTable, classSymbolTable, typeToken->line+1);
+        return new NewAssignmentStatementNode(variable, type, expression, symbolTable, typeToken->line+1);
       }
       
     } else {  
-      //no initial value (IMPOSSIBLE for array for now)
-      return new NewAssignmentStatementNode(variable, type, symbolTable, classSymbolTable, typeToken->line+1, variableToken->line+1);
+
+      //no initial value
+			if(type == ARRAY_T) {
+				return new NewAssignmentStatementNode(variable, type, subtype, symbolTable, typeToken->line+1, variableToken->line+1);
+			} else {
+				return new NewAssignmentStatementNode(variable, type, symbolTable, typeToken->line+1, variableToken->line+1);
+			}
     }
     
   } else if(t->type == VARIABLE) {
@@ -1104,14 +1123,14 @@ AbstractStatementNode* addStatement() {
     
 		//if array assignment, just deal with it here for now
 		if(type == ARRAY_T) {
-			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, classSymbolTable, varToken->line+1);
+			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, varToken->line+1);
 		}
 
     //make sure implicit cast is valid
     if(!typecheckImplicitCastExpression(expression->evalType, type)) {
       throw StaticCastError(varToken->line+1, expression->endLine, getCodeLineBlock(varToken->line, expression->endLine-1), expression->evalType, type, false);
     } else {
-      return new AssignmentStatementNode(variable, expression, symbolTable, classSymbolTable, varToken->line+1);
+      return new AssignmentStatementNode(variable, expression, symbolTable, varToken->line+1);
     }
   }
 	
@@ -1119,12 +1138,12 @@ AbstractStatementNode* addStatement() {
     
     case PRINTLN: {
       consume();
-      return new PrintLineStatementNode(evalExpression(), symbolTable, classSymbolTable, t->line+1);
+      return new PrintLineStatementNode(evalExpression(), symbolTable, t->line+1);
     }
     
     case PRINT: {  
       consume();
-      return new PrintStatementNode(evalExpression(), symbolTable, classSymbolTable, t->line+1);
+      return new PrintStatementNode(evalExpression(), symbolTable, t->line+1);
     }
     
     case LEFT_BRACE: {
@@ -1134,7 +1153,6 @@ AbstractStatementNode* addStatement() {
       
       //enter a new scope in both symbol tables (for static scope-checking)
       symbolTable->enterNewScope();
-			classSymbolTable->enterNewScope();
 			AbstractStatementNode* currentStatement = NULL;
 
 			uint32_t currentEndLine = leftBraceToken->line+1;
@@ -1157,9 +1175,8 @@ AbstractStatementNode* addStatement() {
       
       //leave scope
       symbolTable->leaveScope();
-			classSymbolTable->leaveScope();
 
-      return new GroupedStatementNode(statements, symbolTable, classSymbolTable, leftBraceToken->line+1, rightBraceToken->line+1);
+      return new GroupedStatementNode(statements, symbolTable, leftBraceToken->line+1, rightBraceToken->line+1);
     }
     
     case WHILE: {
@@ -1181,7 +1198,7 @@ AbstractStatementNode* addStatement() {
       }
       
       AbstractStatementNode* body = addStatement();
-      return new WhileStatementNode(condition, body, symbolTable, classSymbolTable, whileToken->line+1);
+      return new WhileStatementNode(condition, body, symbolTable, whileToken->line+1);
     }
     
     case FOR: {
@@ -1262,7 +1279,7 @@ AbstractStatementNode* addStatement() {
       }
       
       AbstractStatementNode* body = addStatement();
-      return new ForStatementNode(initialization, update, body, condition, symbolTable, classSymbolTable, forToken->line+1);
+      return new ForStatementNode(initialization, update, body, condition, symbolTable, forToken->line+1);
     }
     
     case IF: {
@@ -1336,11 +1353,11 @@ AbstractStatementNode* addStatement() {
 					currentEndLine = currStatement->endLine;
           stat->push_back(currStatement);
           
-          return new ConditionalStatementNode(cond, stat, symbolTable, classSymbolTable, ifToken->line+1, currentEndLine);
+          return new ConditionalStatementNode(cond, stat, symbolTable, ifToken->line+1, currentEndLine);
         }  
       }
       
-      return new ConditionalStatementNode(cond, stat, symbolTable, classSymbolTable, ifToken->line+1, currentEndLine);
+      return new ConditionalStatementNode(cond, stat, symbolTable, ifToken->line+1, currentEndLine);
     }
 
 		case RETURN: {
@@ -1416,6 +1433,29 @@ AbstractStatementNode* addStatement() {
 				currentErrorLine = peekAhead(currentIndex)->line+1;
 				currentIndex++;
 
+				//could be an array type
+				if(peekAhead(currentIndex)->type == LEFT_BRACKET) {
+
+					currentErrorLine = peekAhead(currentIndex)->line+1;
+					currentIndex++;
+
+					//next token must be ']'
+					if(peekAhead(currentIndex)->type != RIGHT_BRACKET) {
+
+						uint32_t startLine = funToken->line+1;
+						uint32_t endLine = (peekAhead(currentIndex)->type == END) ? currentErrorLine : peekAhead(currentIndex)->line+1;
+
+						if(peekAhead(currentIndex)->type == END) {
+							throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected closing ']' in array type");		
+						} else {
+							throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), peekAhead(currentIndex)->lexeme, "Expected closing ']' in array type");						
+						}
+					}
+
+					currentErrorLine = peekAhead(currentIndex)->line+1;
+					currentIndex++;
+				}
+
 				//make sure parameter name follows type
 				if(peekAhead(currentIndex)->type != VARIABLE) {
 
@@ -1455,6 +1495,7 @@ AbstractStatementNode* addStatement() {
 			//now allocate memory for argument names and types
 			function->numArgs = argCount;
 			ParseDataType* argTypes = new ParseDataType[argCount];
+			ParseDataType* argSubTypes = new ParseDataType[argCount];
 			char** argNames = (char**) malloc(sizeof(char*) * argCount);
 
 			//keep track of variable line numbers
@@ -1467,8 +1508,22 @@ AbstractStatementNode* addStatement() {
 
 				//read in parameter type
 				Token* currTypeToken = consume();
-				argTypes[argIndex] = typeTokenConversion(currTypeToken->type);
-				typeLines[argIndex] = currTypeToken->line+1;
+
+				//could be an array type
+				if(peek()->type == LEFT_BRACKET) {
+
+					argTypes[argIndex] = ARRAY_T;
+					argSubTypes[argIndex] = typeTokenConversion(currTypeToken->type);
+
+					consume(); //consume '['
+					typeLines[argIndex] = consume()->line+1;
+
+				} else {
+
+					argTypes[argIndex] = typeTokenConversion(currTypeToken->type);
+					argSubTypes[argIndex] = INVALID_T;
+					typeLines[argIndex] = currTypeToken->line+1;
+				}
 
 				//read in parameter name
 				Token* currVarToken = consume();
@@ -1483,6 +1538,7 @@ AbstractStatementNode* addStatement() {
 			leftParenToken = consume(); //consume ')' token
 
 			function->argTypes = argTypes;
+			function->argSubTypes = argSubTypes;
 			function->argNames = argNames;
 
 			//now get the return type
@@ -1522,17 +1578,15 @@ AbstractStatementNode* addStatement() {
 			dummyFunctionData.value.allocated = function;
 			symbolTable->declare(functionName, dummyFunctionData);
 
-
 			//now declare the variables just for scope-checking purposes
 			//and enter a new scope (in both tables) for function body
       symbolTable->enterNewScope();
-			classSymbolTable->enterNewScope();
 			NewAssignmentStatementNode* dummy;
 
 			for(uint32_t i = 0; i < argCount; i++) {
 				//this construction declares variable as well
 				string argName(argNames[i]);
-				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, classSymbolTable, typeLines[i], varLines[i]);
+				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, typeLines[i], varLines[i]);
 			}
 			
 			//now store AbstractStatementNode* vector representing function body
@@ -1561,7 +1615,6 @@ AbstractStatementNode* addStatement() {
       
       //leave scope
       symbolTable->leaveScope();
-			classSymbolTable->leaveScope();
 			
 			function->body = body;
 
@@ -1570,10 +1623,10 @@ AbstractStatementNode* addStatement() {
 			returnValue.pop_back();
 
 			//now return a FunctionStatementNode
-			return new FunctionStatementNode(functionName, function, symbolTable, classSymbolTable);
+			return new FunctionStatementNode(functionName, function, symbolTable);
 		}
 
-    default: return new ExpressionStatementNode(evalExpression(), symbolTable, classSymbolTable);
+    default: return new ExpressionStatementNode(evalExpression(), symbolTable);
   }
   
 }
@@ -1587,7 +1640,6 @@ vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef, vector<char*>* so
   tokenIndex = 0;
   tokens = tokenRef;
   symbolTable = new SymbolTable();
-	classSymbolTable = new SymbolTable();
 	returnFlag = vector<bool*>();
 	returnValue = vector<ParseData*>();
 	insideClassDefinition = false;

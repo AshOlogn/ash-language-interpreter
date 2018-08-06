@@ -9,6 +9,8 @@
 #include "parsenode.h"
 #include "symboltable.h"
 #include "casteval.h"
+#include "array.h"
+#include "utils.h"
 
 //similar to assignment in statement level, but you return the assigned value
 ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node) {
@@ -25,4 +27,30 @@ ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node) {
   symbolTable->update(variable, castHelper(d, type));
   
   return d;
+}
+
+ParseData evaluateArrayAssignmentExpression(ArrayAssignmentExpressionNode* node) {
+
+	//extract instance fields
+	SymbolTable* symbolTable = node->symbolTable;
+	int32_t index = (int32_t) node->index->evaluate().value.integer;
+	ParseData value = node->value->evaluate();
+
+	//assign array index
+	Array* arr = (Array*) node->array->evaluate().value.allocated;
+	arr->values[index] = value;
+
+	//return a deep copy of assigned value
+	ParseData retValue;
+	retValue.type = value.type;
+
+	if(value.type == STRING_T) {
+		retValue.value.allocated = (void*) copyString((char*) value.value.allocated);
+	} else if(value.type == DOUBLE_T) {
+		retValue.value.floatingPoint = value.value.floatingPoint;
+	} else {
+		retValue.value.integer = value.value.integer;
+	}
+
+	return retValue;
 }

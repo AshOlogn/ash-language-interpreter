@@ -69,15 +69,25 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   SymbolTable* symbolTable = node->symbolTable;
   std::string variable = node->variable;
   ParseDataType type = node->type;
+	ParseDataType subType = node->subType;
   
   //add variable to table
   if(node->value != NULL) {
 
     ParseData d = node->value->evaluate();
-		Array* array = (Array*) d.value.allocated;
 
-    //consider implicit casting
-    symbolTable->declare(variable, castHelper(d, type));
+		if(type == ARRAY_T) {
+
+			//if array, change array value's subtype to fit variable's subtype
+			Array* arr = (Array*) d.value.allocated;
+			arr->subtype = subType;
+			symbolTable->declare(variable, d);
+
+		} else {
+			//consider implicit casting
+    	symbolTable->declare(variable, castHelper(d, type));
+		}
+
   } else {
     
     ParseData d;
@@ -95,9 +105,29 @@ void executeAssignmentStatement(AssignmentStatementNode* node) {
   
   ParseDataType type = (symbolTable->get(variable)).type;
   ParseData d = value->evaluate();
-  
-  //update variable value (innermost scope)
-  symbolTable->update(variable, castHelper(d, type));
+
+	if(type == ARRAY_T) {
+
+		//deep copy of array, casting as necessary
+		Array* arr = (Array*) (symbolTable->get(variable)).value.allocated;
+		ParseDataType subType = arr->subtype;
+
+		Array* origArr = (Array*) d.value.allocated;
+		uint32_t length = arr->length = origArr->length;
+		
+		ParseData* values = new ParseData[length];
+		ParseData* origValues = origArr->values;
+
+		for(uint32_t i = 0; i < length; i++) {
+			values[i] = castHelper(origValues[i], subType);
+		}
+
+		arr->values = values;
+
+	} else {
+		//update variable value (innermost scope)
+  	symbolTable->update(variable, castHelper(d, type));
+	}
 }
 
 void executeArrayAssignmentStatement(ArrayAssignmentStatementNode* node) {

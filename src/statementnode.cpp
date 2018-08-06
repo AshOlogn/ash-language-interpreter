@@ -8,10 +8,9 @@
 #include "array.h"
 
 //represents a single-expression statement
-ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
+ExpressionStatementNode::ExpressionStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable) {
   expression = exp;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	startLine = exp->startLine;
 	endLine = exp->endLine;
 }
@@ -21,10 +20,9 @@ void ExpressionStatementNode::execute() {
 }
 
 //represents print statement (no new line character)
-PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+PrintStatementNode::PrintStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine) {
   expression = exp;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = exp->endLine;
 }
@@ -34,10 +32,9 @@ void PrintStatementNode::execute() {
 }
 
 //represents print statement (yes new line character)
-PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+PrintLineStatementNode::PrintLineStatementNode(AbstractExpressionNode* exp, SymbolTable* symbolTable, uint32_t startLine) {
   expression = exp;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = exp->endLine;
 }
@@ -48,10 +45,9 @@ void PrintLineStatementNode::execute() {
 
 
 //represents a group of statements in braces
-GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine) {
+GroupedStatementNode::GroupedStatementNode(std::vector<AbstractStatementNode*>* s, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine) {
   statements = s;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = endLine;
 }
@@ -60,13 +56,11 @@ void GroupedStatementNode::execute() {
   executeGroupedStatement(this);
 }
 
-
 //represents if-elif-else structure
-ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine) {
+ConditionalStatementNode::ConditionalStatementNode(std::vector<AbstractExpressionNode*>* cond, std::vector<AbstractStatementNode*>* stat, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine) {
   conditions = cond;
   statements = stat;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = endLine;
 }
@@ -76,11 +70,10 @@ void ConditionalStatementNode::execute() {
 }
 
 //represents while loop
-WhileStatementNode::WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+WhileStatementNode::WhileStatementNode(AbstractExpressionNode* cond, AbstractStatementNode* bod, SymbolTable* symbolTable, uint32_t startLine) {
   condition = cond;
   body = bod;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = bod->endLine;
 }
@@ -99,13 +92,12 @@ void WhileStatementNode::execute() {
 }
 
 //represents for loop
-ForStatementNode::ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+ForStatementNode::ForStatementNode(AbstractStatementNode* init, AbstractStatementNode* upd, AbstractStatementNode* bod, AbstractExpressionNode* cond, SymbolTable* symbolTable, uint32_t startLine) {
   initialization = init;
   update = upd;
   body = bod;
   condition = cond;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = bod->endLine;
 }
@@ -131,13 +123,12 @@ void ForStatementNode::execute() {
 }
 
 //represents declaration (and maybe assignment) of a new variable
-NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine) {
   
 	variable = var;
 	type = typ;
 	value = val;
 	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = val->endLine;
   
@@ -145,22 +136,40 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDat
   ParseData d;
   d.type = type;
 
-	//if it's an array, add a subtype
+	//array case should be handled in alternate constructor that takes subtype input
+
+  symbolTable->declare(variable, d);
+}
+
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, ParseDataType subTyp, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine) {
+  
+	variable = var;
+	type = typ;
+	subType = subTyp;
+	value = val;
+	this->symbolTable = symbolTable;
+	this->startLine = startLine;
+	this->endLine = val->endLine;
+  
+  //add variable to table with correctly-typed dummy value    
+  ParseData d;
+  d.type = type;
+
+	//if it's an array, add a subtype (this constructor should always be called for array type)
 	if(typ == ARRAY_T) {
 		Array* arr = (Array*) malloc(sizeof(Array));
-		arr->subtype = val->subType;
+		arr->subtype = subTyp;
 		d.value.allocated = (void*) arr;
 	}
 
   symbolTable->declare(variable, d);
 }
 
-NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine, uint32_t endLine) {
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine) {
 	variable = var;
 	type = typ;
   value = NULL;
 	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = endLine;
   
@@ -170,16 +179,38 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDat
   symbolTable->declare(variable, d);
 }
 
+NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDataType typ, ParseDataType subTyp, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine) {
+	variable = var;
+	type = typ;
+	subType = subTyp;
+  value = NULL;
+	this->symbolTable = symbolTable;
+	this->startLine = startLine;
+	this->endLine = endLine;
+  
+  //add variable to table with correctly-typed dummy value    
+  ParseData d;
+  d.type = type;
+
+	//if it's an array, add a subtype (this constructor should always be called for array type)
+	if(typ == ARRAY_T) {
+		Array* arr = (Array*) malloc(sizeof(Array));
+		arr->subtype = subTyp;
+		d.value.allocated = (void*) arr;
+	}
+	
+  symbolTable->declare(variable, d);
+}
+
 void NewAssignmentStatementNode::execute() {
 	executeNewAssignmentStatement(this);
 }
 
 //represents existing variable assignment
-AssignmentStatementNode::AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+AssignmentStatementNode::AssignmentStatementNode(std::string var, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine) {
   variable = var;
   value = val;
   this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = val->endLine;
 }
@@ -188,14 +219,12 @@ void AssignmentStatementNode::execute() {
 	executeAssignmentStatement(this);
 }
 
-
 //represents array index assignment, like arr[i] = 5
-ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable, SymbolTable* classSymbolTable, uint32_t startLine) {
+ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable, uint32_t startLine) {
 	variable = var;
 	index = ind;
 	value = val;
 	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 	this->startLine = startLine;
 	this->endLine = val->endLine;
 }
@@ -218,11 +247,10 @@ void ReturnStatementNode::execute() {
 }
 
 //represents function declaration (and maybe definition)
-FunctionStatementNode::FunctionStatementNode(std::string fName, Function* f, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
+FunctionStatementNode::FunctionStatementNode(std::string fName, Function* f, SymbolTable* symbolTable) {
 	functionName = fName;
 	function = f;
 	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 
 	ParseData d;
 	d.type = FUN_T;
@@ -230,11 +258,10 @@ FunctionStatementNode::FunctionStatementNode(std::string fName, Function* f, Sym
 	//table->declare(fName, d);
 }
 
-FunctionStatementNode::FunctionStatementNode(std::string fName, SymbolTable* symbolTable, SymbolTable* classSymbolTable) {
+FunctionStatementNode::FunctionStatementNode(std::string fName, SymbolTable* symbolTable) {
 	functionName = fName;
 	function = NULL;
 	this->symbolTable = symbolTable;
-	this->classSymbolTable = classSymbolTable;
 
 	ParseData d;
 	d.type = FUN_T;

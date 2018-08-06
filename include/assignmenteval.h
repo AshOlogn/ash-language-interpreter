@@ -5,5 +5,6 @@
 #include "parsenode.h"
 
 ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node);
+ParseData evaluateArrayAssignmentExpression(ArrayAssignmentExpressionNode* node);
 
 #endif

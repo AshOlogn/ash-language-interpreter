@@ -38,6 +38,24 @@ std::string AssignmentExpressionNode::toString() {
   
 }
 
+//array assignment
+ArrayAssignmentExpressionNode::ArrayAssignmentExpressionNode(AbstractExpressionNode* arr, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable) {
+	array = arr;
+	index = ind;
+	value = val;
+	this->symbolTable = symbolTable;
+	startLine = arr->startLine;
+	endLine = value->endLine;
+	evalType = arr->subType;
+}
+
+ParseData ArrayAssignmentExpressionNode::evaluate() {
+	return evaluateArrayAssignmentExpression(this);
+}
+
+std::string ArrayAssignmentExpressionNode::toString() {
+
+}
 
 ///////////////////////////////////
 ///////     Operations      ///////
