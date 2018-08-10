@@ -50,6 +50,28 @@ ParseData bitHelper(T1 n1, T2 n2, ParseDataType finalType, ParseOperatorType op)
       }
       break;
     }
+
+		case BIT_LEFT_OP: {
+			switch(finalType) {
+        case CHAR_T: d.value.integer = (unsigned char) (n1 << n2); break;
+        case INT32_T: d.value.integer = (int32_t) (n1 << n2); break;
+        case INT64_T: d.value.integer = (int64_t) (n1 << n2); break;
+        case UINT32_T: d.value.integer = (uint32_t) (n1 << n2); break;
+        case UINT64_T: d.value.integer = (uint64_t) (n1 << n2); break;
+      }
+      break;
+		}
+
+		case BIT_RIGHT_OP: {
+			switch(finalType) {
+        case CHAR_T: d.value.integer = (unsigned char) (n1 >> n2); break;
+        case INT32_T: d.value.integer = (int32_t) (n1 >> n2); break;
+        case INT64_T: d.value.integer = (int64_t) (n1 >> n2); break;
+        case UINT32_T: d.value.integer = (uint32_t) (n1 >> n2); break;
+        case UINT64_T: d.value.integer = (uint64_t) (n1 >> n2); break;
+      }
+      break;
+		}
   }
 
   return d;
@@ -256,6 +278,128 @@ ParseData evaluateBitLogicalExpression(BitLogicalOperatorNode* node) {
             case INT64_T: return bitHelper((uint64_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_OR_OP); 
             case UINT32_T: return bitHelper((uint64_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_OR_OP); 
             case UINT64_T: return bitHelper((uint64_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_OR_OP); 
+          }
+        }
+      }
+    }
+
+		case BIT_LEFT_OP: {
+
+      switch(left.type) {
+
+        case CHAR_T: {
+          
+          switch(right.type) {
+            case CHAR_T: return bitHelper((unsigned char) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT32_T: return bitHelper((unsigned char) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT64_T: return bitHelper((unsigned char) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT32_T: return bitHelper((unsigned char) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT64_T: return bitHelper((unsigned char) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_LEFT_OP);  
+          }
+        }    
+
+        case INT32_T: {
+          
+          switch(right.type) {
+            case CHAR_T: return bitHelper((int32_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT32_T: return bitHelper((int32_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT64_T: return bitHelper((int32_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT32_T: return bitHelper((int32_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT64_T: return bitHelper((int32_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_LEFT_OP);                
+          }
+        }
+
+        case INT64_T: {
+
+          switch(right.type) {
+            case CHAR_T: return bitHelper((int64_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT32_T: return bitHelper((int64_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT64_T: return bitHelper((int64_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT32_T: return bitHelper((int64_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT64_T: return bitHelper((int64_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+          }    
+        }
+
+        case UINT32_T: {
+
+          switch(right.type) {            
+            case CHAR_T: return bitHelper((uint32_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT32_T: return bitHelper((uint32_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT64_T: return bitHelper((uint32_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT32_T: return bitHelper((uint32_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT64_T: return bitHelper((uint32_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_LEFT_OP);   
+          }
+        }
+
+        case UINT64_T: {
+
+          switch(right.type) {
+            case CHAR_T: return bitHelper((uint64_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT32_T: return bitHelper((uint64_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case INT64_T: return bitHelper((uint64_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT32_T: return bitHelper((uint64_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+            case UINT64_T: return bitHelper((uint64_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_LEFT_OP); 
+          }
+        }
+      }
+    }
+
+		case BIT_RIGHT_OP: {
+
+      switch(left.type) {
+
+        case CHAR_T: {
+          
+          switch(right.type) {
+            case CHAR_T: return bitHelper((unsigned char) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT32_T: return bitHelper((unsigned char) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT64_T: return bitHelper((unsigned char) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT32_T: return bitHelper((unsigned char) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT64_T: return bitHelper((unsigned char) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_RIGHT_OP);  
+          }
+        }    
+
+        case INT32_T: {
+          
+          switch(right.type) {
+            case CHAR_T: return bitHelper((int32_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT32_T: return bitHelper((int32_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT64_T: return bitHelper((int32_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT32_T: return bitHelper((int32_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT64_T: return bitHelper((int32_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_RIGHT_OP);                
+          }
+        }
+
+        case INT64_T: {
+
+          switch(right.type) {
+            case CHAR_T: return bitHelper((int64_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT32_T: return bitHelper((int64_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT64_T: return bitHelper((int64_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT32_T: return bitHelper((int64_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT64_T: return bitHelper((int64_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+          }    
+        }
+
+        case UINT32_T: {
+
+          switch(right.type) {            
+            case CHAR_T: return bitHelper((uint32_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT32_T: return bitHelper((uint32_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT64_T: return bitHelper((uint32_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT32_T: return bitHelper((uint32_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT64_T: return bitHelper((uint32_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_RIGHT_OP);   
+          }
+        }
+
+        case UINT64_T: {
+
+          switch(right.type) {
+            case CHAR_T: return bitHelper((uint64_t) left.value.integer, (unsigned char) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT32_T: return bitHelper((uint64_t) left.value.integer, (int32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case INT64_T: return bitHelper((uint64_t) left.value.integer, (int64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT32_T: return bitHelper((uint64_t) left.value.integer, (uint32_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
+            case UINT64_T: return bitHelper((uint64_t) left.value.integer, (uint64_t) right.value.integer, node->evalType, BIT_RIGHT_OP); 
           }
         }
       }
