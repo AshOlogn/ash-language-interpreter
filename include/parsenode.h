@@ -132,10 +132,11 @@ class ArrayAccessNode : public AbstractExpressionNode {
     AbstractExpressionNode* array;
     AbstractExpressionNode* start;
     AbstractExpressionNode* end;
+		char* context;
     bool isSlice;
     
-    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, uint32_t endLine);
-    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLine);
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, char* context, uint32_t endLine);
+    ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, char* context, uint32_t endLine);
   
     ParseData evaluate();
     std::string toString();

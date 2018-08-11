@@ -36,6 +36,10 @@ Token* consume() {
   return (Token*) &(tokens->at(tokenIndex++));
 }
 
+void stepBack() {
+	tokenIndex--;
+}
+
 //examine the current Token, don't advance position
 Token* peek() {
   return (Token*) &(tokens->at(tokenIndex));
@@ -329,7 +333,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
       endIndex.value.integer = (int32_t) -1;
       
       return new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line+1), 
-                                  new LiteralNode(endIndex, rightBracketToken->line+1), rightBracketToken->line+1);
+                                  new LiteralNode(endIndex, rightBracketToken->line+1), getCodeLineBlock(head->startLine-1, rightBracketToken->line), rightBracketToken->line+1);
 
     } else {
 
@@ -349,7 +353,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
       } else {
   
         Token* rightBracketToken = consume(); //consume ]
-        return new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line+1), end, rightBracketToken->line);
+        return new ArrayAccessNode(head, new LiteralNode(startIndex, leftBracketToken->line+1), end, getCodeLineBlock(head->startLine-1, rightBracketToken->line), rightBracketToken->line+1);
       }
     }
 
@@ -376,7 +380,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
         endIndex.type = INT32_T;
         endIndex.value.integer = (int32_t) -1;
     
-        return new ArrayAccessNode(head, start, new LiteralNode(endIndex, rightBracketToken->line+1), rightBracketToken->line);
+        return new ArrayAccessNode(head, start, new LiteralNode(endIndex, rightBracketToken->line+1), getCodeLineBlock(head->startLine-1, rightBracketToken->line), rightBracketToken->line+1);
 
       } else {
 
@@ -395,7 +399,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
 
         } else {
           Token* rightBracketToken = consume(); //consume ]
-          return new ArrayAccessNode(head, start, end, rightBracketToken->line+1);
+          return new ArrayAccessNode(head, start, end, getCodeLineBlock(head->startLine-1, rightBracketToken->line), rightBracketToken->line+1);
         }
       }
 
@@ -409,7 +413,7 @@ AbstractExpressionNode* handleMemberAccess(AbstractExpressionNode* head) {
 
       } else {
         Token* rightBracketToken = consume(); //consume ]
-        return new ArrayAccessNode(head, start, rightBracketToken->line+1);
+        return new ArrayAccessNode(head, start, getCodeLineBlock(head->startLine-1, rightBracketToken->line), rightBracketToken->line+1);
       }
     }
   }
@@ -1024,6 +1028,12 @@ AbstractStatementNode* addStatement() {
       throw StaticVariableScopeError(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
+		//if it is a function call, treat it like an "expression" statement
+		if(peek()->type == LEFT_PAREN) {
+			stepBack();
+			return new ExpressionStatementNode(evalExpression(), symbolTable);
+		}
+
     //get variable type (and maybe array element subtype) from the symbol table
 		ParseDataType type;
 		ParseDataType subtype = INVALID_T;
@@ -1065,7 +1075,7 @@ AbstractStatementNode* addStatement() {
 			}
 
 			Token* rightBracketToken = consume();
-			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line+1), arrIndex, rightBracketToken->line+1);
+			initValue = new ArrayAccessNode(new VariableNode(variable, symbolTable, varToken->line+1), arrIndex, getCodeLineBlock(varToken->line, rightBracketToken->line), rightBracketToken->line+1);
 		}
 
 		//variable must be assigned (can't just be declared)

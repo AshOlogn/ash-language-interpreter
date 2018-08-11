@@ -10,6 +10,7 @@
 #include "memberaccesseval.h"
 #include "array.h"
 #include "utils.h"
+#include "exceptions.h"
 
 ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
   
@@ -32,7 +33,7 @@ ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
 }
 
 
-ParseData elementHelper(ParseData arr, int32_t index) {
+ParseData elementHelper(ArrayAccessNode* node, ParseData arr, int32_t index) {
   
   ParseData d;
 	ParseDataType type = arr.type;
@@ -47,6 +48,11 @@ ParseData elementHelper(ParseData arr, int32_t index) {
 		if(ind < 0)
 			ind += len+1;
 
+		//if index is out-of-bounds, throw exception
+		if(ind < 0 || ind > len-1) {
+			throw OutOfBoundsException(false, len, index, copyString(node->context), node->startLine, node->endLine);
+		}
+
 		d.value.integer = str[ind];
 		return d;
 		
@@ -60,6 +66,11 @@ ParseData elementHelper(ParseData arr, int32_t index) {
 		if(ind < 0)
 			ind += len; 
 		
+		//if index is out-of-bounds, throw exception
+		if(ind < 0 || ind > len-1) {
+			throw OutOfBoundsException(true, len, index, copyString(node->context), node->startLine, node->endLine);
+		}
+
 		ParseData val = values[ind];
 		return val;
 	}
@@ -80,6 +91,6 @@ ParseData evaluateArrayAccess(ArrayAccessNode* node) {
   if(node->isSlice) {
     return sliceHelper(array, (int32_t) start.value.integer, (int32_t) end.value.integer);
   } else {
-    return elementHelper(array, (int32_t) start.value.integer); 
+    return elementHelper(node, array, (int32_t) start.value.integer); 
   }
 }

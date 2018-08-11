@@ -27,6 +27,9 @@ void addStatement(std::vector<AbstractStatementNode*>* statements);
 //consume a Token in the list (increment index)
 Token* consume();
 
+//backtrack by 1 token in the list
+void stepBack();
+
 //examine the current Token, don't advance position
 Token* peek();
 

@@ -155,6 +155,7 @@ ParseDataType typeTokenConversion(TokenType tt) {
     case BOOL: return BOOL_T;
     case DOUBLE: return DOUBLE_T;
     case STRING: return STRING_T;
+		case VOID: return VOID_T;
     default: return INVALID_T;
   }
 }

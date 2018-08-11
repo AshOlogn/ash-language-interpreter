@@ -69,7 +69,13 @@ int main(int argc, char** argv) {
   //execute statements
 	cout << "EXECUTION STAGE" << endl;
   for(it2 = statements->begin(); it2 != statements->end(); it2++) {
-    (*it2)->execute();
+
+		try {
+			(*it2)->execute();
+		}	catch(exception& e) {
+			cout << e.what() << endl;
+			return 1;
+		}	
   }
 
 }

@@ -183,18 +183,20 @@ ParseData CastNode::evaluate() {
 ///////    Member Access    ///////
 ///////////////////////////////////
 
-ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, uint32_t endLin) {
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, char* context, uint32_t endLin) {
 	array = arr; start = s; endLine = endLin; isSlice = false;
 	startLine = arr->startLine;
 	endLine = endLin;
+	this->context = context;
 	evalType = arr->subType;
 	subType = (evalType == STRING_T) ? CHAR_T : INVALID_T;
 }
 
-ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, uint32_t endLin) {
+ArrayAccessNode::ArrayAccessNode(AbstractExpressionNode* arr, AbstractExpressionNode* s, AbstractExpressionNode* e, char* context, uint32_t endLin) {
   array = arr; start = s; end = e; endLine = endLin; isSlice = true;
   startLine = arr->startLine;
   endLine = endLin;
+	this->context = context;
 	evalType = arr->evalType;
 	subType = arr->subType;
 }

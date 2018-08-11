@@ -2,6 +2,7 @@
 
 source = main.cpp \
 	errors.cpp \
+	exceptions.cpp \
 	token.cpp \
 	lexer.cpp \
 	parsetoken.cpp \
@@ -28,6 +29,7 @@ source = main.cpp \
 	
 include = token.h \
 	errors.h \
+	exceptions.h \
 	lexer.h \
 	parsetoken.h \
 	parsenode.h \

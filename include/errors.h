@@ -1,5 +1,5 @@
-#ifndef EXCEPTIONS_H
-#define EXCEPTIONS_H
+#ifndef ERRORS_H
+#define ERRORS_H
 
 #include <cstdint>
 #include <string>
