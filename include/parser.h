@@ -1,5 +1,6 @@
 #include <vector>
 #include <cstdint>
+#include <string>
 #include "token.h"
 #include "parsetoken.h"
 #include "parsenode.h"
@@ -13,12 +14,6 @@ class SymbolTable;
 /////////////////////////////////
 
 std::vector<AbstractStatementNode*>* parse(std::vector<Token>* tokens, std::vector<char*>* codeLines);
-
-/////////////////////////////////
-//////  Return Statements  //////
-/////////////////////////////////
-
-void addStatement(std::vector<AbstractStatementNode*>* statements);
 
 /////////////////////////////////
 //////    Access Tokens     /////
@@ -43,7 +38,7 @@ char* getCodeLineBlock(uint32_t start, uint32_t end);
 //////       Helpers        /////
 /////////////////////////////////
 
-bool isType(Token* potentialType, SymbolTable* symbolTable);
+Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, std::string functionName, bool isStatement);
 
 /////////////////////////////////
 //////    Subroutines     ///////
@@ -101,4 +96,6 @@ AbstractExpressionNode* evalTernary();
 AbstractExpressionNode* evalAssignment();
 
 AbstractExpressionNode* evalExpression();
+
+AbstractStatementNode* addStatement();
 

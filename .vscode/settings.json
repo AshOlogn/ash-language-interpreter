@@ -9,6 +9,7 @@
 			"utility": "cpp",
 			"iostream": "cpp",
 			"ostream": "cpp",
-			"typeinfo": "cpp"
+			"typeinfo": "cpp",
+			"deque": "cpp"
 		}
 	}

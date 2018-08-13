@@ -63,6 +63,241 @@ char* getCodeLineBlock(uint32_t startIndex, uint32_t endIndex) {
   return copyString(str.c_str());
 }
 
+//used to parse function definition and return struct with information
+Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string functionName, bool isStatement) {
+
+	//now create a Function struct
+	Function* function = (Function*) malloc(sizeof(Function));
+	function->returnFlag = (bool*) malloc(sizeof(bool));
+	function->returnValue = (ParseData*) malloc(sizeof(ParseData));
+
+	//assign the global returnFlag and returnValue pointers to this function
+	returnFlag.push_back(function->returnFlag);
+	returnValue.push_back(function->returnValue);
+
+	//now read in arguments enclosed in parentheses
+	Token* leftParenToken = consume(); //consume (
+
+	//if the next token is not a parenthesis, throw an error
+	if(leftParenToken->type != LEFT_PAREN) {
+
+		uint32_t endLine = (leftParenToken->type == END) ? 
+											 ((isStatement) ?  secondStartLine : startLine) : 
+												leftParenToken->line+1;
+
+		if(leftParenToken->type == END) {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '(' to begin function parameter list"); 
+		} else {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftParenToken->lexeme, "Expected '(' to begin function parameter list");
+		}
+	}
+
+	//first scan to figure out how many arguments must be allocated in Function
+	uint32_t currentIndex = 0;
+	uint32_t argCount = 0;
+
+	uint32_t currentErrorLine = leftParenToken->line+1;
+	while(peekAhead(currentIndex)->type != RIGHT_PAREN) {
+
+		//make sure you have a type then variable
+		if(!isTypeTokenType(peekAhead(currentIndex)->type)) {
+
+			Token* tempTypeToken = peekAhead(currentIndex);	
+			uint32_t endLine = (tempTypeToken->type == END) ? currentErrorLine : tempTypeToken->line+1;
+
+			if(tempTypeToken->type == END) {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter type");
+			} else {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempTypeToken->lexeme, "Expected function parameter type");
+			}
+		}
+		currentErrorLine = peekAhead(currentIndex)->line+1;
+		currentIndex++;
+
+		//could be an array type
+		if(peekAhead(currentIndex)->type == LEFT_BRACKET) {
+
+			currentErrorLine = peekAhead(currentIndex)->line+1;
+			currentIndex++;
+
+			//next token must be ']'
+			if(peekAhead(currentIndex)->type != RIGHT_BRACKET) {
+
+				uint32_t endLine = (peekAhead(currentIndex)->type == END) ? currentErrorLine : peekAhead(currentIndex)->line+1;
+
+				if(peekAhead(currentIndex)->type == END) {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected closing ']' in array type");		
+				} else {
+					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), peekAhead(currentIndex)->lexeme, "Expected closing ']' in array type");						
+				}
+			}
+
+			currentErrorLine = peekAhead(currentIndex)->line+1;
+			currentIndex++;
+		}
+
+		//make sure parameter name follows type
+		if(peekAhead(currentIndex)->type != VARIABLE) {
+
+			Token* tempVariableToken = peekAhead(currentIndex);
+			uint32_t endLine = (tempVariableToken->type == END) ? currentErrorLine : tempVariableToken->line+1;
+
+			if(tempVariableToken->type == END) {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter name");
+			} else {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempVariableToken->lexeme, "Expected function parameter name");
+			}
+		}
+		currentErrorLine = peekAhead(currentIndex)->line+1;
+		currentIndex++;
+		argCount++;
+
+		//if next token is not closing parenthesis, it must be a comma
+		Token* nextToken = peekAhead(currentIndex);				
+		if(nextToken->type != RIGHT_PAREN && nextToken->type != COMMA) {
+
+			uint32_t endLine = (nextToken->type == END) ? currentErrorLine : nextToken->line+1;
+
+			if(nextToken->type == END) {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected ',' separating arguments or ')' terminating argument list");
+			} else {
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), nextToken->lexeme, "Expected ',' separating arguments or ')' terminating argument list"); 
+			} 
+
+		} else if(nextToken->type == COMMA) {
+			currentErrorLine = nextToken->line+1;
+			currentIndex++; //"consume" COMMA token
+		}
+	}
+
+	//now allocate memory for argument names and types
+	function->numArgs = argCount;
+	ParseDataType* argTypes = new ParseDataType[argCount];
+	ParseDataType* argSubTypes = new ParseDataType[argCount];
+	char** argNames = (char**) malloc(sizeof(char*) * argCount);
+
+	//keep track of variable line numbers
+	uint32_t typeLines[argCount];
+	uint32_t varLines[argCount];
+
+	//now read in arguments for real
+	uint32_t argIndex = 0;
+	while(peek()->type != RIGHT_PAREN) {
+
+		//read in parameter type
+		Token* currTypeToken = consume();
+
+		//could be an array type
+		if(peek()->type == LEFT_BRACKET) {
+
+			argTypes[argIndex] = ARRAY_T;
+			argSubTypes[argIndex] = typeTokenConversion(currTypeToken->type);
+
+			consume(); //consume '['
+			typeLines[argIndex] = consume()->line+1;
+
+		} else {
+
+			argTypes[argIndex] = typeTokenConversion(currTypeToken->type);
+			argSubTypes[argIndex] = INVALID_T;
+			typeLines[argIndex] = currTypeToken->line+1;
+		}
+
+		//read in parameter name
+		Token* currVarToken = consume();
+		const char* aName = currVarToken->lexeme;
+		argNames[argIndex] = copyString(aName);
+		varLines[argIndex] = currVarToken->line+1;
+
+		argIndex++;
+		if(argIndex < argCount)
+			consume(); //consume ,
+	}
+	leftParenToken = consume(); //consume ')' token
+
+	function->argTypes = argTypes;
+	function->argSubTypes = argSubTypes;
+	function->argNames = argNames;
+
+	//now get the return type
+	Token* rightArrowToken = consume(); //consume ->
+	if(rightArrowToken->type != RIGHTARROW) {
+		
+		uint32_t endLine = (rightArrowToken->line == END) ? leftParenToken->line+1 : rightArrowToken->line+1;
+
+		if(rightArrowToken->line == END) {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected -> followed by return type");
+		} else {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), rightArrowToken->lexeme, "Expected -> followed by return type");
+		}
+	}
+
+	//make sure following token is a return type
+	Token* returnTypeToken = consume();
+	if(!isTypeTokenType(returnTypeToken->type)) {
+
+		uint32_t endLine = (returnTypeToken->type == END) ? rightArrowToken->line+1 : returnTypeToken->line+1;
+
+		if(returnTypeToken->type == END) {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function return type"); 
+		} else {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), returnTypeToken->lexeme, "Expected function return type"); 
+		}
+	}
+
+	function->returnType = typeTokenConversion(returnTypeToken->type);
+
+	//just declare function up front with dummy data and Function public interface data
+	//(to allow for recursive definitions)
+	ParseData dummyFunctionData;
+	dummyFunctionData.type = FUN_T;
+	dummyFunctionData.value.allocated = function;
+	symbolTable->declare(functionName, dummyFunctionData);
+
+	//now declare the variables just for scope-checking purposes
+	//and enter a new scope (in both tables) for function body
+	symbolTable->enterNewScope();
+	NewAssignmentStatementNode* dummy;
+
+	for(uint32_t i = 0; i < argCount; i++) {
+		//this construction declares variable as well
+		string argName(argNames[i]);
+		dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, typeLines[i], varLines[i]);
+	}
+
+	//now store AbstractStatementNode* vector representing function body
+	//make sure the body is braced
+	Token* leftBraceToken = consume(); //consume {
+	if(leftBraceToken->type != LEFT_BRACE) {
+
+		uint32_t endLine = (leftBraceToken->type == END) ? returnTypeToken->line+1 : leftBraceToken->line+1;
+
+		if(leftBraceToken->type == END) {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '{' followed by function body");
+		} else {
+			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftBraceToken->lexeme, "Expected '{' followed by function body");
+		}
+	}
+
+	//represents statements in body
+	vector<AbstractStatementNode*>* body = new vector<AbstractStatementNode*>();
+
+	while(peek()->type != RIGHT_BRACE) {
+		body->push_back(addStatement());  
+	}
+	consume(); //consume }
+
+	//leave scope
+	symbolTable->leaveScope();
+	function->body = body;
+
+	//reset global pointers
+	returnFlag.pop_back();
+	returnValue.pop_back();
+
+	return function;
+}
+
 /////////////////////////////////
 //////    Subroutines     ///////
 /////////////////////////////////
@@ -1394,243 +1629,7 @@ AbstractStatementNode* addStatement() {
 			}
 
 			string functionName(varToken->lexeme);
-
-			//now create a Function struct
-			Function* function = (Function*) malloc(sizeof(Function));
-			function->returnFlag = (bool*) malloc(sizeof(bool));
-			function->returnValue = (ParseData*) malloc(sizeof(ParseData)); 
-
-			//assign the global returnFlag and returnValue pointers to this function
-			returnFlag.push_back(function->returnFlag);
-			returnValue.push_back(function->returnValue);
-
-			//now read in arguments enclosed in parentheses
-			Token* leftParenToken = consume(); //consume (
-
-			//if the next token is not a parenthesis, throw an error
-			if(leftParenToken->type != LEFT_PAREN) {
-
-				uint32_t startLine = funToken->line+1;
-				uint32_t endLine = (leftParenToken->type == END) ? varToken->line+1 : leftParenToken->line+1;
-
-				if(leftParenToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '(' to begin function parameter list"); 
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftParenToken->lexeme, "Expected '(' to begin function parameter list");
-				}
-			}
-			
-			//first scan to figure out how many arguments must be allocated in Function
-			uint32_t currentIndex = 0;
-			uint32_t argCount = 0;
-
-			uint32_t currentErrorLine = leftParenToken->line+1;
-			while(peekAhead(currentIndex)->type != RIGHT_PAREN) {
-
-				//make sure you have a type then variable
-				if(!isTypeTokenType(peekAhead(currentIndex)->type)) {
-
-					Token* tempTypeToken = peekAhead(currentIndex);
-					uint32_t startLine = funToken->line+1;	
-					uint32_t endLine = (tempTypeToken->type == END) ? currentErrorLine : tempTypeToken->line+1;
-
-					if(tempTypeToken->type == END) {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter type");
-					} else {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempTypeToken->lexeme, "Expected function parameter type");
-					}
-				}
-				currentErrorLine = peekAhead(currentIndex)->line+1;
-				currentIndex++;
-
-				//could be an array type
-				if(peekAhead(currentIndex)->type == LEFT_BRACKET) {
-
-					currentErrorLine = peekAhead(currentIndex)->line+1;
-					currentIndex++;
-
-					//next token must be ']'
-					if(peekAhead(currentIndex)->type != RIGHT_BRACKET) {
-
-						uint32_t startLine = funToken->line+1;
-						uint32_t endLine = (peekAhead(currentIndex)->type == END) ? currentErrorLine : peekAhead(currentIndex)->line+1;
-
-						if(peekAhead(currentIndex)->type == END) {
-							throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected closing ']' in array type");		
-						} else {
-							throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), peekAhead(currentIndex)->lexeme, "Expected closing ']' in array type");						
-						}
-					}
-
-					currentErrorLine = peekAhead(currentIndex)->line+1;
-					currentIndex++;
-				}
-
-				//make sure parameter name follows type
-				if(peekAhead(currentIndex)->type != VARIABLE) {
-
-					Token* tempVariableToken = peekAhead(currentIndex);
-					uint32_t startLine = funToken->line+1;
-					uint32_t endLine = (tempVariableToken->type == END) ? currentErrorLine : tempVariableToken->line+1;
-
-					if(tempVariableToken->type == END) {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function parameter name");
-					} else {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), tempVariableToken->lexeme, "Expected function parameter name");
-					}
-				}
-				currentErrorLine = peekAhead(currentIndex)->line+1;
-				currentIndex++;
-				argCount++;
-
-				//if next token is not closing parenthesis, it must be a comma
-				Token* nextToken = peekAhead(currentIndex);				
-				if(nextToken->type != RIGHT_PAREN && nextToken->type != COMMA) {
-
-					uint32_t startLine = funToken->line+1;
-					uint32_t endLine = (nextToken->type == END) ? currentErrorLine : nextToken->line+1;
-
-					if(nextToken->type == END) {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected ',' separating arguments or ')' terminating argument list");
-					} else {
-						throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), nextToken->lexeme, "Expected ',' separating arguments or ')' terminating argument list"); 
-					} 
-
-				} else if(nextToken->type == COMMA) {
-					currentErrorLine = nextToken->line+1;
-					currentIndex++; //"consume" COMMA token
-				}
-			}
-
-			//now allocate memory for argument names and types
-			function->numArgs = argCount;
-			ParseDataType* argTypes = new ParseDataType[argCount];
-			ParseDataType* argSubTypes = new ParseDataType[argCount];
-			char** argNames = (char**) malloc(sizeof(char*) * argCount);
-
-			//keep track of variable line numbers
-			uint32_t typeLines[argCount];
-			uint32_t varLines[argCount];
-
-			//now read in arguments for real
-			uint32_t argIndex = 0;
-			while(peek()->type != RIGHT_PAREN) {
-
-				//read in parameter type
-				Token* currTypeToken = consume();
-
-				//could be an array type
-				if(peek()->type == LEFT_BRACKET) {
-
-					argTypes[argIndex] = ARRAY_T;
-					argSubTypes[argIndex] = typeTokenConversion(currTypeToken->type);
-
-					consume(); //consume '['
-					typeLines[argIndex] = consume()->line+1;
-
-				} else {
-
-					argTypes[argIndex] = typeTokenConversion(currTypeToken->type);
-					argSubTypes[argIndex] = INVALID_T;
-					typeLines[argIndex] = currTypeToken->line+1;
-				}
-
-				//read in parameter name
-				Token* currVarToken = consume();
-				const char* aName = currVarToken->lexeme;
-				argNames[argIndex] = copyString(aName);
-				varLines[argIndex] = currVarToken->line+1;
-
-				argIndex++;
-				if(argIndex < argCount)
-					consume(); //consume ,
-			}
-			leftParenToken = consume(); //consume ')' token
-
-			function->argTypes = argTypes;
-			function->argSubTypes = argSubTypes;
-			function->argNames = argNames;
-
-			//now get the return type
-			Token* rightArrowToken = consume(); //consume ->
-			if(rightArrowToken->type != RIGHTARROW) {
-				
-				uint32_t startLine = funToken->line+1;
-				uint32_t endLine = (rightArrowToken->line == END) ? leftParenToken->line+1 : rightArrowToken->line+1;
-
-				if(rightArrowToken->line == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected -> followed by return type");
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), rightArrowToken->lexeme, "Expected -> followed by return type");
-				}
-			}
-
-			//make sure following token is a return type
-			Token* returnTypeToken = consume();
-			if(!isTypeTokenType(returnTypeToken->type)) {
-
-				uint32_t startLine = funToken->line+1;
-				uint32_t endLine = (returnTypeToken->type == END) ? rightArrowToken->line+1 : returnTypeToken->line+1;
-
-				if(returnTypeToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected function return type"); 
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), returnTypeToken->lexeme, "Expected function return type"); 
-				}
-			}
-
-			function->returnType = typeTokenConversion(returnTypeToken->type);
-
-			//just declare function up front with dummy data and Function public interface data
-			//(to allow for recursive definitions)
-			ParseData dummyFunctionData;
-			dummyFunctionData.type = FUN_T;
-			dummyFunctionData.value.allocated = function;
-			symbolTable->declare(functionName, dummyFunctionData);
-
-			//now declare the variables just for scope-checking purposes
-			//and enter a new scope (in both tables) for function body
-      symbolTable->enterNewScope();
-			NewAssignmentStatementNode* dummy;
-
-			for(uint32_t i = 0; i < argCount; i++) {
-				//this construction declares variable as well
-				string argName(argNames[i]);
-				dummy = new NewAssignmentStatementNode(argName, argTypes[i], symbolTable, typeLines[i], varLines[i]);
-			}
-			
-			//now store AbstractStatementNode* vector representing function body
-
-			//make sure the body is braced
-			Token* leftBraceToken = consume(); //consume {
-			if(leftBraceToken->type != LEFT_BRACE) {
-
-				uint32_t startLine = funToken->line+1;
-				uint32_t endLine = (leftBraceToken->type == END) ? returnTypeToken->line+1 : leftBraceToken->line+1;
-
-				if(leftBraceToken->type == END) {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '{' followed by function body");
-				} else {
-					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), leftBraceToken->lexeme, "Expected '{' followed by function body");
-				}
-			}
-
-			//represents statements in body
-      vector<AbstractStatementNode*>* body = new vector<AbstractStatementNode*>();
-      
-      while(peek()->type != RIGHT_BRACE) {
-        body->push_back(addStatement());  
-      }
-      consume(); //consume }
-      
-      //leave scope
-      symbolTable->leaveScope();
-			
-			function->body = body;
-
-			//reset global pointers
-			returnFlag.pop_back();
-			returnValue.pop_back();
+			Function* function = parseFunction(funToken->line+1, varToken->line+1, functionName, true);
 
 			//now return a FunctionStatementNode
 			return new FunctionStatementNode(functionName, function, symbolTable);
