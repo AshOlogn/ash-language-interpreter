@@ -167,7 +167,8 @@ bool isTypeTokenType(TokenType tt) {
   return tt == INT8 || tt == INT16 || tt == INT32 || 
          tt == INT64 || tt == UINT8 || tt == UINT16 || 
          tt == UINT32 || tt == UINT64 || tt == CHAR ||
-         tt == DOUBLE || tt == BOOL || tt == STRING;
+         tt == DOUBLE || tt == BOOL || tt == STRING ||
+         tt == FUN;
 }
 
 //returns whether Token is an operator

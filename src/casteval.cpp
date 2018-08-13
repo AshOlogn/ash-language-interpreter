@@ -25,7 +25,13 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
 			if(finalType == ARRAY_T)
 				d.value.allocated = orig.value.allocated;
 			break;
-		}	
+		}
+
+    case FUN_T: {
+      if(finalType == FUN_T)
+        d.value.allocated = orig.value.allocated;
+      break;
+    }
 
     case BOOL_T: {
       

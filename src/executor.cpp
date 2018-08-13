@@ -75,7 +75,8 @@ void executeNewAssignmentStatement(NewAssignmentStatementNode* node) {
   if(node->value != NULL) {
 
     ParseData d = node->value->evaluate();
-
+		std::cout << "evaluated variable " << ((VariableNode*) node->value)->variable << ", address: " << d.value.allocated << std::endl; 
+		
 		if(type == ARRAY_T) {
 
 			//if array, change array value's subtype to fit variable's subtype

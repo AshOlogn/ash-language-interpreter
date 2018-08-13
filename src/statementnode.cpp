@@ -137,7 +137,6 @@ NewAssignmentStatementNode::NewAssignmentStatementNode(std::string var, ParseDat
   d.type = type;
 
 	//array case should be handled in alternate constructor that takes subtype input
-
   symbolTable->declare(variable, d);
 }
 
@@ -255,7 +254,7 @@ FunctionStatementNode::FunctionStatementNode(std::string fName, Function* f, Sym
 	ParseData d;
 	d.type = FUN_T;
 	d.value.allocated = f;
-	//table->declare(fName, d);
+	symbolTable->declare(fName, d);
 }
 
 FunctionStatementNode::FunctionStatementNode(std::string fName, SymbolTable* symbolTable) {
@@ -265,7 +264,7 @@ FunctionStatementNode::FunctionStatementNode(std::string fName, SymbolTable* sym
 
 	ParseData d;
 	d.type = FUN_T;
-	//table->declare(fName, d);
+	symbolTable->declare(fName, d);
 }
 
 void FunctionStatementNode::execute() {
