@@ -21,29 +21,12 @@ char* copyString(const char* str) {
 //allocate a char* subtring
 char* copySubstring(const char* str, int32_t startIndex, int32_t pastEndIndex) {
 
-	int32_t len = strlen(str);
-	int32_t start = startIndex;
-	int32_t pastEnd = pastEndIndex;
-
-	//take into account negative indices
-	if(start < 0)
-		start += len + 1;
-	
-	if(pastEnd < 0)
-		pastEnd += len + 1;
-
-	if(pastEnd <= start) {
-		char* copy = new char[1];
-		copy[0] = '\0';
-		return copy;
+	char* copy = new char[pastEndIndex-startIndex+1];
+	for(int32_t i = startIndex; i < pastEndIndex; i++) {
+		copy[i-startIndex] = str[i];
 	}
 
-	char* copy = new char[pastEnd-start+1];
-	for(int32_t i = start; i < pastEnd; i++) {
-		copy[i-start] = str[i];
-	}
-	copy[pastEnd-start] = '\0';
-
+	copy[pastEndIndex-startIndex] = '\0';
 	return copy;
 }
 
@@ -51,27 +34,16 @@ char* copySubstring(const char* str, int32_t startIndex, int32_t pastEndIndex) {
 Array* copySubarray(Array* arr, int32_t startIndex, int32_t pastEndIndex) {
 
 	//extract fields from Array
-	int32_t length = (int32_t) arr->length;
 	ParseData* values = arr->values;
 
-	int32_t start = startIndex;
-	int32_t pastEnd = pastEndIndex;
-
-	//take into account negative indices
-	if(start < 0)
-		start += length + 1;
-	
-	if(pastEnd < 0)
-		pastEnd += length + 1;
-
-	ParseData* subarrayValues = (ParseData*) malloc(sizeof(ParseData) * (pastEnd-start));
-	for(int32_t i = start; i < pastEnd; i++) {
-		subarrayValues[i-start] = values[i];
+	ParseData* subarrayValues = (ParseData*) malloc(sizeof(ParseData) * (pastEndIndex-startIndex));
+	for(int32_t i = startIndex; i < pastEndIndex; i++) {
+		subarrayValues[i-startIndex] = values[i];
 	}
 
 	//create subarray Array and return it
 	Array* subarray = (Array*) malloc(sizeof(Array));
-	subarray->length = (uint32_t) (pastEnd-start);
+	subarray->length = (uint32_t) (pastEndIndex-startIndex);
 	subarray->subtype = arr->subtype;
 	subarray->values = subarrayValues;
 

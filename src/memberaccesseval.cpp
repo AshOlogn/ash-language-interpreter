@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "exceptions.h"
 
-ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
+ParseData sliceHelper(ArrayAccessNode* node, ParseData arr, int32_t startIndex, int32_t endIndex) {
   
   ParseData d;
 	ParseDataType type = arr.type;
@@ -20,13 +20,51 @@ ParseData sliceHelper(ParseData arr, int32_t startIndex, int32_t endIndex) {
   
 	if(type == STRING_T) {
 
-		char* substring = copySubstring((char*) arr.value.allocated, startIndex, endIndex); 
-		d.value.allocated = substring;
+		char* str = (char*) arr.value.allocated;
+		int32_t len = strlen(str);
+		int32_t start = startIndex;
+		int32_t pastEnd = endIndex;
+
+		//calculate actual indices (with negative case)
+		if(start < 0)
+			start += len + 1;
+
+		if(start < 0 || start > len) {
+			throw OutOfBoundsException(false, len, startIndex, copyString(node->context), node->startLine, node->endLine);
+		}
+
+		if(pastEnd < 0)
+			pastEnd += len + 1;
+
+		if(pastEnd < 0 || pastEnd > len) {
+			throw OutOfBoundsException(false, len, endIndex, copyString(node->context), node->startLine, node->endLine);
+		}
+
+		d.value.allocated = copySubstring((char*) arr.value.allocated, start, pastEnd);
 
 	} else if(type == ARRAY_T) {
 
 		Array* array = (Array*) arr.value.allocated;
-		d.value.allocated = copySubarray(array, startIndex, endIndex);
+		int32_t len = (int32_t) array->length;
+		int32_t start = startIndex;
+		int32_t pastEnd = endIndex;
+
+		//calculate actual indices (with negative case)
+		if(start < 0)
+			start += len+1;
+
+		if(start < 0 || start > len) {
+			throw OutOfBoundsException(true, len, startIndex, copyString(node->context), node->startLine, node->endLine);
+		}
+
+		if(pastEnd < 0)
+			pastEnd += len+1;
+
+		if(pastEnd < 0 || pastEnd > len) {
+			throw OutOfBoundsException(true, len, endIndex, copyString(node->context), node->startLine, node->endLine);
+		}
+
+		d.value.allocated = copySubarray(array, start, pastEnd);
 	}
   
   return d;   
@@ -89,7 +127,7 @@ ParseData evaluateArrayAccess(ArrayAccessNode* node) {
     end = node->end->evaluate();
   
   if(node->isSlice) {
-    return sliceHelper(array, (int32_t) start.value.integer, (int32_t) end.value.integer);
+    return sliceHelper(node, array, (int32_t) start.value.integer, (int32_t) end.value.integer);
   } else {
     return elementHelper(node, array, (int32_t) start.value.integer); 
   }

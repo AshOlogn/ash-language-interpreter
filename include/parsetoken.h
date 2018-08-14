@@ -18,7 +18,7 @@ enum ParseDataType {
 	FUN_T,
 	CLASS_T,
 	VOID_T,
-  CUSTOM_T,
+  ANY_T,
   INVALID_T
 };
 

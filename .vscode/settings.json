@@ -10,6 +10,7 @@
 			"iostream": "cpp",
 			"ostream": "cpp",
 			"typeinfo": "cpp",
-			"deque": "cpp"
+			"deque": "cpp",
+			"sstream": "cpp"
 		}
 	}

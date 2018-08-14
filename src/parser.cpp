@@ -64,7 +64,7 @@ char* getCodeLineBlock(uint32_t startIndex, uint32_t endIndex) {
 }
 
 //used to parse function definition and return struct with information
-Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string functionName, bool isStatement) {
+Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string functionName) {
 
 	//now create a Function struct
 	Function* function = (Function*) malloc(sizeof(Function));
@@ -81,9 +81,7 @@ Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string fun
 	//if the next token is not a parenthesis, throw an error
 	if(leftParenToken->type != LEFT_PAREN) {
 
-		uint32_t endLine = (leftParenToken->type == END) ? 
-											 ((isStatement) ?  secondStartLine : startLine) : 
-												leftParenToken->line+1;
+		uint32_t endLine = (leftParenToken->type == END) ? secondStartLine : leftParenToken->line+1;
 
 		if(leftParenToken->type == END) {
 			throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "Expected '(' to begin function parameter list"); 
@@ -445,8 +443,6 @@ AbstractExpressionNode* evalLiteralGroup() {
 			
 			//get function information
 			Function* function = (Function*) (symbolTable->get(variableName).value.allocated);
-
-			cout << "execute function address: " << (long) function << endl;
 
 			uint32_t numArgs = function->numArgs;
 			ParseDataType* argTypes = function->argTypes;
@@ -1151,7 +1147,7 @@ AbstractStatementNode* addStatement() {
 	Token* leftBracket;
 	Token* rightBracket;
 
-  if(isTypeTokenType(t->type) && t->type != FUN) {
+  if(isTypeTokenType(t->type)) {
    
     //variable declaration
     ParseDataType type = typeTokenConversion(t->type);
@@ -1630,35 +1626,12 @@ AbstractStatementNode* addStatement() {
 				} 
 			}
 
-			//case in which variable is of fun type (i.e. fun x = ...)
-			if(peek()->type == EQ) {
+			//parse function and its arguments
+			string functionName(varToken->lexeme);
+			Function* function = parseFunction(funToken->line+1, varToken->line+1, functionName);
 
-				//make sure variable is not already declared in this scope
-				if(symbolTable->isDeclaredInScope(string(varToken->lexeme))) {
-					throw StaticVariableScopeError(varToken->line+1, string(varToken->lexeme), getCodeLineBlock(varToken->line, varToken->line), true);
-				}
-
-				Token* equalToken = consume();
-				AbstractExpressionNode* funVal = evalExpression();
-
-				//make sure the value is of function type
-				if(funVal->evalType != FUN_T) {
-					uint32_t startLine = funToken->line+1;
-					uint32_t endLine = funVal->endLine;
-					throw StaticCastError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), funVal->evalType, FUN_T, false);
-				}
-
-
-				return new NewAssignmentStatementNode(string(varToken->lexeme), FUN_T, funVal, symbolTable, funToken->line+1);
-
-			} else {
-
-				string functionName(varToken->lexeme);
-				Function* function = parseFunction(funToken->line+1, varToken->line+1, functionName, true);
-
-				//now return a FunctionStatementNode
-				return new FunctionStatementNode(functionName, function, symbolTable);
-			}
+			//now return a FunctionStatementNode
+			return new FunctionStatementNode(functionName, function, symbolTable);
 		}
 
     default: return new ExpressionStatementNode(evalExpression(), symbolTable);

@@ -41,23 +41,16 @@ int main(int argc, char** argv) {
   vector<Token> tokens;
   
   try {
-		cout << "LEXING STAGE:" << endl;
     tokens = lex(sourceCode, codeLines);
   } catch(exception& e) {
     cout << e.what() << endl;
     return 1;
   }
-  
-	vector<Token>::iterator it;
-	for(it = tokens.begin(); it != tokens.end(); it++) {
-		cout << toStringTokenType(it->type) << " " << it->line << endl;
-	}
 	
   //get list of statements from list of tokens (parse)
   vector<AbstractStatementNode*>* statements;
   
   try {
-		cout << "PARSING STAGE" << endl;
     statements = parse(&tokens, codeLines); 
   } catch(exception& e) {
     cout << e.what() << endl;
@@ -67,7 +60,6 @@ int main(int argc, char** argv) {
   vector<AbstractStatementNode*>::iterator it2;
 	
   //execute statements
-	cout << "EXECUTION STAGE" << endl;
   for(it2 = statements->begin(); it2 != statements->end(); it2++) {
 
 		try {
