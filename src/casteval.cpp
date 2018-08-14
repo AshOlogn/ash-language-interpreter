@@ -12,7 +12,7 @@
 
 using namespace std;
 
-//helper function
+//helper function to deal with casting cases
 ParseData castHelper(ParseData orig, ParseDataType finalType) {
   
   ParseDataType origType = orig.type;
@@ -26,13 +26,7 @@ ParseData castHelper(ParseData orig, ParseDataType finalType) {
 				d.value.allocated = orig.value.allocated;
 			break;
 		}
-
-    case FUN_T: {
-      if(finalType == FUN_T)
-        d.value.allocated = orig.value.allocated;
-      break;
-    }
-
+    
     case BOOL_T: {
       
       switch(finalType) {

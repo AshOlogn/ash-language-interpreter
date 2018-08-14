@@ -6,6 +6,7 @@
 #include "parsenode.h"
 #include "statementnode.h"
 
+//statement-evaluating functions
 
 void executeExpressionStatement(ExpressionStatementNode* node);
 

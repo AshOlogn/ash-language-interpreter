@@ -55,9 +55,9 @@ include = token.h \
 	parser.h
 
 bin/main: $(addprefix src/, $(source)) $(addprefix include/, $(include))
-	g++ -std=c++11 -Iinclude -o bin/main $(addprefix src/, $(source))
+	g++ -std=c++11 -Iinclude -o bin/ash $(addprefix src/, $(source))
       
 .PHONY: clean
 clean:
 	@echo cleaning...
-	rm bin/main
+	rm bin/ash

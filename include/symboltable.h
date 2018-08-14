@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "parsetoken.h"
 
-
+//used to keep track of variables and functions in appropriate scopes
 class SymbolTable {
   
   private:

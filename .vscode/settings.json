@@ -11,6 +11,7 @@
 			"ostream": "cpp",
 			"typeinfo": "cpp",
 			"deque": "cpp",
-			"sstream": "cpp"
+			"sstream": "cpp",
+			"istream": "cpp"
 		}
 	}

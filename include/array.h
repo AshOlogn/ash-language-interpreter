@@ -8,8 +8,14 @@
 
 //represents array of values of the specified type
 struct Array {
+
+	//type of individual element
 	ParseDataType subtype;
+
+	//length of array
 	uint32_t length;
+
+	//array of values
 	ParseData* values;
 };
 

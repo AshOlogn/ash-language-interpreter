@@ -7,6 +7,9 @@
 #include "parsetoken.h"
 
 //basic syntax errors in input source code
+//start and end lines and context are used to print problematic code sections
+
+//represents syntax error found in lexing stage
 class LexerError : public std::exception {
 
   public:
@@ -21,6 +24,7 @@ class LexerError : public std::exception {
     const char* what() const throw ();
 };
 
+//represents syntax error found in parsing stage
 class ParseSyntaxError : public std::exception {
 
   public:
@@ -49,6 +53,7 @@ class ParseSyntaxError : public std::exception {
     const char* what() const throw ();
 };
 
+//represents type error found when parsing
 class StaticTypeError : public std::exception {
 
   private:
@@ -76,6 +81,7 @@ class StaticTypeError : public std::exception {
     const char* what() const throw ();
 };
 
+//used to show errors related to scope (declaring multiple variables of same name in same scope, undeclared, etc.)
 class StaticVariableScopeError : public std::exception {
 
   public:
@@ -90,6 +96,7 @@ class StaticVariableScopeError : public std::exception {
     const char* what() const throw ();
 };
 
+//express errors in incorrect implicit and explicit casts
 class StaticCastError : public std::exception {
 
   public:

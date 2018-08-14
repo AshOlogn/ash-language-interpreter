@@ -6,6 +6,10 @@
 #include <exception>
 #include "parsetoken.h"
 
+//represent errors found while evaluating the abstract syntax tree
+//can be thought of as "runtime" errors
+
+//start/end lines and context used to print problematic code section 
 
 //accessing string or array out of bounds
 class OutOfBoundsException : public std::exception {

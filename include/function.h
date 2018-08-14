@@ -13,7 +13,7 @@ class AbstractStatementNode;
 struct Function {
 	uint32_t numArgs;
 	ParseDataType* argTypes;
-	ParseDataType* argSubTypes;
+	ParseDataType* argSubTypes; //used if argType is an array
 	char** argNames;
 	std::vector<AbstractStatementNode*>* body;
 	ParseDataType returnType;

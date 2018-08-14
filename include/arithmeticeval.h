@@ -4,6 +4,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
+//evaluates ** * / % + -
 ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node);
 
 #endif

@@ -4,6 +4,7 @@
 #include "parsetoken.h"
 #include "parsenode.h"
 
+//evaluate expression that produces an array
 ParseData evaluateArrayExpression(ArrayNode* node);
 
 #endif

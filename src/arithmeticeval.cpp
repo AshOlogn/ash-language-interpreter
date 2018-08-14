@@ -12,7 +12,8 @@
 #include "array.h"
 
 
-//helper functions
+//helper template functions used to handle operations
+//with different numeric data types
 
 //exponentiation
 template <typename T1, typename T2>
@@ -557,7 +558,8 @@ ParseData additionHelper<Array*, Array*>(Array* a1, Array* a2, ParseDataType typ
 }
 
 
-//actual evaluating function
+//actual evaluating function, handles all operator
+//and numeric data type cases
 ParseData evaluateArithmeticExpression(ArithmeticOperatorNode* node) {
   
   //left and right arguments (calculated recursively)
