@@ -147,4 +147,62 @@ fun foo(int y) -> int {
 
 println foo(5) //prints 9
 ```
-Relying on variables in enclosing scopes is risky as those variables can be changed by other entities, potentially leading to unexpected behavior. 
+Relying on variables in enclosing scopes is risky as those variables can be changed by other entities, potentially leading to unexpected behavior.  
+
+### Error Handling
+An important feature of the Ash programming language is its robust static handling of syntax, type, and scope errors, as well as array access errors at runtime.  
+
+If an error is detected, a descriptive error is printed, along with the line number(s) involved and the problematic section of code. The following are examples of bad code and associated error messages:
+
+Type Error
+```
+int x = 5.5
+```
+
+```
+StaticCastError on line 1
+	int x = 5.5
+Cannot implicitly cast from type double to type int32
+```
+
+Scope Error
+```
+int x = 5
+double x = 5.0
+```
+```
+StaticVariableScopeError on line 2
+	double x = 5.0
+The variable x is already declared in this scope. It cannot be re-declared in the same scope.
+```
+
+Note that since type, scope, and syntax errors are statically detected, error messages are output _before_ any code is actually executed. For example, the string "abcabc" is never printed in the following code:
+
+```
+int x = 2
+string y = "abc" * x
+
+println y
+int z = (int) y
+println z
+```
+```
+StaticCastError on line 5
+	int z = (int) y
+Cannot cast at all from type string to type int32
+```
+
+Additionally, errors in which arrays and strings are indexed out-of-bounds are caught at runtime and appropriately handled:
+
+```
+string x = "abc"
+x += "defg"       // x = "abcdefg"
+println x[:100]
+```
+```
+OutOfBoundsException on line 3:
+		println x[:100]
+The index 100 is out of bounds in string of length 7
+```
+
+
