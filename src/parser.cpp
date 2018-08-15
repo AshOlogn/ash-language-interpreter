@@ -1449,6 +1449,9 @@ AbstractStatementNode* addStatement() {
       Token* forToken = consume(); //consume for Token
       Token* leftParenToken = consume();
 
+			//enter new scope for static checking purposes
+			symbolTable->enterNewScope();
+
 			//make sure the syntax is exactly correct
       if(leftParenToken->type != LEFT_PAREN) {
 
@@ -1520,8 +1523,12 @@ AbstractStatementNode* addStatement() {
 					throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), rightParenToken->lexeme, "Expected ';' after 'for' loop update condition");
 				}
       }
-      
+
       AbstractStatementNode* body = addStatement();
+
+			//leave scope
+			symbolTable->leaveScope();
+			
       return new ForStatementNode(initialization, update, body, condition, symbolTable, forToken->line+1);
     }
     
