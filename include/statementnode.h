@@ -144,8 +144,9 @@ class ArrayAssignmentStatementNode : public AbstractStatementNode {
 		std::string variable;
 		AbstractExpressionNode* index;
 		AbstractExpressionNode* value;
+    char* context;
 
-		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable, uint32_t startLine);
+		ArrayAssignmentStatementNode(std::string variable, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable, char* context, uint32_t startLine);
 		void execute();
 };
 

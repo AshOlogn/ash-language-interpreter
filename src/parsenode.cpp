@@ -39,10 +39,11 @@ std::string AssignmentExpressionNode::toString() {
 }
 
 //array assignment
-ArrayAssignmentExpressionNode::ArrayAssignmentExpressionNode(AbstractExpressionNode* arr, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable) {
+ArrayAssignmentExpressionNode::ArrayAssignmentExpressionNode(AbstractExpressionNode* arr, AbstractExpressionNode* ind, AbstractExpressionNode* val, char* context, SymbolTable* symbolTable) {
 	array = arr;
 	index = ind;
 	value = val;
+  this->context = context;
 	this->symbolTable = symbolTable;
 	startLine = arr->startLine;
 	endLine = value->endLine;

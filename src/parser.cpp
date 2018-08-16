@@ -1125,13 +1125,12 @@ AbstractExpressionNode* evalAssignment() {
 		if(var) {
 			return new AssignmentExpressionNode(var->variable, type, next, symbolTable, var->startLine);
 		} else {
-			return new ArrayAssignmentExpressionNode(arrVar->array, arrVar->start, next, symbolTable);
+			return new ArrayAssignmentExpressionNode(arrVar->array, arrVar->start, next, getCodeLineBlock(arrVar->startLine-1, next->endLine-1), symbolTable);
 		}
     
   } else {
     return head;
   }
-  
 }
 
 AbstractExpressionNode* evalExpression() {
@@ -1366,7 +1365,7 @@ AbstractStatementNode* addStatement() {
     
 		//if array assignment, just deal with it here for now
 		if(type == ARRAY_T) {
-			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, varToken->line+1);
+			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, getCodeLineBlock(varToken->line, expression->endLine-1), varToken->line+1);
 		}
 
     //make sure implicit cast is valid

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "token.h"
 #include "parsetoken.h"
 #include "array.h"
@@ -36,7 +37,7 @@ ParseData copyParseData(ParseData d) {
 		arr2->length = length;
 		arr2->subtype = arr->subtype;
 
-		ParseData* values2 = (ParseData*) malloc(sizeof(ParseData)*length);
+		ParseData* values2 = (ParseData*) malloc(sizeof(ParseData)*std::max((int32_t)length, 1));
 		for(uint32_t i = 0; i < length; i++) {
 			values2[i] = copyParseData(values[i]);
 		}
@@ -360,8 +361,7 @@ const char* toWordParseOperatorType(ParseOperatorType p) {
 char* toStringParseData(ParseData d) {
 
   switch(d.type) {
-  
-		//TODO: add toString for array
+
     case INT8_T: {
       int8_t val = (int8_t) d.value.integer;
       std::string str = std::to_string(val);

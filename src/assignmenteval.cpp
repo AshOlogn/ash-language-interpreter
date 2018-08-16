@@ -11,6 +11,7 @@
 #include "casteval.h"
 #include "array.h"
 #include "utils.h"
+#include "exceptions.h"
 
 //similar to assignment in statement level, but you return the assigned value
 ParseData evaluateAssignmentExpression(AssignmentExpressionNode* node) {
@@ -34,11 +35,19 @@ ParseData evaluateArrayAssignmentExpression(ArrayAssignmentExpressionNode* node)
 	//extract instance fields
 	SymbolTable* symbolTable = node->symbolTable;
 	int32_t index = (int32_t) node->index->evaluate().value.integer;
+
+	Array* arr = (Array*) node->array->evaluate().value.allocated;
+	int32_t length = (int32_t) arr->length;
+
+	//calculate final index and throw exception if out of bounds
+	int32_t finalIndex = (index < 0) ? index + length : index;
+	if(finalIndex < 0 || finalIndex > length-1)
+		throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
+
 	ParseData value = node->value->evaluate();
 
 	//assign array index
-	Array* arr = (Array*) node->array->evaluate().value.allocated;
-	arr->values[index] = value;
+	arr->values[finalIndex] = value;
 
 	//return a deep copy of assigned value
 	ParseData retValue;

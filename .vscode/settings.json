@@ -12,6 +12,7 @@
 			"typeinfo": "cpp",
 			"deque": "cpp",
 			"sstream": "cpp",
-			"istream": "cpp"
+			"istream": "cpp",
+			"unordered_map": "cpp"
 		}
 	}

@@ -11,6 +11,7 @@
 #include "executor.h"
 #include "casteval.h"
 #include "array.h"
+#include "exceptions.h"
 
 void executeExpressionStatement(ExpressionStatementNode* node) {
   node->expression->evaluate();
@@ -136,13 +137,22 @@ void executeArrayAssignmentStatement(ArrayAssignmentStatementNode* node) {
 	SymbolTable* symbolTable = node->symbolTable;
 	std::string variable = node->variable;
 	int32_t index = (int32_t) node->index->evaluate().value.integer;
-	ParseData value = node->value->evaluate();
 
 	//get array from the symbol table
 	Array* array = (Array*) (symbolTable->get(variable)).value.allocated;
+	int32_t length = (int32_t) array->length;
+
+	//if negative index
+	int32_t finalIndex = (index < 0) ? index + length : index;
+
+	//if out of bounds, throw an exception
+	if(finalIndex < 0 || finalIndex > length-1)
+		throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
+
+	ParseData value = node->value->evaluate();
 
 	//do the assignment
-	array->values[index] = value;
+	array->values[finalIndex] = value;
 }
 
 void executeFunctionStatement(FunctionStatementNode* node) {

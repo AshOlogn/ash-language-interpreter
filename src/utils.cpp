@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdlib>
+#include <algorithm>
 #include "array.h"
 #include "utils.h"
 
@@ -21,12 +22,12 @@ char* copyString(const char* str) {
 //allocate a char* subtring
 char* copySubstring(const char* str, int32_t startIndex, int32_t pastEndIndex) {
 
-	char* copy = new char[pastEndIndex-startIndex+1];
+	char* copy = new char[std::max(pastEndIndex-startIndex+1, 1)];
 	for(int32_t i = startIndex; i < pastEndIndex; i++) {
 		copy[i-startIndex] = str[i];
 	}
 
-	copy[pastEndIndex-startIndex] = '\0';
+	copy[std::max(pastEndIndex-startIndex, 0)] = '\0';
 	return copy;
 }
 
@@ -36,14 +37,14 @@ Array* copySubarray(Array* arr, int32_t startIndex, int32_t pastEndIndex) {
 	//extract fields from Array
 	ParseData* values = arr->values;
 
-	ParseData* subarrayValues = (ParseData*) malloc(sizeof(ParseData) * (pastEndIndex-startIndex));
+	ParseData* subarrayValues = (ParseData*) malloc(sizeof(ParseData) * std::max(pastEndIndex-startIndex, 1));
 	for(int32_t i = startIndex; i < pastEndIndex; i++) {
 		subarrayValues[i-startIndex] = values[i];
 	}
 
 	//create subarray Array and return it
 	Array* subarray = (Array*) malloc(sizeof(Array));
-	subarray->length = (uint32_t) (pastEndIndex-startIndex);
+	subarray->length = (uint32_t) std::max(pastEndIndex-startIndex, 0);
 	subarray->subtype = arr->subtype;
 	subarray->values = subarrayValues;
 

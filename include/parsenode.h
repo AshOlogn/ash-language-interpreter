@@ -47,9 +47,10 @@ class ArrayAssignmentExpressionNode : public AbstractExpressionNode {
 		AbstractExpressionNode* array;
 		AbstractExpressionNode* index;
 		AbstractExpressionNode* value;
+    char* context;
 		SymbolTable* symbolTable;
 
-		ArrayAssignmentExpressionNode(AbstractExpressionNode* array, AbstractExpressionNode* index, AbstractExpressionNode* value, SymbolTable* symbolTable);
+		ArrayAssignmentExpressionNode(AbstractExpressionNode* array, AbstractExpressionNode* index, AbstractExpressionNode* value, char* context, SymbolTable* symbolTable);
 		ParseData evaluate();
 		std::string toString();
 };

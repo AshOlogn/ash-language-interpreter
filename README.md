@@ -7,6 +7,14 @@ At a high level, this language is statically-typed, statically-scoped, and suppo
 ### Primitive Types
 The primitive types supported are int32, int64, uint32, uint64, char, double, bool, and string. The C++ interpreter implements the numeric types using the <cstdint> header.
 
+### Array Type
+This language supports single-dimensional arrays of the primitive types described above. There are 2 ways of declaring them. One is to just allocate memory for an array of a certain length and the other is to provide an initializer list.
+```
+int[] x = new int[5]
+int[] y = [1,2,3,4]
+```
+If indices outside the bounds of the array are assigned to or accessed, an `OutOfBoundsException` is thrown at runtime. Also keep in mind that when an array is allocated with the `new` keyword, it has no meaningful initial values.
+
 ### Operations
 The Ash language supports all basic arithmetic and bitwise operations on the numerical types, logical operations on the boolean type, and even arithmetic operations on strings and arrays. The arithmetic and logical operations follow C++ precedence rules, which can be found [here](http://en.cppreference.com/w/cpp/language/operator_precedence).
 
