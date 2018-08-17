@@ -13,6 +13,8 @@ This language supports single-dimensional arrays of the primitive types describe
 int[] x = new int[5]
 int[] y = [1,2,3,4]
 ```
+The language does not currently support arrays of arbitrary types, so multi-dimensional arrays are not possible.  
+
 If indices outside the bounds of the array are assigned to or accessed, an `OutOfBoundsException` is thrown at runtime. Also keep in mind that when an array is allocated with the `new` keyword, it has no meaningful initial values.
 
 ### Operations

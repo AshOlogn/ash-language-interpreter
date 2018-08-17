@@ -219,10 +219,11 @@ void AssignmentStatementNode::execute() {
 }
 
 //represents array index assignment, like arr[i] = 5
-ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable, char* context, uint32_t startLine) {
+ArrayAssignmentStatementNode::ArrayAssignmentStatementNode(std::string var, bool isArray, AbstractExpressionNode* ind, AbstractExpressionNode* val, SymbolTable* symbolTable, char* context, uint32_t startLine) {
 	variable = var;
 	index = ind;
 	value = val;
+	this->isArray = isArray;
 	this->symbolTable = symbolTable;
 	this->startLine = startLine;
 	this->endLine = val->endLine;

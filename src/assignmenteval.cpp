@@ -36,30 +36,48 @@ ParseData evaluateArrayAssignmentExpression(ArrayAssignmentExpressionNode* node)
 	SymbolTable* symbolTable = node->symbolTable;
 	int32_t index = (int32_t) node->index->evaluate().value.integer;
 
-	Array* arr = (Array*) node->array->evaluate().value.allocated;
-	int32_t length = (int32_t) arr->length;
+	if(node->array->evalType == ARRAY_T) {
 
-	//calculate final index and throw exception if out of bounds
-	int32_t finalIndex = (index < 0) ? index + length : index;
-	if(finalIndex < 0 || finalIndex > length-1)
-		throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
+		Array* arr = (Array*) node->array->evaluate().value.allocated;
+		int32_t length = (int32_t) arr->length;
 
-	ParseData value = node->value->evaluate();
+		//calculate final index and throw exception if out of bounds
+		int32_t finalIndex = (index < 0) ? index + length : index;
+		if(finalIndex < 0 || finalIndex > length-1)
+			throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
 
-	//assign array index
-	arr->values[finalIndex] = value;
+		ParseData value = node->value->evaluate();
 
-	//return a deep copy of assigned value
-	ParseData retValue;
-	retValue.type = value.type;
+		//assign array index
+		arr->values[finalIndex] = value;
 
-	if(value.type == STRING_T) {
-		retValue.value.allocated = (void*) copyString((char*) value.value.allocated);
-	} else if(value.type == DOUBLE_T) {
-		retValue.value.floatingPoint = value.value.floatingPoint;
+		//return a deep copy of assigned value
+		ParseData retValue;
+		retValue.type = value.type;
+
+		if(value.type == STRING_T) {
+			retValue.value.allocated = (void*) copyString((char*) value.value.allocated);
+		} else if(value.type == DOUBLE_T) {
+			retValue.value.floatingPoint = value.value.floatingPoint;
+		} else {
+			retValue.value.integer = value.value.integer;
+		}
+
+		return retValue;
+
 	} else {
-		retValue.value.integer = value.value.integer;
-	}
 
-	return retValue;
+		char* str = (char*) node->array->evaluate().value.allocated;
+		int32_t length = strlen(str);
+
+		//calculate final index and throw exception if out of bounds
+		int32_t finalIndex = (index < 0) ? index + length : index;
+		if(finalIndex < 0 || finalIndex > length-1)
+			throw OutOfBoundsException(false, length, index, node->context, node->startLine, node->endLine);
+
+		ParseData value = node->value->evaluate();
+		str[finalIndex] = (unsigned char) value.value.integer;
+
+		return value;
+	}
 }

@@ -1151,7 +1151,7 @@ AbstractStatementNode* addStatement() {
     //variable declaration
     ParseDataType type = typeTokenConversion(t->type);
 
-		//only in the case of an array
+		//only in the case of an array or string
 		ParseDataType subtype;
     Token* typeToken = consume(); //consume type Token
 
@@ -1266,26 +1266,30 @@ AbstractStatementNode* addStatement() {
 			return new ExpressionStatementNode(evalExpression(), symbolTable);
 		}
 
-    //get variable type (and maybe array element subtype) from the symbol table
+    //get variable type (and maybe array/string element subtype) from the symbol table
 		ParseDataType type;
 		ParseDataType subtype = INVALID_T;
+		bool isIndexAssignment = false;
 
     type = (symbolTable->get(variable)).type;
 		if(type == ARRAY_T) {
 			subtype = ((Array*) (symbolTable->get(variable)).value.allocated)->subtype;
+		} else if(type == STRING_T) {
+			subtype = CHAR_T;
 		}
 
 		//initial value of variable being assigned to (in event of *=, -=, etc.)
 		AbstractExpressionNode* initValue = NULL;
 
-		//deal with array index assignment possibility
+		//deal with array/string index assignment possibility
 		AbstractExpressionNode* arrIndex;
 		if(peek()->type == LEFT_BRACKET) {
 
+			isIndexAssignment = true;
 			Token* leftBracketToken = consume();
 
 			//make sure it is an array
-			if(type != ARRAY_T) {
+			if(type != ARRAY_T && type != STRING_T) {
 				uint32_t startLine = varToken->line+1;
 				uint32_t endLine = leftBracketToken->line+1;
 				throw StaticTypeError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "array index assignment", type);
@@ -1364,8 +1368,14 @@ AbstractStatementNode* addStatement() {
     }
     
 		//if array assignment, just deal with it here for now
-		if(type == ARRAY_T) {
-			return new ArrayAssignmentStatementNode(variable, arrIndex, expression, symbolTable, getCodeLineBlock(varToken->line, expression->endLine-1), varToken->line+1);
+		if(isIndexAssignment) {
+
+			//make sure implicit cast is valid
+			if(!typecheckImplicitCastExpression(expression->evalType, subtype)) {
+				throw StaticCastError(varToken->line+1, expression->endLine, getCodeLineBlock(varToken->line, expression->endLine-1), expression->evalType, type, false);
+			}
+
+			return new ArrayAssignmentStatementNode(variable, type == ARRAY_T, arrIndex, expression, symbolTable, getCodeLineBlock(varToken->line, expression->endLine-1), varToken->line+1);
 		}
 
     //make sure implicit cast is valid

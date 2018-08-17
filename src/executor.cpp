@@ -138,21 +138,43 @@ void executeArrayAssignmentStatement(ArrayAssignmentStatementNode* node) {
 	std::string variable = node->variable;
 	int32_t index = (int32_t) node->index->evaluate().value.integer;
 
-	//get array from the symbol table
-	Array* array = (Array*) (symbolTable->get(variable)).value.allocated;
-	int32_t length = (int32_t) array->length;
+	if(node->isArray) {
 
-	//if negative index
-	int32_t finalIndex = (index < 0) ? index + length : index;
+		//get array from the symbol table
+		Array* array = (Array*) (symbolTable->get(variable)).value.allocated;
+		int32_t length = (int32_t) array->length;
 
-	//if out of bounds, throw an exception
-	if(finalIndex < 0 || finalIndex > length-1)
-		throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
+		//if negative index
+		int32_t finalIndex = (index < 0) ? index + length : index;
 
-	ParseData value = node->value->evaluate();
+		//if out of bounds, throw an exception
+		if(finalIndex < 0 || finalIndex > length-1)
+			throw OutOfBoundsException(true, length, index, node->context, node->startLine, node->endLine);
 
-	//do the assignment
-	array->values[finalIndex] = value;
+		ParseData value = node->value->evaluate();
+
+		//do the assignment
+		array->values[finalIndex] = value;
+
+	} else {
+
+		char* str = (char*) (symbolTable->get(variable)).value.allocated;
+		int32_t length = (int32_t) strlen(str);
+
+		//if negative index
+		int32_t finalIndex = (index < 0) ? index + length : index;
+
+		//if out of bounds, throw an exception
+		if(finalIndex < 0 || finalIndex > length-1)
+			throw OutOfBoundsException(false, length, index, node->context, node->startLine, node->endLine);
+
+		ParseData value = node->value->evaluate();
+
+		//do the assignment
+		str[finalIndex] = (unsigned char) value.value.integer;
+	}
+
+	
 }
 
 void executeFunctionStatement(FunctionStatementNode* node) {
