@@ -1,25 +1,25 @@
 # ash-language-interpreter
 
 ## Table of Contents
-[About](#About)  
-[Features](#Features)
-- [Primitive Types](#Primitive-Types)
-- [Array Type](#Array-Type)
-- [Operations](#Operations)
-    - [Arithmetic Operations](#Arithmetic-Operations) 
-    - [Logical Operations](#Logical-Operations)
-    - [String Arithmetic](#String-Arithmetic)
-    - [Array Arithmetic](#Array-Arithmetic)
-    - [String/Array Indexing](#String/Array-Indexing)
-    - [Casting](#Casting)
-    - [Printing](#Printing)
-- [Control Flow](#Control-Flow)
-- [Variable Assignment](#Variable-Assignment)
-- [Scope](#Scope)
-- [Functions](#Functions)
-- [Error Handling](#Error-Handling)
+[About](#about)  
+[Features](#features)
+- [Primitive Types](#primitive-Types)
+- [Array Type](#array-Type)
+- [Operations](#operations)
+    - [Arithmetic Operations](#arithmetic-Operations) 
+    - [Logical Operations](#logical-Operations)
+    - [String Arithmetic](#string-Arithmetic)
+    - [Array Arithmetic](#array-Arithmetic)
+    - [String/Array Indexing](#string/Array-Indexing)
+    - [Casting](#casting)
+    - [Printing](#printing)
+- [Control Flow](#control-Flow)
+- [Variable Assignment](#variable-Assignment)
+- [Scope](#scope)
+- [Functions](#functions)
+- [Error Handling](#error-Handling)
 
-[Using the Interpreter](#Using-the-Interpreter)
+[Using the Interpreter](#using-the-Interpreter)
 
 ## About
 This is an interpreter written in C++ for a toy language (named Ash) that I've invented to better acquaint myself with programming language design, interpreter design, and the C++ language (especially templates and OOP).
