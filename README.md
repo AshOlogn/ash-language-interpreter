@@ -1,4 +1,27 @@
 # ash-language-interpreter
+
+## Table of Contents
+[About](#About)  
+[Features](#Features)
+- [Primitive Types](#Primitive-Types)
+- [Array Type](#Array-Type)
+- [Operations](#Operations)
+    - [Arithmetic Operations](#Arithmetic-Operations) 
+    - [Logical Operations](#Logical-Operations)
+    - [String Arithmetic](#String-Arithmetic)
+    - [Array Arithmetic](#Array-Arithmetic)
+    - [String/Array Indexing](#String/Array-Indexing)
+    - [Casting](#Casting)
+    - [Printing](#Printing)
+- [Control Flow](#Control-Flow)
+- [Variable Assignment](#Variable-Assignment)
+- [Scope](#Scope)
+- [Functions](#Functions)
+- [Error Handling](#Error-Handling)
+
+[Using the Interpreter](#Using-the-Interpreter)
+
+## About
 This is an interpreter written in C++ for a toy language (named Ash) that I've invented to better acquaint myself with programming language design, interpreter design, and the C++ language (especially templates and OOP).
 
 ## Features
@@ -43,7 +66,7 @@ The arithmetic operations that are supported are (in order of precedence):
 - **Logical XOR**: `b1 ^^ b2`, where `b1` and `b2` are booleans
 - **Logical OR**: `b1 || b2`, where `b1` and `b2` are booleans
 
-#### String Arithmetic Operations
+#### String Arithmetic
 - **Unary Negation**: `-str1`, returns a deep copy of the reversed string
 - **Unary Positive**: `+str1`, returns an identical deep copy of the string
 - **Addition**: `str1 + str2`, string concatenation
@@ -51,7 +74,7 @@ The arithmetic operations that are supported are (in order of precedence):
     - Returns the string concatenated to itself the integer number of times (i.e. `"abc" * 2` yields `"abcabc"`)
     - If the integer is signed and negative, the above is done with the integer's absolute value and the result is reversed (i.e. `"abc" * -2` yields `"cbacba"`)
 
-#### Array Arithmetic Operations
+#### Array Arithmetic
 These are the same as the associated string operations, but what is done to the characters is instead done to array elements. Think of strings as character arrays, even though they aren't implemented the same way in the Ash language. 
 
 The following examples show how arithmetic can be done with arrays:
@@ -61,15 +84,15 @@ The following examples show how arithmetic can be done with arrays:
 - `-[1,2,3]` yields `[3,2,1]` 
 
 
-#### String/Array Indexing Operations
-Indexing of strings and arrays is done Python style, meaning that you can access both individual elements as well as slices. Positive indices are zero-indexed and negative indices count from the back, with -1 denoting the last element. I'd rather not belabor a system already described by the Python language, so here are some examples of how indexing works:
+#### String/Array Indexing
+Indexing of strings and arrays is done Python style, meaning that you can access both individual elements as well as slices. Positive indices are zero-indexed and negative indices count from the back, with -1 denoting the last element (different from Python, in which -1 denotes the second to last element). I'd rather not belabor a system already described by the Python language, so here are some examples of how indexing works:
 - `"abcd"[0]` returns `'a'`
 - `[1,2,3][1]` returns `2`
 - `"abcd"[-2]` returns `'c'`
 - `[1,2,3,4][2:-1]` returns `[3,4]`
 - `"abcd"[2:1]` returns `""`
 
-### Casting
+#### Casting
 Casting is done implicitly if going from a smaller to larger type (i.e. int32 to double) or to a string in all cases, be it during variable assignment or in expressions. If a value is assigned to a variable of a smaller type, then the interpreter throws an error, since such a conversion could be lossy and thus must be specified explicitly. A wider variety of casts (including lossy ones) can be specified explicitly without creating errors. The syntax for casting is C-style.  
 
 The following are examples of valid implicit casts:
@@ -86,7 +109,7 @@ The following are examples of invalid casts:
 - `int x = (int) "1234" //this is not allowed even as an explicit cast` 
 
 
-### Printing
+#### Printing
 Printing functionality is provided as a built-in statement. I know that this is much less elegant than providing it in a standard library, but my goal is to keep the language as light-weight as possible while still exhibiting most of the characteristics of a full-fledged language.
 
 The `println` and `print` keywords followed by an expression print the string representation of the expression's evaluated value (with and without trailing newline character respectively). All the primitive types are printable, as are arrays.
@@ -215,4 +238,9 @@ OutOfBoundsException on line 3:
 The index 100 is out of bounds in string of length 7
 ```
 
-
+## Using the Interpreter
+To run the Ash language interpreter, first clone this repository using the following command:
+```
+git clone https://github.com/AshOlogn/ash-language-interpreter.git
+```
+Then run `make` in the root of the project directory to produce the executable. To interpret Ash source code, run the executable with the name of the source file as the sole argument (i.e. `bin/ash test.ash`). If you want to interpret source code from any directory conveniently, add the path to executable's bin to the `PATH` environment variable and just use the `ash` command to execute Ash code (i.e. `ash test.ash`). The conventional file extension for Ash source code is `.ash`.
