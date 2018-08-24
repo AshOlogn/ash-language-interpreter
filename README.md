@@ -10,7 +10,7 @@
     - [Logical Operations](#logical-operations)
     - [String Arithmetic](#string-arithmetic)
     - [Array Arithmetic](#array-arithmetic)
-    - [String/Array Indexing](#string/array-indexing)
+    - [String/Array Indexing](#string-and-array-indexing)
     - [Casting](#casting)
     - [Printing](#printing)
 - [Control Flow](#control-flow)
@@ -84,7 +84,7 @@ The following examples show how arithmetic can be done with arrays:
 - `-[1,2,3]` yields `[3,2,1]` 
 
 
-#### String/Array Indexing
+#### String and Array Indexing
 Indexing of strings and arrays is done Python style, meaning that you can access both individual elements as well as slices. Positive indices are zero-indexed and negative indices count from the back, with -1 denoting the last element (different from Python, in which -1 denotes the second to last element). I'd rather not belabor a system already described by the Python language, so here are some examples of how indexing works:
 - `"abcd"[0]` returns `'a'`
 - `[1,2,3][1]` returns `2`
