@@ -31,8 +31,5 @@
 *.out
 *.app
 
-# Ash source files (for now)
-*.ash
-
 #Text files
 *.txt
