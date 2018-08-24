@@ -3,6 +3,7 @@
 ## Table of Contents
 [About](#about)  
 [Features](#features)
+- [Commenting](#commenting)
 - [Primitive Types](#primitive-types)
 - [Array Type](#array-type)
 - [Operations](#operations)
@@ -25,10 +26,23 @@
 This is an interpreter written in C++ for a toy language (named Ash) that I've invented to better acquaint myself with programming language design, interpreter design, and the C++ language (especially templates and OOP).
 
 ## Features
-At a high level, this language is statically-typed, statically-scoped, and supports all the basic features of a procedural language:
+At a high level, this language is statically-typed, statically-scoped, and supports all the basic features of a procedural language. Check out the `tests` directory of this repository to see examples of Ash source code. The tests are by no means exhaustive, but I have done my best to showcase the various features of the language, including error handling. The comments at the bottom of each file indicate the expected output.
+
+### Commenting  
+The Ash language supports C-style single-line commenting and multi-line commenting as demonstrated in the example below
+
+```
+// This is a single-line comment  
+int x = 5  
+println x  
+  
+/* This is a comment that spans multiple lines  
+and does not interfere with the code. The expected output  
+is just the nuber 5 */
+```
 
 ### Primitive Types
-The primitive types supported are int32, int64, uint32, uint64, char, double, bool, and string. The C++ interpreter implements the numeric types using the <cstdint> header.
+The primitive types supported are `int32`, `int64`, `uint32`, `uint64`, `char`, `double`, `bool`, and `string`. The 32-bit signed integer is the default type for integer literals in the code. Since it is the default, the simpler type keyword `int` is an alias for `int32`. The C++ interpreter implements the numeric types using the `<cstdint>` header.
 
 ### Array Type
 This language supports single-dimensional arrays of the primitive types described above. There are 2 ways of declaring them. One is to just allocate memory for an array of a certain length and the other is to provide an initializer list.

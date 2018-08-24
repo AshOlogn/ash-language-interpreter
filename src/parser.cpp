@@ -1260,6 +1260,12 @@ AbstractStatementNode* addStatement() {
       throw StaticVariableScopeError(varToken->line+1, varToken->lexeme, getCodeLineBlock(varToken->line, varToken->line), false);
     }
     
+		//consider the ++ and -- cases
+		if(isPostfixStructure()) {
+			stepBack();
+			return new ExpressionStatementNode(evalPostfixMemberAccess(), symbolTable);
+		}
+
 		//if it is a function call, treat it like an "expression" statement
 		if(peek()->type == LEFT_PAREN) {
 			stepBack();

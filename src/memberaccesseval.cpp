@@ -39,8 +39,7 @@ ParseData sliceHelper(ArrayAccessNode* node, ParseData arr, int32_t startIndex, 
 		if(pastEnd < 0 || pastEnd > len) {
 			throw OutOfBoundsException(false, len, endIndex, copyString(node->context), node->startLine, node->endLine);
 		}
-
-		std::cout << "start: " << start << " pastEnd: " << pastEnd << std::endl;
+		
 		d.value.allocated = copySubstring((char*) arr.value.allocated, start, pastEnd);
 
 	} else if(type == ARRAY_T) {
@@ -64,8 +63,7 @@ ParseData sliceHelper(ArrayAccessNode* node, ParseData arr, int32_t startIndex, 
 		if(pastEnd < 0 || pastEnd > len) {
 			throw OutOfBoundsException(true, len, endIndex, copyString(node->context), node->startLine, node->endLine);
 		}
-
-		std::cout << "start2: " << start << " pastEnd2: " << pastEnd << std::endl;
+		
 		d.value.allocated = copySubarray(array, start, pastEnd);
 	}
   
