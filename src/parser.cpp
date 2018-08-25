@@ -21,8 +21,10 @@ static SymbolTable* symbolTable;
 static vector<char*>* codeLines;
 
 //used by return statements to place value in correct memory location
+//and keep track of function type
 static vector<bool*> returnFlag;
 static vector<ParseData*> returnValue;
+static vector<ParseDataType> returnType;
 
 //some state variables
 static bool insideClassDefinition;
@@ -243,6 +245,7 @@ Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string fun
 		}
 	}
 
+	returnType.push_back(typeTokenConversion(returnTypeToken->type));
 	function->returnType = typeTokenConversion(returnTypeToken->type);
 
 	//just declare function up front with dummy data and Function public interface data
@@ -292,6 +295,7 @@ Function* parseFunction(uint32_t startLine, uint32_t secondStartLine, string fun
 	//reset global pointers
 	returnFlag.pop_back();
 	returnValue.pop_back();
+	returnType.pop_back();
 
 	return function;
 }
@@ -1626,8 +1630,25 @@ AbstractStatementNode* addStatement() {
     }
 
 		case RETURN: {
+
 			Token* returnToken = consume(); //consume return
-			return new ReturnStatementNode(evalExpression(), returnFlag.back(), returnValue.back(), returnToken->line+1);
+			AbstractExpressionNode* returnExpression = evalExpression();
+
+			//make sure we're even inside a function
+			if(returnType.size() < 1) {
+				uint32_t startLine = returnToken->line+1;
+				uint32_t endLine = returnExpression->endLine;
+				throw ParseSyntaxError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), "return", "There is no enclosing function to return out of.");
+			}
+
+			//make sure return type is valid
+			if(!typecheckImplicitCastExpression(returnExpression->evalType, returnType.back())) {
+				uint32_t startLine = returnToken->line+1;
+				uint32_t endLine = returnExpression->endLine;
+				throw StaticCastError(startLine, endLine, getCodeLineBlock(startLine-1, endLine-1), returnExpression->evalType, returnType.back(), false);
+			}
+
+			return new ReturnStatementNode(returnExpression, returnFlag.back(), returnValue.back(), returnToken->line+1);
 		}
 
 		case FUN: {
@@ -1672,6 +1693,7 @@ vector<AbstractStatementNode*>* parse(vector<Token>* tokenRef, vector<char*>* so
   symbolTable = new SymbolTable();
 	returnFlag = vector<bool*>();
 	returnValue = vector<ParseData*>();
+	returnType = vector<ParseDataType>();
 	insideClassDefinition = false;
   
   //create empty statement vector
