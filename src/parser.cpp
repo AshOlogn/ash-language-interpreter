@@ -517,10 +517,10 @@ AbstractExpressionNode* evalLiteralGroup() {
 				throw ParseSyntaxError(variable->line+1, lastCommaToken->line+1, getCodeLineBlock(variable->line, lastCommaToken->line),
 															"Expected ')' to terminate argument list");
 			}
-			consume(); //consume )
+			Token* rightParenToken = consume(); //consume )
 
 			//now return FunctionExpressionNode
-			return new FunctionExpressionNode(numArgs, arguments, function, symbolTable);
+			return new FunctionExpressionNode(numArgs, arguments, function, symbolTable, variable->line+1, rightParenToken->line+1);
 
 		} else {
 

@@ -160,9 +160,13 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 					
 					//make sure literal is terminated
 					if(code[currentIndex] != '\'') {
-						char* lexeme = new char[2];
-						lexeme[0] = code[currentIndex];
-						lexeme[1] = 0;
+
+						char* lexeme = new char[currentIndex-index+1];
+						for(int32_t i = index; i < currentIndex; i++) {
+              lexeme[i-index] = code[i];
+            }
+            lexeme[currentIndex-index] = '\0';
+
 						throw LexerError(line+1, codeLines->at(line), lexeme, "Expected ' to terminate character literal");
 					} else {
 						//consume second '
@@ -181,9 +185,13 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
 
 					//make sure literal is terminated
 					if(code[currentIndex] != '\'') {
-						char* lexeme = new char[2];
-						lexeme[0] = code[currentIndex];
-						lexeme[1] = 0;
+
+						char* lexeme = new char[currentIndex-index+1];
+						for(int32_t i = index; i < currentIndex; i++) {
+              lexeme[i-index] = code[i];
+            }
+            lexeme[currentIndex-index] = '\0';
+            
 						throw LexerError(line+1, codeLines->at(line), lexeme, "Expected ' to terminate character literal");
 					} else {
 						//consume second '
@@ -513,7 +521,6 @@ vector<Token> lex(char* code, vector<char*>* sourceCodeLines) {
         if(code[currentIndex] == '.') {
           if(decimalCount > 0) {
             
-            // !!!
             //first create lexeme
             char* errorLex = new char[currentIndex-index+2];
             for(uint32_t i = index; i <= currentIndex; i++) {

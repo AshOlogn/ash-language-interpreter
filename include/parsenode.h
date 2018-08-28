@@ -182,7 +182,7 @@ class FunctionExpressionNode : public AbstractExpressionNode {
 		bool* isReturned;
 		ParseData* returnValue;
 
-		FunctionExpressionNode(uint32_t numArgs, AbstractExpressionNode** arguments, Function* function, SymbolTable* symbolTable);	
+		FunctionExpressionNode(uint32_t numArgs, AbstractExpressionNode** arguments, Function* function, SymbolTable* symbolTable, uint32_t startLine, uint32_t endLine);	
 		ParseData evaluate();
 		std::string toString();
 };

@@ -281,7 +281,7 @@ std::string VariableNode::toString() {
 ///////    Function Call    ///////
 ///////////////////////////////////
 
-FunctionExpressionNode::FunctionExpressionNode(uint32_t nArgs, AbstractExpressionNode** args, Function* f, SymbolTable* table) {
+FunctionExpressionNode::FunctionExpressionNode(uint32_t nArgs, AbstractExpressionNode** args, Function* f, SymbolTable* table, uint32_t startLine, uint32_t endLine) {
 	numArgs = nArgs;
 	arguments = args;
 	function = f;
@@ -292,6 +292,9 @@ FunctionExpressionNode::FunctionExpressionNode(uint32_t nArgs, AbstractExpressio
 
 	isReturned = f->returnFlag;
 	returnValue = f->returnValue;
+
+  this->startLine = startLine;
+  this->endLine = endLine;
 }
 
 ParseData FunctionExpressionNode::evaluate() {
